@@ -6,6 +6,18 @@ import { createClient } from "@/lib/supabase/client";
 
 type Mode = "sign_in" | "sign_up";
 
+/**
+ * `next` is attacker-controlled (`/login?next=…`), so only same-origin paths are
+ * honoured. Anything with a scheme, a protocol-relative prefix, or a backslash
+ * escape falls back to the dashboard.
+ */
+function safeRedirect(next: string | null) {
+  if (!next) return "/";
+  const normalized = next.replace(/\\/g, "/");
+  if (!normalized.startsWith("/") || normalized.startsWith("//")) return "/";
+  return normalized;
+}
+
 export function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -30,7 +42,7 @@ export function LoginForm() {
       if (mode === "sign_in") {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
-        router.push(searchParams.get("next") ?? "/");
+        router.push(safeRedirect(searchParams.get("next")));
         router.refresh();
       } else {
         const { data, error } = await supabase.auth.signUp({

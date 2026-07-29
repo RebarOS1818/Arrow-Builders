@@ -31,6 +31,11 @@ import type {
  * Reads go through Supabase when it is configured, and fall back to the demo
  * dataset otherwise. Fallback also covers query errors so a half-migrated
  * database degrades to a readable page instead of a crash.
+ *
+ * An empty result is NOT a fallback trigger: for a configured project, zero
+ * rows is a legitimate state (a new organization, a project with no documents
+ * yet), and substituting demo rows there would show fabricated data in
+ * production.
  */
 async function withFallback<T>(
   query: (db: NonNullable<Awaited<ReturnType<typeof createClient>>>) => Promise<T | null>,
@@ -40,9 +45,7 @@ async function withFallback<T>(
   if (!db) return fallback();
   try {
     const result = await query(db);
-    if (result == null) return fallback();
-    if (Array.isArray(result) && result.length === 0) return fallback();
-    return result;
+    return result ?? fallback();
   } catch {
     return fallback();
   }

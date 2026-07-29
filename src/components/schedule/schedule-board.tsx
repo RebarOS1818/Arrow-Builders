@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, useTransition } from "react";
+import { useMemo, useState, useTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Flag, Plus } from "lucide-react";
 import { WeatherIcon, type Condition } from "@/components/ui/weather";
@@ -49,19 +49,24 @@ export function ScheduleBoard({
 
   /** Tasks created in demo mode, where no database write can echo them back. */
   const [localTasks, setLocalTasks] = useState<TaskWithProject[]>([]);
-  const [showCreate, setShowCreate] = useState(false);
 
-  // The toolbar's Create Task button lives in a sibling component; it signals
-  // through a `?create=1` query param that we consume and clear here.
-  useEffect(() => {
+  /**
+   * The toolbar's Create Task button is a sibling component, so it opens the
+   * dialog through a `?create=1` query param. That is read directly rather than
+   * mirrored into state — copying it in an effect would cascade renders.
+   */
+  const [openedLocally, setOpenedLocally] = useState(false);
+  const showCreate = openedLocally || searchParams.get("create") === "1";
+
+  function closeCreate() {
+    setOpenedLocally(false);
     if (searchParams.get("create") === "1") {
-      setShowCreate(true);
       const params = new URLSearchParams(searchParams.toString());
       params.delete("create");
       const query = params.toString();
       router.replace(query ? `?${query}` : "?", { scroll: false });
     }
-  }, [searchParams, router]);
+  }
 
   const currentTasks = useMemo(
     () =>
@@ -80,6 +85,11 @@ export function ScheduleBoard({
 
   async function handleCreate(input: NewTaskInput) {
     const result = await createTask(input);
+
+    // A failed insert is not demo mode — surface it instead of showing a task
+    // that was never saved and would vanish on refresh.
+    if (!result.ok) throw new Error(result.error);
+
     if (!result.persisted) {
       const project = projects.find((p) => p.id === input.projectId);
       setLocalTasks((prev) => [
@@ -145,7 +155,7 @@ export function ScheduleBoard({
           <button
             type="button"
             aria-label="Add task"
-            onClick={() => setShowCreate(true)}
+            onClick={() => setOpenedLocally(true)}
             className="text-ink-subtle hover:text-ink"
           >
             <Plus className="size-4" />
@@ -173,7 +183,7 @@ export function ScheduleBoard({
 
         <button
           type="button"
-          onClick={() => setShowCreate(true)}
+          onClick={() => setOpenedLocally(true)}
           className="mt-3 flex items-center justify-center gap-1.5 rounded-lg border border-dashed border-line-strong py-2 text-xs font-medium text-ink-muted hover:border-brand-400 hover:text-brand-700"
         >
           <Plus className="size-3.5" />
@@ -293,7 +303,7 @@ export function ScheduleBoard({
         <CreateTaskModal
           projects={projects}
           defaultDate={null}
-          onClose={() => setShowCreate(false)}
+          onClose={closeCreate}
           onCreate={handleCreate}
         />
       )}

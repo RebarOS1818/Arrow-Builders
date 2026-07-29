@@ -8,7 +8,7 @@ import { TRADE_DOT, TRADE_LABELS } from "@/components/ui/badge";
 import { demoWeather } from "@/lib/demo-data";
 import { getMilestones, getProjects, getTasks, getTeam, getToday } from "@/lib/data";
 import type { Trade } from "@/lib/types";
-import { startOfWeek } from "@/lib/week";
+import { isISODate, startOfWeek } from "@/lib/week";
 
 export const dynamic = "force-dynamic";
 
@@ -30,7 +30,7 @@ export default async function SchedulePage({
   ]);
 
   const todayWeekStart = startOfWeek(today);
-  const weekStart = params.week ? startOfWeek(params.week) : todayWeekStart;
+  const weekStart = isISODate(params.week) ? startOfWeek(params.week) : todayWeekStart;
   const view: ScheduleView =
     params.view === "board" || params.view === "timeline" ? params.view : "calendar";
 

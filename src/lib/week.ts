@@ -1,5 +1,16 @@
 /** Date helpers for the schedule board. All dates are plain `YYYY-MM-DD`. */
 
+/**
+ * True only for a real calendar date in `YYYY-MM-DD` form. Query params reach
+ * these helpers directly, and an unchecked value would make `toISOString()`
+ * throw `RangeError: Invalid time value` and 500 the page.
+ */
+export function isISODate(value: string | undefined | null): value is string {
+  if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const parsed = new Date(`${value}T12:00:00Z`);
+  return !Number.isNaN(parsed.getTime()) && parsed.toISOString().slice(0, 10) === value;
+}
+
 export function toISODate(date: Date) {
   return date.toISOString().slice(0, 10);
 }

@@ -30,11 +30,13 @@ export function CreateTaskModal({
   const [date, setDate] = useState(defaultDate ?? "");
   const [crewSize, setCrewSize] = useState(2);
   const [pending, setPending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   async function onSubmit(event: React.FormEvent) {
     event.preventDefault();
     if (!title.trim() || !projectId) return;
     setPending(true);
+    setError(null);
     try {
       await onCreate({
         projectId,
@@ -44,6 +46,9 @@ export function CreateTaskModal({
         crewSize,
       });
       onClose();
+    } catch (cause) {
+      // Keep the dialog open so the entered values are not lost.
+      setError(cause instanceof Error ? cause.message : "Could not create the task.");
     } finally {
       setPending(false);
     }
@@ -143,6 +148,10 @@ export function CreateTaskModal({
             />
           </label>
         </div>
+
+        {error && (
+          <p className="mt-4 rounded-lg bg-rose-50 p-2.5 text-sm text-rose-700">{error}</p>
+        )}
 
         <div className="mt-5 flex justify-end gap-2">
           <button
