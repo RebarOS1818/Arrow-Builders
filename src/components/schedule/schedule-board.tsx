@@ -1,10 +1,12 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Flag, Plus } from "lucide-react";
 import { WeatherIcon, type Condition } from "@/components/ui/weather";
 import { ScheduleTaskCard, type CrewMember } from "@/components/schedule/task-card";
-import { scheduleTask } from "@/app/(app)/schedule/actions";
+import { CreateTaskModal, type NewTaskInput } from "@/components/schedule/create-task-modal";
+import { createTask, scheduleTask } from "@/app/(app)/schedule/actions";
 import { cn } from "@/lib/utils";
 import { dayOfMonth, rangeLabel, spanColumns, weekDays, weekdayLabel } from "@/lib/week";
 import type { Milestone, TaskWithProject } from "@/lib/types";
@@ -18,7 +20,9 @@ export function ScheduleBoard({
   weekStart,
   today,
   weather,
+  projects,
 }: {
+  projects: { id: string; name: string }[];
   tasks: TaskWithProject[];
   milestones: MilestoneWithProject[];
   crewByTask: Record<string, CrewMember[]>;
@@ -27,6 +31,8 @@ export function ScheduleBoard({
   weather: { date: string; high: number; low: number; condition: Condition }[];
 }) {
   const days = useMemo(() => weekDays(weekStart), [weekStart]);
+  const router = useRouter();
+  const searchParams = useSearchParams();
 
   const [, startTransition] = useTransition();
 
@@ -41,9 +47,25 @@ export function ScheduleBoard({
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [hoverDay, setHoverDay] = useState<string | null>(null);
 
+  /** Tasks created in demo mode, where no database write can echo them back. */
+  const [localTasks, setLocalTasks] = useState<TaskWithProject[]>([]);
+  const [showCreate, setShowCreate] = useState(false);
+
+  // The toolbar's Create Task button lives in a sibling component; it signals
+  // through a `?create=1` query param that we consume and clear here.
+  useEffect(() => {
+    if (searchParams.get("create") === "1") {
+      setShowCreate(true);
+      const params = new URLSearchParams(searchParams.toString());
+      params.delete("create");
+      const query = params.toString();
+      router.replace(query ? `?${query}` : "?", { scroll: false });
+    }
+  }, [searchParams, router]);
+
   const currentTasks = useMemo(
     () =>
-      tasks.map((task) => {
+      [...tasks, ...localTasks].map((task) => {
         if (!(task.id in moves)) return task;
         const date = moves[task.id]!;
         return {
@@ -53,8 +75,32 @@ export function ScheduleBoard({
           status: date ? ("scheduled" as const) : ("unscheduled" as const),
         };
       }),
-    [tasks, moves],
+    [tasks, localTasks, moves],
   );
+
+  async function handleCreate(input: NewTaskInput) {
+    const result = await createTask(input);
+    if (!result.persisted) {
+      const project = projects.find((p) => p.id === input.projectId);
+      setLocalTasks((prev) => [
+        ...prev,
+        {
+          id: `local-${crypto.randomUUID()}`,
+          org_id: "local",
+          project_id: input.projectId,
+          title: input.title,
+          trade: input.trade,
+          status: input.date ? "scheduled" : "unscheduled",
+          starts_at: input.date,
+          ends_at: input.date,
+          crew_size: input.crewSize,
+          overdue: false,
+          sort_order: 1000 + prev.length,
+          project: { id: input.projectId, name: project?.name ?? "Unknown project" },
+        },
+      ]);
+    }
+  }
 
   const unscheduled = currentTasks.filter((t) => !t.starts_at);
   const byDay = (day: string) => currentTasks.filter((t) => t.starts_at === day);
@@ -98,7 +144,8 @@ export function ScheduleBoard({
           <h2 className="text-sm font-semibold">Unscheduled ({unscheduled.length})</h2>
           <button
             type="button"
-            aria-label="Expand unscheduled list"
+            aria-label="Add task"
+            onClick={() => setShowCreate(true)}
             className="text-ink-subtle hover:text-ink"
           >
             <Plus className="size-4" />
@@ -126,6 +173,7 @@ export function ScheduleBoard({
 
         <button
           type="button"
+          onClick={() => setShowCreate(true)}
           className="mt-3 flex items-center justify-center gap-1.5 rounded-lg border border-dashed border-line-strong py-2 text-xs font-medium text-ink-muted hover:border-brand-400 hover:text-brand-700"
         >
           <Plus className="size-3.5" />
@@ -240,6 +288,15 @@ export function ScheduleBoard({
           </div>
         </div>
       </section>
+
+      {showCreate && (
+        <CreateTaskModal
+          projects={projects}
+          defaultDate={null}
+          onClose={() => setShowCreate(false)}
+          onCreate={handleCreate}
+        />
+      )}
     </div>
   );
 }

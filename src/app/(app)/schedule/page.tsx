@@ -78,6 +78,7 @@ export default async function SchedulePage({
 
       {view === "calendar" && (
         <ScheduleBoard
+          projects={projects.map((p) => ({ id: p.id, name: p.name }))}
           tasks={visibleTasks}
           milestones={visibleMilestones}
           crewByTask={crewByTask}
