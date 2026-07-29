@@ -97,9 +97,9 @@ export const demoTasks: Task[] = [
   // Scheduled — week of May 12–18 2025.
   task({ id: "t-siteprep", project_id: "p-riverside", title: "Site Prep", trade: "general", status: "done", starts_at: "2025-05-12", ends_at: "2025-05-12", crew_size: 4 }),
   task({ id: "t-footings", project_id: "p-maple", title: "Footings", trade: "concrete", status: "done", starts_at: "2025-05-12", ends_at: "2025-05-12", crew_size: 5 }),
-  task({ id: "t-framing1", project_id: "p-westgate", title: "Framing – Level 1", trade: "general", status: "in_progress", starts_at: "2025-05-13", ends_at: "2025-05-13", crew_size: 6 }),
+  task({ id: "t-framing1", project_id: "p-westgate", title: "Framing – Level 1", trade: "general", status: "in_progress", starts_at: "2025-05-14", ends_at: "2025-05-14", crew_size: 6 }),
   task({ id: "t-pour", project_id: "p-maple", title: "Concrete Pour", trade: "concrete", status: "in_progress", starts_at: "2025-05-15", ends_at: "2025-05-15", crew_size: 6, overdue: true }),
-  task({ id: "t-drywall", project_id: "p-riverside", title: "Drywall – Level 2", trade: "finishes", status: "scheduled", starts_at: "2025-05-14", ends_at: "2025-05-14", crew_size: 4 }),
+  task({ id: "t-drywall", project_id: "p-riverside", title: "Drywall – Level 2", trade: "finishes", status: "scheduled", starts_at: "2025-05-15", ends_at: "2025-05-15", crew_size: 4 }),
   task({ id: "t-windows", project_id: "p-westgate", title: "Window Install", trade: "general", status: "scheduled", starts_at: "2025-05-16", ends_at: "2025-05-16", crew_size: 4 }),
   task({ id: "t-roofing", project_id: "p-riverside", title: "Roofing", trade: "general", status: "scheduled", starts_at: "2025-05-17", ends_at: "2025-05-17", crew_size: 5 }),
   task({ id: "t-intpaint", project_id: "p-maple", title: "Interior Paint", trade: "finishes", status: "scheduled", starts_at: "2025-05-18", ends_at: "2025-05-18", crew_size: 4 }),
