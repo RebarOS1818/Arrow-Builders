@@ -1,0 +1,69 @@
+@import "tailwindcss";
+
+@theme {
+  /* Brand — deep construction green */
+  --color-brand-50: #f0f7f2;
+  --color-brand-100: #dcebe0;
+  --color-brand-200: #b9d7c3;
+  --color-brand-300: #8dbb9e;
+  --color-brand-400: #5b9975;
+  --color-brand-500: #3a7c58;
+  --color-brand-600: #1f6340;
+  --color-brand-700: #17512f;
+  --color-brand-800: #124026;
+  --color-brand-900: #0d2f1c;
+
+  /* Warm neutral surface palette */
+  --color-canvas: #f6f5f1;
+  --color-surface: #ffffff;
+  --color-line: #e7e4dc;
+  --color-line-strong: #d8d4c9;
+  --color-ink: #1b1c19;
+  --color-ink-muted: #6b6f68;
+  --color-ink-subtle: #93968f;
+
+  /* Status */
+  --color-status-ontrack: #1f6340;
+  --color-status-behind: #d97a1f;
+  --color-status-risk: #c2410c;
+  --color-status-done: #3a7c58;
+
+  /* Trade colors (schedule legend) */
+  --color-trade-general: #1f6340;
+  --color-trade-concrete: #d97a1f;
+  --color-trade-electrical: #2563eb;
+  --color-trade-plumbing: #7c3aed;
+  --color-trade-finishes: #8a6a4b;
+
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system,
+    "Segoe UI", sans-serif;
+
+  --radius-card: 0.875rem;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  background-color: var(--color-canvas);
+  color: var(--color-ink);
+  -webkit-font-smoothing: antialiased;
+}
+
+@utility card {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-card);
+}
+
+/* Thin, unobtrusive scrollbars inside panels */
+@utility scroll-thin {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-line-strong) transparent;
+}
+
+::selection {
+  background-color: var(--color-brand-100);
+}
