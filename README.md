@@ -37,6 +37,11 @@ the source of the rows changes once Supabase is configured.
    schema, a `current_org_id()` helper, a sign-up trigger that provisions
    profiles, and row level security on every table.
 4. Optionally run `supabase/seed.sql` for the demo portfolio.
+5. For per-seat billing, run `supabase/migrations/0003_billing_seats.sql` then
+   `0004_harden_billing.sql`. `supabase/setup/billing-bundle.sql` is those two
+   concatenated with comments stripped — a convenience for pasting into the SQL
+   editor in one go, generated from the migrations, which stay the source of
+   truth. Regenerate it if you change either migration.
 5. Sign up at `/login`, then re-run the last statement of `seed.sql` to attach
    your new profile to the seeded organization.
 
