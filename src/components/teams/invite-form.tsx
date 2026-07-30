@@ -26,20 +26,20 @@ export function InviteForm({
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [needsSeats, setNeedsSeats] = useState(false);
-  const [sent, setSent] = useState<string | null>(null);
+  const [link, setLink] = useState<{ email: string; url: string } | null>(null);
 
   const seatsFull = seatsAvailable <= 0;
 
   function onSubmit(event: React.FormEvent) {
     event.preventDefault();
     setError(null);
-    setSent(null);
+    setLink(null);
     setNeedsSeats(false);
 
     startTransition(async () => {
       const result = await inviteMember(email, role);
       if (result.ok) {
-        setSent(email);
+        setLink({ email, url: result.inviteUrl });
         setEmail("");
       } else {
         setError(result.error);
@@ -105,10 +105,32 @@ export function InviteForm({
         )}
       </p>
 
-      {sent && (
-        <p className="mt-2 text-sm text-status-ontrack">
-          Invite sent to {sent}. It holds a seat until accepted or revoked.
-        </p>
+      {link && (
+        <div className="mt-3 rounded-tile bg-brand-50 p-3">
+          <p className="text-sm font-medium text-brand-900">
+            Invite created for {link.email}. Send them this link — it is the only thing
+            that grants access, so treat it like a password.
+          </p>
+          <div className="mt-2 flex items-center gap-2">
+            <input
+              readOnly
+              value={link.url}
+              onFocus={(e) => e.currentTarget.select()}
+              aria-label="Invite link"
+              className="min-w-0 flex-1 rounded-lg bg-surface px-2.5 py-1.5 font-mono text-xs outline-none"
+            />
+            <button
+              type="button"
+              onClick={() => navigator.clipboard?.writeText(link.url)}
+              className="shrink-0 rounded-full bg-brand-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-brand-700"
+            >
+              Copy
+            </button>
+          </div>
+          <p className="mt-2 text-xs text-brand-900/70">
+            It holds a seat until accepted or revoked.
+          </p>
+        </div>
       )}
 
       {error && (

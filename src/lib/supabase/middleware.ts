@@ -7,7 +7,7 @@ import { SUPABASE_ANON_KEY, SUPABASE_URL, isSupabaseConfigured } from "./config"
  * themselves and answer with JSON, and the Stripe webhook carries no session at
  * all — a 307 to /login would break it.
  */
-const PUBLIC_PATHS = ["/login", "/auth", "/api"];
+const PUBLIC_PATHS = ["/login", "/auth", "/api", "/invite"];
 
 export async function updateSession(request: NextRequest) {
   let response = NextResponse.next({ request });
