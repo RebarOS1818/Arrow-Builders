@@ -221,6 +221,31 @@ export async function getMetrics(): Promise<DashboardMetrics> {
   }
 }
 
+export type PendingInvite = {
+  id: string;
+  email: string;
+  role: string;
+  created_at: string;
+};
+
+/** Invites that have neither been accepted nor revoked — each holds a seat. */
+export async function getPendingInvites(): Promise<PendingInvite[]> {
+  const db = await createClient();
+  if (!db) return [];
+
+  try {
+    const { data } = await db
+      .from("org_invites")
+      .select("id, email, role, created_at")
+      .is("accepted_at", null)
+      .is("revoked_at", null)
+      .order("created_at", { ascending: false });
+    return (data as PendingInvite[] | null) ?? [];
+  } catch {
+    return [];
+  }
+}
+
 /** Signed-in profile, or the demo manager when Supabase is not configured. */
 export async function getCurrentProfile(): Promise<Profile> {
   const demoUser = demoProfiles[0]!;

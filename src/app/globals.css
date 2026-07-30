@@ -1,44 +1,48 @@
 @import "tailwindcss";
 
 @theme {
-  /* Brand — deep construction green */
-  --color-brand-50: #f0f7f2;
-  --color-brand-100: #dcebe0;
-  --color-brand-200: #b9d7c3;
-  --color-brand-300: #8dbb9e;
-  --color-brand-400: #5b9975;
-  --color-brand-500: #3a7c58;
-  --color-brand-600: #1f6340;
-  --color-brand-700: #17512f;
-  --color-brand-800: #124026;
-  --color-brand-900: #0d2f1c;
+  /* Brand — violet, per the reference design */
+  --color-brand-50: #f4f2ff;
+  --color-brand-100: #ebe7fe;
+  --color-brand-200: #d9d2fd;
+  --color-brand-300: #bcaefb;
+  --color-brand-400: #9a83f7;
+  --color-brand-500: #7f61f0;
+  --color-brand-600: #6d4de3;
+  --color-brand-700: #5c3ccb;
+  --color-brand-800: #4c32a6;
+  --color-brand-900: #402c85;
 
-  /* Warm neutral surface palette */
-  --color-canvas: #f6f5f1;
+  /* Cool neutral surfaces */
+  --color-canvas: #f6f7fb;
   --color-surface: #ffffff;
-  --color-line: #e7e4dc;
-  --color-line-strong: #d8d4c9;
-  --color-ink: #1b1c19;
-  --color-ink-muted: #6b6f68;
-  --color-ink-subtle: #93968f;
+  --color-line: #eef0f5;
+  --color-line-strong: #dfe3ec;
+  --color-ink: #191a23;
+  --color-ink-muted: #7b7f8d;
+  --color-ink-subtle: #a2a6b3;
 
   /* Status */
-  --color-status-ontrack: #1f6340;
-  --color-status-behind: #d97a1f;
-  --color-status-risk: #c2410c;
-  --color-status-done: #3a7c58;
+  --color-status-ontrack: #16a34a;
+  --color-status-behind: #f08c2e;
+  --color-status-risk: #e5484d;
+  --color-status-done: #16a34a;
 
   /* Trade colors (schedule legend) */
-  --color-trade-general: #1f6340;
-  --color-trade-concrete: #d97a1f;
-  --color-trade-electrical: #2563eb;
-  --color-trade-plumbing: #7c3aed;
-  --color-trade-finishes: #8a6a4b;
+  --color-trade-general: #6d4de3;
+  --color-trade-concrete: #f08c2e;
+  --color-trade-electrical: #2b7fff;
+  --color-trade-plumbing: #12b0a6;
+  --color-trade-finishes: #e964a8;
 
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system,
     "Segoe UI", sans-serif;
 
-  --radius-card: 0.875rem;
+  --radius-card: 1.25rem;
+  --radius-tile: 0.875rem;
+
+  --shadow-soft: 0 1px 2px rgb(25 26 35 / 0.04), 0 8px 24px -12px rgb(25 26 35 / 0.08);
+  --shadow-lift: 0 2px 4px rgb(25 26 35 / 0.05), 0 16px 32px -16px rgb(25 26 35 / 0.14);
 }
 
 html,
@@ -52,16 +56,30 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+/* Cards are borderless with a soft lift, the way the reference reads. */
 @utility card {
   background-color: var(--color-surface);
-  border: 1px solid var(--color-line);
   border-radius: var(--radius-card);
+  box-shadow: var(--shadow-soft);
 }
 
-/* Thin, unobtrusive scrollbars inside panels */
+/* Inset panel inside a card (chart wells, table shells). */
+@utility well {
+  background-color: var(--color-canvas);
+  border-radius: var(--radius-tile);
+}
+
 @utility scroll-thin {
   scrollbar-width: thin;
   scrollbar-color: var(--color-line-strong) transparent;
+}
+
+/* Horizontal card rails hide their scrollbar — arrows drive them instead. */
+@utility scroll-hidden {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 ::selection {

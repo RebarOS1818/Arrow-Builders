@@ -1,0 +1,41 @@
+import "server-only";
+
+export const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY ?? "";
+export const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET ?? "";
+
+/** Recurring per-seat price created in the Stripe dashboard. */
+export const STRIPE_SEAT_PRICE_ID = process.env.STRIPE_SEAT_PRICE_ID ?? "";
+
+/** Service-role key — webhook writes happen with no user session, so they bypass RLS. */
+export const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY ?? "";
+
+export const APP_URL =
+  process.env.NEXT_PUBLIC_APP_URL ??
+  (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
+
+/**
+ * Every variable the full charge-and-record loop needs.
+ *
+ * The webhook secret and service-role key are part of readiness, not optional
+ * extras: without them a customer can complete Checkout and be charged while
+ * /api/stripe/webhook answers 503, so the subscription is never recorded and the
+ * app still believes the org has no plan. Refusing to start checkout is the only
+ * honest failure mode.
+ */
+const REQUIRED_ENV = {
+  STRIPE_SECRET_KEY,
+  STRIPE_SEAT_PRICE_ID,
+  STRIPE_WEBHOOK_SECRET,
+  SUPABASE_SERVICE_ROLE_KEY,
+} as const;
+
+/** Names of the variables still unset, for a precise setup message. */
+export const missingStripeEnv = Object.entries(REQUIRED_ENV)
+  .filter(([, value]) => !value)
+  .map(([name]) => name);
+
+/**
+ * Billing stays inert until every variable is present, so the app keeps running
+ * on demo data and self-hosted installs that do not charge anyone.
+ */
+export const isStripeConfigured = missingStripeEnv.length === 0;

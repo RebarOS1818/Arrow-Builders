@@ -18,14 +18,23 @@ import { formatCurrency } from "@/lib/utils";
 const SPENT = "var(--color-brand-600)";
 const BUDGET = "var(--color-brand-200)";
 
-/** Keyed by status so filtering out empty slices never shifts the colors. */
+/**
+ * Keyed by status so filtering out empty slices never shifts the colors.
+ * Progress states walk a violet ramp; unscheduled is neutral slate so it reads
+ * as "not started" rather than as another stage — and stays legible as legend text.
+ */
 const STATUS_COLORS: Record<string, string> = {
-  Done: "var(--color-brand-600)",
-  "In Progress": "var(--color-brand-400)",
-  Scheduled: "var(--color-brand-200)",
-  Blocked: "#c2410c",
-  Unscheduled: "var(--color-line-strong)",
+  Done: "var(--color-brand-700)",
+  "In Progress": "var(--color-brand-500)",
+  Scheduled: "var(--color-brand-300)",
+  Blocked: "#e5484d",
+  Unscheduled: "#94a3b8",
 };
+
+/** Legend text always renders in ink; only the swatch carries the series colour. */
+function legendLabel(value: unknown) {
+  return <span style={{ color: "var(--color-ink-muted)" }}>{String(value)}</span>;
+}
 
 const axisMoney = (v: number) => `$${Math.round(v / 1000)}K`;
 
@@ -60,7 +69,7 @@ export function BudgetChart({
             contentStyle={{ borderRadius: 10, border: "1px solid var(--color-line)", fontSize: 12 }}
             formatter={(value) => formatCurrency(Number(value ?? 0))}
           />
-          <Legend wrapperStyle={{ fontSize: 12 }} />
+          <Legend wrapperStyle={{ fontSize: 12 }} formatter={legendLabel} />
           <Bar dataKey="budget" name="Budget" fill={BUDGET} radius={[4, 4, 0, 0]} />
           <Bar dataKey="spent" name="Spent" fill={SPENT} radius={[4, 4, 0, 0]} />
         </BarChart>
@@ -90,7 +99,7 @@ export function TaskStatusChart({ data }: { data: { name: string; value: number 
           <Tooltip
             contentStyle={{ borderRadius: 10, border: "1px solid var(--color-line)", fontSize: 12 }}
           />
-          <Legend wrapperStyle={{ fontSize: 12 }} />
+          <Legend wrapperStyle={{ fontSize: 12 }} formatter={legendLabel} />
         </PieChart>
       </ResponsiveContainer>
     </div>

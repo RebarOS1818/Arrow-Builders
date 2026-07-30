@@ -1,13 +1,19 @@
-import { TopNav } from "@/components/layout/top-nav";
-import { getCurrentProfile } from "@/lib/data";
+import { AppShell } from "@/components/layout/app-shell";
+import { getCurrentProfile, getTeam } from "@/lib/data";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
-  const profile = await getCurrentProfile();
+  const [profile, team] = await Promise.all([getCurrentProfile(), getTeam()]);
+
+  const onSite = team
+    .filter((member) => member.on_site_today)
+    .map(({ id, full_name, initials, role }) => ({ id, full_name, initials, role }));
 
   return (
-    <div className="min-h-screen">
-      <TopNav user={{ full_name: profile.full_name, initials: profile.initials }} />
-      <main className="mx-auto max-w-[1400px] px-4 pb-16 pt-6 sm:px-6">{children}</main>
-    </div>
+    <AppShell
+      user={{ full_name: profile.full_name, initials: profile.initials }}
+      crew={onSite}
+    >
+      {children}
+    </AppShell>
   );
 }
