@@ -57,6 +57,21 @@ redirected to `/login` by `src/proxy.ts`.
 `org_id`, and RLS restricts rows to the organization on the signed-in user's
 profile, so a single database serves multiple developers safely.
 
+## Invite emails
+
+Invites always produce a copyable redemption link. If `SUPABASE_SERVICE_ROLE_KEY`
+is set, the link is also emailed through Supabase Auth's admin invite endpoint,
+which uses the SMTP provider configured under **Project Settings → Auth → SMTP
+Settings** — so mail credentials live in Supabase rather than in this app.
+
+Supabase's built-in sender is rate limited and intended for development; wire up
+a real provider before relying on delivery. Add the app's domain under
+**Authentication → URL Configuration → Redirect URLs** so the invite link is
+allowed to land on `/invite/<token>`.
+
+Delivery is attempted only after the invite row exists, so a mail failure never
+costs the invite. The form reports what happened and always shows the link.
+
 ## Deploying to Vercel
 
 1. Push this repository to GitHub.

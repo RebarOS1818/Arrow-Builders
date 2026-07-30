@@ -5,9 +5,15 @@ import { createClient } from "@/lib/supabase/server";
 import { getStripe } from "@/lib/stripe/client";
 import { syncSeatQuantity } from "@/lib/stripe/seats";
 import { APP_URL } from "@/lib/stripe/config";
+import { isInviteEmailConfigured, sendInviteEmail } from "@/lib/email/invite";
+
+/** Why the invite email did not go out, when it did not. */
+export type InviteDelivery =
+  | { emailed: true }
+  | { emailed: false; reason: "not_configured" | "already_registered" | "failed"; detail?: string };
 
 export type InviteResult =
-  | { ok: true; inviteUrl: string }
+  | ({ ok: true; inviteUrl: string } & InviteDelivery)
   | { ok: false; error: string; needsSeats?: boolean };
 
 export type RevokeResult = { ok: true } | { ok: false; error: string };
@@ -17,9 +23,10 @@ export type RevokeResult = { ok: true } | { ok: false; error: string };
  * enforces the same rule with a trigger, so this check is the friendly message
  * rather than the actual guarantee.
  *
- * Returns a redemption link. Membership is granted by the token in that link,
- * never by the email address matching — so the invite works regardless of email
- * deliverability, and knowing an invitee's address grants nothing.
+ * Returns a redemption link, and emails it when Supabase SMTP is configured.
+ * Membership is granted by the token in that link, never by the email address
+ * matching — so the invite still works if delivery fails, and knowing an
+ * invitee's address grants nothing.
  */
 export async function inviteMember(email: string, role: string): Promise<InviteResult> {
   const trimmed = email.trim().toLowerCase();
@@ -37,12 +44,16 @@ export async function inviteMember(email: string, role: string): Promise<InviteR
 
   const { data: profile } = await db
     .from("profiles")
-    .select("org_id, is_admin")
+    .select("org_id, is_admin, organizations(name)")
     .eq("id", user.id)
     .single();
 
   const orgId = (profile as { org_id: string | null } | null)?.org_id;
   if (!orgId) return { ok: false, error: "Your account has no organization." };
+
+  const orgName =
+    (profile as { organizations?: { name?: string } | null } | null)?.organizations?.name ??
+    "your organization";
   if (!(profile as { is_admin: boolean } | null)?.is_admin) {
     return { ok: false, error: "Only admins can invite members." };
   }
@@ -77,11 +88,24 @@ export async function inviteMember(email: string, role: string): Promise<InviteR
 
   await pushSeatCount(orgId);
 
+  const token = (invite as { token: string }).token;
+  const inviteUrl = `${APP_URL}/invite/${token}`;
+
+  // Delivery is attempted after the row exists, so a mail failure never costs
+  // the invite — the admin can still copy the link.
+  const delivery = await sendInviteEmail(trimmed, token, orgName);
+
   revalidatePath("/teams");
   revalidatePath("/billing");
 
-  const token = (invite as { token: string }).token;
-  return { ok: true, inviteUrl: `${APP_URL}/invite/${token}` };
+  return delivery.sent
+    ? { ok: true, inviteUrl, emailed: true }
+    : { ok: true, inviteUrl, emailed: false, reason: delivery.reason, detail: delivery.detail };
+}
+
+/** Whether the app can send invite emails at all, for the form's copy. */
+export async function canEmailInvites() {
+  return isInviteEmailConfigured;
 }
 
 export async function revokeInvite(inviteId: string): Promise<RevokeResult> {
