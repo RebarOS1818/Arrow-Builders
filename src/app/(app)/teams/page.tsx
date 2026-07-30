@@ -45,7 +45,7 @@ export default async function TeamsPage() {
         />
       </div>
 
-      <InviteForm seatsAvailable={billing.seatsAvailable} canInvite={billing.canManage} />
+      <InviteForm seatsAvailable={billing.seatsAvailable} canInvite={billing.isAdmin} />
 
       {invites.length > 0 && (
         <section>

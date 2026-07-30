@@ -30,7 +30,15 @@ export type BillingSummary = {
   status: SubscriptionStatus;
   currentPeriodEnd: string | null;
   hasSubscription: boolean;
-  /** Billing is only actionable for admins on a Stripe-configured install. */
+  /**
+   * Admin of the organization. Governs inviting and seat management, which are
+   * useful with or without a payment processor.
+   */
+  isAdmin: boolean;
+  /**
+   * Billing *actions* (checkout, portal) additionally need Stripe configured.
+   * Kept separate from isAdmin so an unconfigured install still manages its team.
+   */
   canManage: boolean;
   stripeReady: boolean;
   /** Env vars still missing, so the billing page can name them exactly. */
@@ -67,6 +75,7 @@ export async function getBillingSummary(): Promise<BillingSummary> {
       status: "none",
       currentPeriodEnd: null,
       hasSubscription: false,
+      isAdmin: false,
       canManage: false,
       stripeReady: false,
       missingEnv: missingStripeEnv,
@@ -135,6 +144,7 @@ export async function getBillingSummary(): Promise<BillingSummary> {
     status: row?.subscription_status ?? "none",
     currentPeriodEnd: row?.current_period_end ?? null,
     hasSubscription: Boolean(row?.stripe_subscription_id),
+    isAdmin,
     canManage: isAdmin && isStripeConfigured,
     stripeReady: isStripeConfigured,
     missingEnv: missingStripeEnv,
