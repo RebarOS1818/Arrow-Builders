@@ -2,15 +2,19 @@ import "server-only";
 
 import { createClient } from "./supabase/server";
 import { DEMO_ORG, demoProfiles } from "./demo-data";
-import { isStripeConfigured } from "./stripe/config";
+import { isStripeConfigured, missingStripeEnv } from "./stripe/config";
 
+/** Mirrors the subscription_status enum: Stripe's full set plus our "none". */
 export type SubscriptionStatus =
   | "none"
   | "trialing"
   | "active"
   | "past_due"
   | "canceled"
-  | "incomplete";
+  | "incomplete"
+  | "incomplete_expired"
+  | "unpaid"
+  | "paused";
 
 export type BillingSummary = {
   orgId: string;
@@ -29,9 +33,15 @@ export type BillingSummary = {
   /** Billing is only actionable for admins on a Stripe-configured install. */
   canManage: boolean;
   stripeReady: boolean;
+  /** Env vars still missing, so the billing page can name them exactly. */
+  missingEnv: string[];
 };
 
-/** Statuses that should still grant access to the app. */
+/**
+ * Statuses that should still grant access. `past_due` is included deliberately —
+ * a failed card is a dunning problem, not a reason to lock a crew out mid-job.
+ * `unpaid` is where Stripe gives up on retries, so access stops there.
+ */
 export function isEntitled(status: SubscriptionStatus) {
   return status === "active" || status === "trialing" || status === "past_due";
 }
@@ -59,6 +69,7 @@ export async function getBillingSummary(): Promise<BillingSummary> {
       hasSubscription: false,
       canManage: false,
       stripeReady: false,
+      missingEnv: missingStripeEnv,
     };
   }
 
@@ -126,6 +137,7 @@ export async function getBillingSummary(): Promise<BillingSummary> {
     hasSubscription: Boolean(row?.stripe_subscription_id),
     canManage: isAdmin && isStripeConfigured,
     stripeReady: isStripeConfigured,
+    missingEnv: missingStripeEnv,
   };
 }
 

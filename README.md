@@ -37,8 +37,9 @@ the source of the rows changes once Supabase is configured.
    schema, a `current_org_id()` helper, a sign-up trigger that provisions
    profiles, and row level security on every table.
 4. Optionally run `supabase/seed.sql` for the demo portfolio.
-5. For per-seat billing, run `supabase/migrations/0003_billing_seats.sql` then
-   `0004_harden_billing.sql`. `supabase/setup/billing-bundle.sql` is those two
+5. For per-seat billing, run `supabase/migrations/0003_billing_seats.sql`,
+   `0004_harden_billing.sql` then `0005_billing_robustness.sql`.
+   `supabase/setup/billing-bundle.sql` is those three
    concatenated with comments stripped — a convenience for pasting into the SQL
    editor in one go, generated from the migrations, which stay the source of
    truth. Regenerate it if you change either migration.

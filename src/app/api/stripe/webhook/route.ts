@@ -8,6 +8,27 @@ import { createAdminClient } from "@/lib/supabase/admin";
 const FREE_SEAT_LIMIT = 3;
 
 /**
+ * Stripe's status set, mapped to our enum. Anything unrecognised — a status
+ * Stripe adds later — becomes 'incomplete' rather than being written through,
+ * because an invalid enum value would 500 this handler and put Stripe into an
+ * endless retry loop with the stored billing state frozen.
+ */
+const STATUS_MAP: Record<string, string> = {
+  incomplete: "incomplete",
+  incomplete_expired: "incomplete_expired",
+  trialing: "trialing",
+  active: "active",
+  past_due: "past_due",
+  canceled: "canceled",
+  unpaid: "unpaid",
+  paused: "paused",
+};
+
+function statusOf(subscription: Stripe.Subscription): string {
+  return STATUS_MAP[subscription.status] ?? "incomplete";
+}
+
+/**
  * The 2026 API moved period boundaries onto subscription items. Read the item
  * first and fall back to the legacy top-level field so either shape works.
  */
@@ -65,7 +86,7 @@ export async function POST(request: NextRequest) {
             stripe_customer_id:
               typeof session.customer === "string" ? session.customer : session.customer?.id,
             stripe_subscription_id: subscription.id,
-            subscription_status: subscription.status,
+            subscription_status: statusOf(subscription),
             seat_limit: seatsOf(subscription),
             current_period_end: periodEnd(subscription),
             plan: "team",
@@ -82,7 +103,7 @@ export async function POST(request: NextRequest) {
         // Seat limit follows the paid quantity, so the app grants exactly what
         // is billed — including changes made in the Stripe portal.
         const patch = {
-          subscription_status: subscription.status,
+          subscription_status: statusOf(subscription),
           seat_limit: seatsOf(subscription),
           current_period_end: periodEnd(subscription),
           stripe_subscription_id: subscription.id,

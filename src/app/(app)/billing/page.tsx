@@ -14,6 +14,9 @@ const STATUS_COPY: Record<SubscriptionStatus, { label: string; tone: string }> =
   past_due: { label: "Past due", tone: "bg-orange-50 text-status-behind" },
   canceled: { label: "Canceled", tone: "bg-canvas text-ink-muted" },
   incomplete: { label: "Incomplete", tone: "bg-orange-50 text-status-behind" },
+  incomplete_expired: { label: "Expired", tone: "bg-canvas text-ink-muted" },
+  unpaid: { label: "Unpaid", tone: "bg-rose-50 text-status-risk" },
+  paused: { label: "Paused", tone: "bg-canvas text-ink-muted" },
 };
 
 export default async function BillingPage({
@@ -131,12 +134,16 @@ export default async function BillingPage({
 
       {!billing.stripeReady && (
         <Banner tone="info" icon={Info}>
-          Stripe is not configured, so these figures are illustrative. Set{" "}
-          <code className="font-mono text-xs">STRIPE_SECRET_KEY</code>,{" "}
-          <code className="font-mono text-xs">STRIPE_SEAT_PRICE_ID</code>,{" "}
-          <code className="font-mono text-xs">STRIPE_WEBHOOK_SECRET</code> and{" "}
-          <code className="font-mono text-xs">SUPABASE_SERVICE_ROLE_KEY</code> to take
-          payments.
+          Billing is inactive, so these figures are illustrative. Checkout stays
+          disabled until every variable is set — otherwise a customer could be charged
+          without the subscription being recorded. Still missing:{" "}
+          {billing.missingEnv.map((name, index) => (
+            <span key={name}>
+              {index > 0 && ", "}
+              <code className="font-mono text-xs">{name}</code>
+            </span>
+          ))}
+          .
         </Banner>
       )}
     </div>
