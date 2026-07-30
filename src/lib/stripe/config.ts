@@ -5,8 +5,22 @@ import { SUPABASE_SERVICE_ROLE_KEY as SERVICE_ROLE_KEY } from "../supabase/serve
 export const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY ?? "";
 export const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET ?? "";
 
-/** Recurring per-seat price created in the Stripe dashboard. */
-export const STRIPE_SEAT_PRICE_ID = process.env.STRIPE_SEAT_PRICE_ID ?? "";
+/**
+ * Recurring flat-fee Price created in the Stripe dashboard. Set an
+ * `included_seats` metadata key on it to override the user allowance below.
+ */
+export const STRIPE_PRICE_ID = process.env.STRIPE_PRICE_ID ?? "";
+
+/**
+ * Users the plan allows, when the Stripe Price does not say otherwise.
+ *
+ * Billing is a flat monthly fee for up to this many users, not a per-seat
+ * charge — the Stripe quantity is always 1.
+ */
+export const INCLUDED_SEATS = 50;
+
+/** Users allowed before subscribing, and after a subscription ends. */
+export const FREE_SEATS = 3;
 
 // Shared with invite email delivery, so it lives with the other Supabase config.
 export { SUPABASE_SERVICE_ROLE_KEY } from "../supabase/server-config";
@@ -27,7 +41,7 @@ export const APP_URL =
  */
 const REQUIRED_ENV = {
   STRIPE_SECRET_KEY,
-  STRIPE_SEAT_PRICE_ID,
+  STRIPE_PRICE_ID,
   STRIPE_WEBHOOK_SECRET,
   SUPABASE_SERVICE_ROLE_KEY: SERVICE_ROLE_KEY,
 } as const;

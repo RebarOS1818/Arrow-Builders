@@ -144,6 +144,7 @@ begin
   return new;
 end;
 $$;
+
 create or replace function prevent_self_admin()
 returns trigger
 language plpgsql
@@ -217,6 +218,10 @@ begin
   return new;
 end;
 $$;
+/**
+ * Shows who an invite is for without exposing the invitee's email, so the
+ * redemption page can say "You have been invited to X" before sign-in.
+ */
 create or replace function invite_preview(invite_token text)
 returns jsonb
 language plpgsql
@@ -239,6 +244,14 @@ begin
   return jsonb_build_object('valid', true, 'org', inv.org_name, 'role', inv.role);
 end;
 $$;
+/**
+ * Redeems an invite for the signed-in caller. Possession of the token is the
+ * proof of invitation; the email on the invite is never compared to the
+ * account's, so a mistyped address cannot lock anyone out.
+ *
+ * Seats stay balanced: this converts one pending invite into one member, and
+ * org_seats_used counts both.
+ */
 create or replace function accept_invite(invite_token text)
 returns jsonb
 language plpgsql
@@ -305,6 +318,7 @@ grant execute on function org_seats_used() to authenticated;
 grant execute on function org_seats_available() to authenticated;
 grant execute on function invite_preview(text) to authenticated, anon;
 grant execute on function accept_invite(text) to authenticated;
+
 alter type subscription_status add value if not exists 'unpaid';
 alter type subscription_status add value if not exists 'paused';
 alter type subscription_status add value if not exists 'incomplete_expired';
@@ -339,3 +353,18 @@ begin
   return new;
 end;
 $$;
+
+alter table organizations
+  rename column price_per_seat_cents to price_cents;
+comment on column organizations.price_cents is
+  'Flat monthly fee for the whole organization, not a per-user rate. Written by the Stripe webhook from the Price, so the app never displays a figure the customer is not actually charged.';
+alter table organizations
+  alter column price_cents set default 0;
+comment on column organizations.seat_limit is
+  'Users included in the plan. Set from the Stripe Price metadata by the webhook.';
+alter table organizations
+  alter column seat_limit set default 3;
+update organizations
+   set seat_limit = 50
+ where stripe_subscription_id is not null
+   and seat_limit < 50;

@@ -1,11 +1,8 @@
 import { NextResponse, type NextRequest } from "next/server";
 import type Stripe from "stripe";
 import { getStripe } from "@/lib/stripe/client";
-import { STRIPE_WEBHOOK_SECRET } from "@/lib/stripe/config";
+import { FREE_SEATS, INCLUDED_SEATS, STRIPE_WEBHOOK_SECRET } from "@/lib/stripe/config";
 import { createAdminClient } from "@/lib/supabase/admin";
-
-/** Seat ceiling an organization falls back to once its subscription ends. */
-const FREE_SEAT_LIMIT = 3;
 
 /**
  * Stripe's status set, mapped to our enum. Anything unrecognised — a status
@@ -39,8 +36,27 @@ function periodEnd(subscription: Stripe.Subscription): string | null {
   return seconds ? new Date(seconds * 1000).toISOString() : null;
 }
 
-function seatsOf(subscription: Stripe.Subscription): number {
-  return subscription.items.data[0]?.quantity ?? 1;
+/**
+ * Users the plan includes.
+ *
+ * Deliberately NOT the subscription quantity. Billing is a flat fee, so the
+ * quantity is always 1 — reading it here would set every paying customer's
+ * ceiling to a single user. The allowance lives in the Price's `included_seats`
+ * metadata so it can differ per client without a deploy, and falls back to the
+ * configured bundle when a Price has no metadata set.
+ */
+function includedSeats(subscription: Stripe.Subscription): number {
+  const raw = subscription.items.data[0]?.price?.metadata?.included_seats;
+  const parsed = Number.parseInt(raw ?? "", 10);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : INCLUDED_SEATS;
+}
+
+/**
+ * The flat monthly amount Stripe will actually charge. Recorded so the billing
+ * page shows the real figure rather than a default compiled into the app.
+ */
+function priceCentsOf(subscription: Stripe.Subscription): number | null {
+  return subscription.items.data[0]?.price?.unit_amount ?? null;
 }
 
 function orgIdOf(subscription: Stripe.Subscription): string | null {
@@ -87,7 +103,8 @@ export async function POST(request: NextRequest) {
               typeof session.customer === "string" ? session.customer : session.customer?.id,
             stripe_subscription_id: subscription.id,
             subscription_status: statusOf(subscription),
-            seat_limit: seatsOf(subscription),
+            seat_limit: includedSeats(subscription),
+            price_cents: priceCentsOf(subscription) ?? 0,
             current_period_end: periodEnd(subscription),
             plan: "team",
           })
@@ -100,11 +117,12 @@ export async function POST(request: NextRequest) {
         const subscription = event.data.object as Stripe.Subscription;
         const orgId = orgIdOf(subscription);
 
-        // Seat limit follows the paid quantity, so the app grants exactly what
-        // is billed — including changes made in the Stripe portal.
+        // Re-read the allowance on every update, so moving a client to a
+        // larger Price in the Stripe dashboard raises their ceiling here too.
         const patch = {
           subscription_status: statusOf(subscription),
-          seat_limit: seatsOf(subscription),
+          seat_limit: includedSeats(subscription),
+          price_cents: priceCentsOf(subscription) ?? 0,
           current_period_end: periodEnd(subscription),
           stripe_subscription_id: subscription.id,
         };
@@ -124,7 +142,8 @@ export async function POST(request: NextRequest) {
         const patch = {
           subscription_status: "canceled" as const,
           stripe_subscription_id: null,
-          seat_limit: FREE_SEAT_LIMIT,
+          seat_limit: FREE_SEATS,
+          price_cents: 0,
           current_period_end: periodEnd(subscription),
           plan: "starter",
         };

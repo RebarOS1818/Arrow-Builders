@@ -100,7 +100,7 @@ export function InviteForm({
         <button
           type="submit"
           disabled={pending || seatsFull}
-          title={seatsFull ? "No seats available on your plan" : undefined}
+          title={seatsFull ? "The plan\u2019s user limit is reached" : undefined}
           className="inline-flex items-center gap-2 rounded-full bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {pending ? <Loader2 className="size-4 animate-spin" /> : <UserPlus className="size-4" />}
@@ -111,14 +111,14 @@ export function InviteForm({
       <p className="mt-3 text-xs text-ink-muted">
         {seatsFull ? (
           <span className="text-status-behind">
-            All seats on your plan are in use.{" "}
+            Your plan is full.{" "}
             <Link href="/billing" className="font-semibold underline">
-              Add seats
+              Change plan
             </Link>{" "}
             to invite more people.
           </span>
         ) : (
-          `${seatsAvailable} seat${seatsAvailable === 1 ? "" : "s"} available on your plan.`
+          `${seatsAvailable} of your plan\u2019s users remaining.`
         )}
       </p>
 
@@ -158,7 +158,7 @@ export function InviteForm({
             </button>
           </div>
           <p className="mt-2 text-xs text-brand-900/70">
-            It holds a seat until accepted or revoked.
+            It counts towards your plan until accepted or revoked.
           </p>
         </div>
       )}

@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getStripe } from "@/lib/stripe/client";
-import { APP_URL, STRIPE_SEAT_PRICE_ID } from "@/lib/stripe/config";
+import { APP_URL, STRIPE_PRICE_ID } from "@/lib/stripe/config";
 
-/** Starts a per-seat subscription for the caller's organization. Admins only. */
+/** Starts the flat-fee subscription for the caller's organization. Admins only. */
 export async function POST() {
   const stripe = getStripe();
   const db = await createClient();
@@ -48,23 +48,12 @@ export async function POST() {
     return NextResponse.json({ error: "Already subscribed." }, { status: 409 });
   }
 
-  // Bill for every seat currently occupied — members plus outstanding invites.
-  const [members, invites] = await Promise.all([
-    db.from("profiles").select("id", { count: "exact", head: true }).eq("org_id", orgId),
-    db
-      .from("org_invites")
-      .select("id", { count: "exact", head: true })
-      .eq("org_id", orgId)
-      .is("accepted_at", null)
-      .is("revoked_at", null),
-  ]);
-
-  const seats = Math.max(1, (members.count ?? 0) + (invites.count ?? 0));
-
   try {
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
-      line_items: [{ price: STRIPE_SEAT_PRICE_ID, quantity: seats }],
+      // Flat fee: one unit of a fixed-price recurring item, whatever the head
+      // count. The user allowance rides on the Price's included_seats metadata.
+      line_items: [{ price: STRIPE_PRICE_ID, quantity: 1 }],
       customer: row?.stripe_customer_id ?? undefined,
       customer_email: row?.stripe_customer_id ? undefined : (user.email ?? undefined),
       client_reference_id: orgId,

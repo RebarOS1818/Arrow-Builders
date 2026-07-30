@@ -25,7 +25,8 @@ export type BillingSummary = {
   seatsAvailable: number;
   members: number;
   pendingInvites: number;
-  pricePerSeatCents: number;
+  /** Flat monthly fee for the whole organization. */
+  priceCents: number;
   monthlyTotalCents: number;
   status: SubscriptionStatus;
   currentPeriodEnd: string | null;
@@ -70,8 +71,8 @@ export async function getBillingSummary(): Promise<BillingSummary> {
       seatsAvailable: Math.max(0, seatLimit - members),
       members,
       pendingInvites: 0,
-      pricePerSeatCents: 2900,
-      monthlyTotalCents: 2900 * members,
+      priceCents: 29900,
+      monthlyTotalCents: 29900,
       status: "none",
       currentPeriodEnd: null,
       hasSubscription: false,
@@ -99,7 +100,7 @@ export async function getBillingSummary(): Promise<BillingSummary> {
     db
       .from("organizations")
       .select(
-        "id, name, plan, seat_limit, price_per_seat_cents, subscription_status, stripe_subscription_id, current_period_end",
+        "id, name, plan, seat_limit, price_cents, subscription_status, stripe_subscription_id, current_period_end",
       )
       .eq("id", orgId)
       .single(),
@@ -117,7 +118,7 @@ export async function getBillingSummary(): Promise<BillingSummary> {
     name: string;
     plan: string;
     seat_limit: number;
-    price_per_seat_cents: number;
+    price_cents: number;
     subscription_status: SubscriptionStatus;
     stripe_subscription_id: string | null;
     current_period_end: string | null;
@@ -127,7 +128,8 @@ export async function getBillingSummary(): Promise<BillingSummary> {
   const pendingInvites = inviteCount.count ?? 0;
   const seatsUsed = members + pendingInvites;
   const seatLimit = row?.seat_limit ?? 0;
-  const pricePerSeatCents = row?.price_per_seat_cents ?? 2900;
+  // 0 means the webhook has not recorded a price yet — shown as unknown, not free.
+  const priceCents = row?.price_cents ?? 0;
 
   return {
     orgId: row?.id ?? orgId,
@@ -138,9 +140,9 @@ export async function getBillingSummary(): Promise<BillingSummary> {
     seatsAvailable: Math.max(0, seatLimit - seatsUsed),
     members,
     pendingInvites,
-    pricePerSeatCents,
-    // Billed on seats occupied, which is what the Stripe quantity tracks.
-    monthlyTotalCents: pricePerSeatCents * seatsUsed,
+    priceCents,
+    // Flat fee: the bill does not move with head count, only with the plan.
+    monthlyTotalCents: priceCents,
     status: row?.subscription_status ?? "none",
     currentPeriodEnd: row?.current_period_end ?? null,
     hasSubscription: Boolean(row?.stripe_subscription_id),
