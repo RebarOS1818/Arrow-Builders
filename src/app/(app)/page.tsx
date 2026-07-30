@@ -1,137 +1,118 @@
-import Link from "next/link";
-import { Suspense } from "react";
-import { ApprovalsInbox } from "@/components/dashboard/approvals-inbox";
-import { CashFlowCard } from "@/components/dashboard/cash-flow-card";
-import { MetricTiles } from "@/components/dashboard/metric-tiles";
-import { TodayOnSite } from "@/components/dashboard/today-on-site";
-import { ProjectCard } from "@/components/projects/project-card";
-import { FilterSelect } from "@/components/ui/filter-select";
-import { WeatherIcon, CONDITION_LABEL } from "@/components/ui/weather";
-import { demoWeather } from "@/lib/demo-data";
-import { siteHour } from "@/lib/utils";
+import { CrewPanel } from "@/components/dashboard/crew-panel";
+import { HeroBanner } from "@/components/dashboard/hero-banner";
+import { ProjectRail } from "@/components/dashboard/project-rail";
+import { SiteScheduleTable } from "@/components/dashboard/site-schedule-table";
+import { StatPills } from "@/components/dashboard/stat-pills";
+import { StatisticCard } from "@/components/dashboard/statistic-card";
 import {
-  getApprovals,
-  getCashFlow,
   getCurrentProfile,
   getMetrics,
-  getOrganization,
   getProjects,
+  getTasks,
+  getTeam,
   getTodayEvents,
-  getToday,
 } from "@/lib/data";
+import { siteHour } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
 function greeting() {
   const hour = siteHour();
-  if (hour < 12) return "Good morning";
-  if (hour < 18) return "Good afternoon";
-  return "Good evening";
+  if (hour < 12) return "Good Morning";
+  if (hour < 18) return "Good Afternoon";
+  return "Good Evening";
 }
 
-export default async function DashboardPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ project?: string }>;
-}) {
-  const { project: projectFilter } = await searchParams;
-
-  const [org, profile, metrics, projects, events, cashFlow, approvals, today] = await Promise.all([
-    getOrganization(),
+export default async function DashboardPage() {
+  const [profile, metrics, projects, events, team, tasks] = await Promise.all([
     getCurrentProfile(),
     getMetrics(),
     getProjects(),
     getTodayEvents(),
-    getCashFlow(),
-    getApprovals(),
-    getToday(),
+    getTeam(),
+    getTasks(),
   ]);
 
-  const selected = projectFilter && projectFilter !== "all" ? projectFilter : null;
-  const visibleProjects = selected ? projects.filter((p) => p.id === selected) : projects;
-  const visibleEvents = selected ? events.filter((e) => e.project_id === selected) : events;
-
-  const weather =
-    demoWeather.find((w) => w.date === today) ?? demoWeather[demoWeather.length - 1]!;
-
   const firstName = profile.full_name.split(" ")[0];
-  const todayLabel = new Date(`${today}T12:00:00`);
+
+  // Portfolio completion is the budget-weighted average of project progress.
+  const totalBudget = projects.reduce((sum, p) => sum + Number(p.budget_total), 0);
+  const portfolioPct = totalBudget
+    ? Math.round(
+        projects.reduce((sum, p) => sum + p.completion_pct * Number(p.budget_total), 0) /
+          totalBudget,
+      )
+    : 0;
+
+  /** Each project's lead is the first crew member matching its dominant trade. */
+  const leads: Record<string, { full_name: string; initials: string; role: string }> = {};
+  for (const project of projects) {
+    const dominantTrade = tasks.find((t) => t.project_id === project.id)?.trade ?? null;
+    const lead =
+      team.find((m) => m.trade === dominantTrade) ??
+      team.find((m) => m.role.includes("Superintendent")) ??
+      team[0];
+    if (lead) {
+      leads[project.id] = {
+        full_name: lead.full_name,
+        initials: lead.initials,
+        role: lead.role,
+      };
+    }
+  }
+
+  // Bars group scheduled vs. done per project, the closest read on weekly throughput.
+  const bars = projects.slice(0, 3).map((project) => {
+    const projectTasks = tasks.filter((t) => t.project_id === project.id);
+    return {
+      label: project.name.split(" ")[0]!,
+      values: [
+        projectTasks.filter((t) => t.status !== "done").length,
+        projectTasks.filter((t) => t.status === "done").length,
+      ],
+    };
+  });
+
+  const behind = projects.filter(
+    (p) => p.status === "behind_schedule" || p.status === "at_risk",
+  ).length;
 
   return (
-    <div className="space-y-6">
-      <Suspense>
-        <div className="flex flex-wrap items-center gap-2">
-          <FilterSelect
-            ariaLabel="Organization"
-            param="org"
-            defaultValue={org.slug}
-            options={[{ value: org.slug, label: org.name }]}
-            className="w-56"
-          />
-          <FilterSelect
-            ariaLabel="Project filter"
-            param="project"
-            options={[
-              { value: "all", label: "All Projects" },
-              ...projects.map((p) => ({ value: p.id, label: p.name })),
-            ]}
-            className="w-48"
-          />
-        </div>
-      </Suspense>
+    <div className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1fr)_320px]">
+      <div className="min-w-0 space-y-5">
+        <HeroBanner
+          eyebrow="Portfolio"
+          title="Keep every project on schedule and on budget"
+          cta="Open Schedule"
+          href="/schedule"
+        />
 
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight text-brand-700">Dashboard</h1>
-          <p className="mt-1 text-lg">
-            {greeting()}, {firstName}.
-          </p>
-          <p className="text-sm text-ink-muted">Here&apos;s what&apos;s happening across your projects.</p>
-        </div>
+        <StatPills metrics={metrics} />
 
-        <div className="text-right">
-          <div className="flex items-center justify-end gap-2">
-            <WeatherIcon condition={weather.condition} className="size-6" />
-            <span className="text-2xl font-semibold tracking-tight">{weather.high}°F</span>
-          </div>
-          <p className="text-xs text-ink-muted">{CONDITION_LABEL[weather.condition]}</p>
-          <p className="mt-1 text-xs text-ink-muted">
-            {todayLabel.toLocaleDateString("en-US", {
-              month: "long",
-              day: "numeric",
-              year: "numeric",
-            })}
-            {" · "}
-            {todayLabel.toLocaleDateString("en-US", { weekday: "long" })}
-          </p>
-        </div>
+        <ProjectRail
+          title="Active Projects"
+          projects={projects}
+          leads={leads}
+          viewAllHref="/projects"
+        />
+
+        <SiteScheduleTable events={events} />
       </div>
 
-      <MetricTiles metrics={metrics} />
-
-      <section className="space-y-3">
-        <div className="flex items-baseline justify-between">
-          <h2 className="font-semibold tracking-tight">Active Projects</h2>
-          <Link href="/projects" className="text-sm font-medium text-brand-700 hover:underline">
-            View all projects
-          </Link>
-        </div>
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {visibleProjects.map((project) => (
-            <ProjectCard key={project.id} project={project} />
-          ))}
-        </div>
-      </section>
-
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <TodayOnSite events={visibleEvents} />
-        <div className="lg:col-span-1">
-          <CashFlowCard points={cashFlow} priorNet={218_000} />
-        </div>
-        <ApprovalsInbox
-          approvals={selected ? approvals.filter((a) => a.project_id === selected) : approvals}
-          today={today}
+      <div className="space-y-5">
+        <StatisticCard
+          greeting={`${greeting()} ${firstName}`}
+          initials={profile.initials}
+          portfolioPct={portfolioPct}
+          caption={
+            behind > 0
+              ? `${behind} project${behind > 1 ? "s" : ""} ${behind > 1 ? "need" : "needs"} attention today.`
+              : "Every project is tracking to plan."
+          }
+          bars={bars}
         />
+
+        <CrewPanel crew={team} />
       </div>
     </div>
   );

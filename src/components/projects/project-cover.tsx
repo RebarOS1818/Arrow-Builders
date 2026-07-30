@@ -5,10 +5,10 @@ import { cn } from "@/lib/utils";
  * elevation motif keyed off the project id. A `cover_url` overrides it.
  */
 const PALETTES = [
-  { from: "#dfe7ea", to: "#aebcc4", ink: "#5c6b74" },
-  { from: "#f0e3cf", to: "#cbae83", ink: "#7c6244" },
-  { from: "#e2e8e2", to: "#b3c4b6", ink: "#5a6f5e" },
-  { from: "#e6e2ec", to: "#b8b0c8", ink: "#655c78" },
+  { from: "#8b6df0", to: "#5b3fd0", ink: "#2c1c66" },
+  { from: "#7aa8f5", to: "#3f6fd8", ink: "#1b2f66" },
+  { from: "#f0a06d", to: "#e0763a", ink: "#6b3312" },
+  { from: "#5fc8bd", to: "#2c9c94", ink: "#0f3e3a" },
 ];
 
 function paletteFor(seed: string) {
@@ -62,7 +62,7 @@ export function ProjectCover({
             width={16}
             height={h}
             fill={p.ink}
-            opacity={0.18 + (i % 3) * 0.07}
+            opacity={0.22 + (i % 3) * 0.09}
           />
         ))}
         <g stroke={p.ink} strokeOpacity={0.22} strokeWidth={0.6}>

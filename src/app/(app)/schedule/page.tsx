@@ -49,14 +49,21 @@ export default async function SchedulePage({
   );
 
   /**
-   * Crew assignment is derived from trade until per-task assignment lands:
-   * trade specialists lead, generalists fill the rest of the crew.
+   * Crew assignment is derived from trade until per-task assignment lands.
+   * Ranked: the matching trade lead first, then other field trades, and office
+   * staff (no trade) last so they don't appear on every crew.
    */
+  const crewRank = (member: (typeof team)[number], trade: string) => {
+    if (member.trade === trade) return 0;
+    if (member.trade) return 1;
+    return 2;
+  };
+
   const crewByTask = Object.fromEntries(
     visibleTasks.map((task) => [
       task.id,
       [...team]
-        .sort((a, b) => Number(b.trade === task.trade) - Number(a.trade === task.trade))
+        .sort((a, b) => crewRank(a, task.trade) - crewRank(b, task.trade))
         .slice(0, Math.max(1, Math.min(task.crew_size, 4)))
         .map(({ id, full_name, initials }) => ({ id, full_name, initials })),
     ]),

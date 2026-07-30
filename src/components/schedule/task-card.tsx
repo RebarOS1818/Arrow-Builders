@@ -25,10 +25,12 @@ export function ScheduleTaskCard({
       draggable
       {...handlers}
       className={cn(
-        "card cursor-grab border-l-[3px] p-2.5 shadow-xs transition active:cursor-grabbing",
+        // Tile radius, not the full card radius: the trade accent stripe reads as
+        // a straight edge marker rather than a curved sliver at this size.
+        "cursor-grab rounded-tile border-l-[3px] bg-surface p-2.5 shadow-soft transition active:cursor-grabbing",
         TRADE_ACCENT[task.trade],
-        dragging ? "opacity-40" : "hover:shadow-md",
-        task.overdue && "ring-1 ring-status-behind/30",
+        dragging ? "opacity-40" : "hover:shadow-lift",
+        task.overdue && "ring-1 ring-status-behind/40",
       )}
     >
       <p className="text-[13px] font-semibold leading-tight">{task.title}</p>
