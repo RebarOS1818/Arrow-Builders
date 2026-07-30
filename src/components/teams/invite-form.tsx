@@ -2,8 +2,15 @@
 
 import { useState, useTransition } from "react";
 import Link from "next/link";
-import { Loader2, UserPlus } from "lucide-react";
+import { Loader2, MailCheck, MailX, UserPlus } from "lucide-react";
 import { inviteMember } from "@/app/(app)/teams/actions";
+
+/** Explains a failed send in the admin's terms, not the API's. */
+const DELIVERY_NOTE: Record<string, string> = {
+  not_configured: " — no SMTP provider is set up in Supabase yet.",
+  already_registered: " — that address already has an account here.",
+  failed: " — the mail provider rejected it.",
+};
 
 const ROLES = [
   "Crew",
@@ -26,7 +33,12 @@ export function InviteForm({
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [needsSeats, setNeedsSeats] = useState(false);
-  const [link, setLink] = useState<{ email: string; url: string } | null>(null);
+  const [link, setLink] = useState<{
+    email: string;
+    url: string;
+    emailed: boolean;
+    reason?: string;
+  } | null>(null);
 
   const seatsFull = seatsAvailable <= 0;
 
@@ -39,7 +51,12 @@ export function InviteForm({
     startTransition(async () => {
       const result = await inviteMember(email, role);
       if (result.ok) {
-        setLink({ email, url: result.inviteUrl });
+        setLink({
+          email,
+          url: result.inviteUrl,
+          emailed: result.emailed,
+          reason: result.emailed ? undefined : result.reason,
+        });
         setEmail("");
       } else {
         setError(result.error);
@@ -107,9 +124,22 @@ export function InviteForm({
 
       {link && (
         <div className="mt-3 rounded-tile bg-brand-50 p-3">
-          <p className="text-sm font-medium text-brand-900">
-            Invite created for {link.email}. Send them this link — it is the only thing
-            that grants access, so treat it like a password.
+          <p className="flex items-start gap-2 text-sm font-medium text-brand-900">
+            {link.emailed ? (
+              <MailCheck className="mt-0.5 size-4 shrink-0" />
+            ) : (
+              <MailX className="mt-0.5 size-4 shrink-0" />
+            )}
+            <span>
+              {link.emailed
+                ? `Invite emailed to ${link.email}.`
+                : `Invite created for ${link.email}, but the email did not send${
+                    DELIVERY_NOTE[link.reason ?? ""] ?? ""
+                  } Send them this link instead.`}
+            </span>
+          </p>
+          <p className="mt-1.5 text-xs text-brand-900/70">
+            The link is the only thing that grants access — treat it like a password.
           </p>
           <div className="mt-2 flex items-center gap-2">
             <input

@@ -1,13 +1,16 @@
 import "server-only";
 
+import { SUPABASE_SERVICE_ROLE_KEY as SERVICE_ROLE_KEY } from "../supabase/server-config";
+
 export const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY ?? "";
 export const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET ?? "";
 
 /** Recurring per-seat price created in the Stripe dashboard. */
 export const STRIPE_SEAT_PRICE_ID = process.env.STRIPE_SEAT_PRICE_ID ?? "";
 
-/** Service-role key — webhook writes happen with no user session, so they bypass RLS. */
-export const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY ?? "";
+// Shared with invite email delivery, so it lives with the other Supabase config.
+export { SUPABASE_SERVICE_ROLE_KEY } from "../supabase/server-config";
+
 
 export const APP_URL =
   process.env.NEXT_PUBLIC_APP_URL ??
@@ -26,7 +29,7 @@ const REQUIRED_ENV = {
   STRIPE_SECRET_KEY,
   STRIPE_SEAT_PRICE_ID,
   STRIPE_WEBHOOK_SECRET,
-  SUPABASE_SERVICE_ROLE_KEY,
+  SUPABASE_SERVICE_ROLE_KEY: SERVICE_ROLE_KEY,
 } as const;
 
 /** Names of the variables still unset, for a precise setup message. */
