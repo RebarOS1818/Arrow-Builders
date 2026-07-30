@@ -2,7 +2,12 @@ import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { SUPABASE_ANON_KEY, SUPABASE_URL, isSupabaseConfigured } from "./config";
 
-const PUBLIC_PATHS = ["/login", "/auth"];
+/**
+ * `/api` is exempt from the redirect gate on purpose: route handlers authenticate
+ * themselves and answer with JSON, and the Stripe webhook carries no session at
+ * all — a 307 to /login would break it.
+ */
+const PUBLIC_PATHS = ["/login", "/auth", "/api"];
 
 export async function updateSession(request: NextRequest) {
   let response = NextResponse.next({ request });

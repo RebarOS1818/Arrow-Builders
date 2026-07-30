@@ -12,6 +12,8 @@ import {
   PieChart,
   Settings,
   Stamp,
+  Users,
+  Wallet,
 } from "lucide-react";
 import { Avatar } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
@@ -24,6 +26,7 @@ const OVERVIEW = [
   { href: "/documents", label: "Documents", icon: FileText },
   { href: "/approvals", label: "Approvals", icon: Stamp },
   { href: "/reports", label: "Reports", icon: PieChart },
+  { href: "/teams", label: "Teams", icon: Users },
 ];
 
 export function Sidebar({
@@ -85,6 +88,18 @@ export function Sidebar({
       <div className="mt-auto pt-7">
         <SectionLabel>Settings</SectionLabel>
         <nav className="mt-1 space-y-0.5">
+          <Link
+            href="/billing"
+            className={cn(
+              "flex items-center gap-3 rounded-tile px-3 py-2.5 text-sm transition-colors",
+              isActive("/billing")
+                ? "bg-brand-50 font-semibold text-brand-700"
+                : "font-medium text-ink-muted hover:bg-canvas hover:text-ink",
+            )}
+          >
+            <Wallet className="size-4.5" />
+            Billing
+          </Link>
           <Link
             href="/settings"
             className={cn(
