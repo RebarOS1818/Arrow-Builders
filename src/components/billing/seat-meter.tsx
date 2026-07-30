@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 
-/** Seats used against the plan ceiling. Turns amber when full. */
+/** Users against the plan's included allowance. Turns amber when full. */
 export function SeatMeter({
   used,
   limit,
@@ -18,7 +18,7 @@ export function SeatMeter({
   return (
     <div>
       <div className="flex items-baseline justify-between">
-        <p className="text-sm text-ink-muted">Seats in use</p>
+        <p className="text-sm text-ink-muted">Users</p>
         <p className="text-sm font-semibold">
           {used} <span className="font-normal text-ink-muted">of {limit}</span>
         </p>
@@ -27,7 +27,7 @@ export function SeatMeter({
       <div
         className="mt-2 h-2 w-full overflow-hidden rounded-full bg-line"
         role="img"
-        aria-label={`${used} of ${limit} seats in use`}
+        aria-label={`${used} of ${limit} users`}
       >
         <div
           className={cn("h-full rounded-full", full ? "bg-status-behind" : "bg-brand-600")}

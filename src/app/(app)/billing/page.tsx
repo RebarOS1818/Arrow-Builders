@@ -33,13 +33,13 @@ export default async function BillingPage({
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Billing</h1>
         <p className="mt-1 text-sm text-ink-muted">
-          {billing.orgName} is billed monthly for each seat in use.
+          {billing.orgName} is on a flat monthly plan for up to {billing.seatLimit} users.
         </p>
       </div>
 
       {checkout === "success" && (
         <Banner tone="ok" icon={CheckCircle2}>
-          Subscription started. Seats update automatically as you add or remove people.
+          Subscription started. Invite up to {billing.seatLimit} users at no extra charge.
         </Banner>
       )}
       {checkout === "cancelled" && (
@@ -67,14 +67,17 @@ export default async function BillingPage({
               </span>
             </div>
             <p className="mt-1.5 text-sm text-ink-muted">
-              {formatCents(billing.pricePerSeatCents)} per seat / month
+              {billing.priceCents > 0
+                ? `${formatCents(billing.priceCents)} / month`
+                : "Price set at checkout"}{" "}
+              · up to {billing.seatLimit} users
             </p>
           </div>
 
           <div className="text-right">
-            <p className="text-xs text-ink-muted">Current monthly total</p>
+            <p className="text-xs text-ink-muted">Monthly total</p>
             <p className="text-2xl font-semibold tracking-tight">
-              {formatCents(billing.monthlyTotalCents)}
+              {billing.monthlyTotalCents > 0 ? formatCents(billing.monthlyTotalCents) : "—"}
             </p>
             {billing.currentPeriodEnd && (
               <p className="mt-0.5 text-xs text-ink-subtle">
@@ -95,8 +98,8 @@ export default async function BillingPage({
 
         {seatsFull && (
           <p className="mt-4 rounded-tile bg-orange-50 p-3 text-sm text-status-behind">
-            Every seat is in use. New invites are blocked until you add seats
-            {billing.canManage ? " in the billing portal." : "."}
+            All {billing.seatLimit} users on this plan are in use. New invites are
+            blocked until someone is removed, or the plan is changed.
           </p>
         )}
 
@@ -109,19 +112,19 @@ export default async function BillingPage({
       </section>
 
       <section className="card p-6">
-        <h2 className="font-semibold tracking-tight">How seats are counted</h2>
+        <h2 className="font-semibold tracking-tight">How users are counted</h2>
         <ul className="mt-3 space-y-2 text-sm text-ink-muted">
           <li>
-            A seat is used by every member of the organization and by every invite that
-            has not yet been accepted.
+            A place is taken by every member of the organization and by every invite
+            that has not yet been accepted.
           </li>
           <li>
-            Adding a seat mid-cycle is prorated by Stripe — you pay the remainder of the
-            month; removing one credits it back.
+            The fee is flat. Adding or removing people does not change the monthly
+            amount, so there is nothing to prorate.
           </li>
           <li>
-            Inviting past the plan limit is refused by the database, so the number of
-            people with access can never exceed the number of seats billed.
+            Inviting past {billing.seatLimit} is refused by the database, so the number
+            of people with access can never exceed the plan.
           </li>
         </ul>
         <Link

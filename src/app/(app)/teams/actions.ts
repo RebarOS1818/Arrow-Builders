@@ -2,8 +2,6 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import { getStripe } from "@/lib/stripe/client";
-import { syncSeatQuantity } from "@/lib/stripe/seats";
 import { APP_URL } from "@/lib/stripe/config";
 import { isInviteEmailConfigured, sendInviteEmail } from "@/lib/email/invite";
 
@@ -19,7 +17,7 @@ export type InviteResult =
 export type RevokeResult = { ok: true } | { ok: false; error: string };
 
 /**
- * Invites a member, refusing once the plan's seats are full. The database
+ * Invites a member, refusing once the plan's user limit is reached. The database
  * enforces the same rule with a trigger, so this check is the friendly message
  * rather than the actual guarantee.
  *
@@ -65,7 +63,7 @@ export async function inviteMember(email: string, role: string): Promise<InviteR
     return {
       ok: false,
       needsSeats: true,
-      error: "All seats on your plan are in use. Add seats to invite more people.",
+      error: "Your plan\u2019s user limit is reached. Remove someone, or change plan.",
     };
   }
 
@@ -78,15 +76,13 @@ export async function inviteMember(email: string, role: string): Promise<InviteR
   if (error) {
     // The seat trigger raises check_violation if the count changed underneath us.
     if (error.code === "23514" || error.message.includes("seat limit")) {
-      return { ok: false, needsSeats: true, error: "All seats on your plan are in use." };
+      return { ok: false, needsSeats: true, error: "Your plan\u2019s user limit is reached." };
     }
     if (error.code === "23505") {
       return { ok: false, error: "That address already has a pending invite." };
     }
     return { ok: false, error: error.message };
   }
-
-  await pushSeatCount(orgId);
 
   const token = (invite as { token: string }).token;
   const inviteUrl = `${APP_URL}/invite/${token}`;
@@ -113,19 +109,14 @@ export async function revokeInvite(inviteId: string): Promise<RevokeResult> {
   if (!db) return { ok: false, error: "Connect Supabase to manage invites." };
 
   // RLS restricts this update to admins of the invite's own organization.
-  const { data: invite, error } = await db
+  const { error } = await db
     .from("org_invites")
     .update({ revoked_at: new Date().toISOString() })
     .eq("id", inviteId)
     .is("accepted_at", null)
-    .is("revoked_at", null)
-    .select("org_id")
-    .single();
+    .is("revoked_at", null);
 
   if (error) return { ok: false, error: error.message };
-
-  const orgId = (invite as { org_id: string } | null)?.org_id;
-  if (orgId) await pushSeatCount(orgId);
 
   revalidatePath("/teams");
   revalidatePath("/billing");
@@ -156,31 +147,3 @@ export async function acceptInvite(
   return { ok: true, org: result.org ?? "your organization" };
 }
 
-/** Keeps the Stripe subscription quantity equal to seats in use. */
-async function pushSeatCount(orgId: string) {
-  const stripe = getStripe();
-  if (!stripe) return;
-
-  const db = await createClient();
-  if (!db) return;
-
-  const { data: org } = await db
-    .from("organizations")
-    .select("stripe_subscription_id")
-    .eq("id", orgId)
-    .single();
-
-  const subscriptionId = (org as { stripe_subscription_id: string | null } | null)
-    ?.stripe_subscription_id;
-  if (!subscriptionId) return;
-
-  const { data: used } = await db.rpc("org_seats_used");
-  if (typeof used === "number") {
-    try {
-      await syncSeatQuantity(subscriptionId, used);
-    } catch {
-      // A failed sync must not fail the invite; the webhook reconciles on the
-      // next subscription event, and the billing page always recomputes usage.
-    }
-  }
-}

@@ -37,9 +37,9 @@ the source of the rows changes once Supabase is configured.
    schema, a `current_org_id()` helper, a sign-up trigger that provisions
    profiles, and row level security on every table.
 4. Optionally run `supabase/seed.sql` for the demo portfolio.
-5. For per-seat billing, run `supabase/migrations/0003_billing_seats.sql`,
-   `0004_harden_billing.sql` then `0005_billing_robustness.sql`.
-   `supabase/setup/billing-bundle.sql` is those three
+5. For billing, run `supabase/migrations/0003_billing_seats.sql`,
+   `0004_harden_billing.sql`, `0005_billing_robustness.sql` then
+   `0006_flat_fee.sql`. `supabase/setup/billing-bundle.sql` is those four
    concatenated with comments stripped — a convenience for pasting into the SQL
    editor in one go, generated from the migrations, which stay the source of
    truth. Regenerate it if you change either migration.
@@ -71,6 +71,20 @@ allowed to land on `/invite/<token>`.
 
 Delivery is attempted only after the invite row exists, so a mail failure never
 costs the invite. The form reports what happened and always shows the link.
+
+## Billing
+
+A flat monthly fee for up to 50 users, not a per-seat charge — the Stripe
+subscription quantity is always 1, and adding or removing people never changes
+the invoice.
+
+The allowance comes from the Price's `included_seats` metadata, falling back to
+`INCLUDED_SEATS` in `src/lib/stripe/config.ts`. It is deliberately not read from
+the subscription quantity: under a flat fee that is always 1, which would drop
+the ceiling to a single user the moment the subscription started.
+
+Inviting past the limit is refused by a database trigger, so access can never
+exceed what is billed. A pending invite holds a place until accepted or revoked.
 
 ## Deploying to Vercel
 
