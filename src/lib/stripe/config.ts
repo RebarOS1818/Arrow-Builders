@@ -26,9 +26,30 @@ export const FREE_SEATS = 3;
 export { SUPABASE_SERVICE_ROLE_KEY } from "../supabase/server-config";
 
 
+/**
+ * Coerces a configured host into an absolute origin.
+ *
+ * Stripe rejects a success_url without a scheme with the unhelpful message
+ * "Not a valid URL", and `NEXT_PUBLIC_APP_URL=arrow-builders.vercel.app` is the
+ * easy mistake to make — VERCEL_URL is stored exactly that way, so copying its
+ * shape looks right. Adding the scheme here turns a dead checkout button into
+ * a working one.
+ */
+function toOrigin(raw: string | undefined): string | null {
+  const trimmed = raw?.trim().replace(/\/+$/, "");
+  if (!trimmed) return null;
+  const absolute = /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
+  try {
+    return new URL(absolute).origin;
+  } catch {
+    return null;
+  }
+}
+
 export const APP_URL =
-  process.env.NEXT_PUBLIC_APP_URL ??
-  (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
+  toOrigin(process.env.NEXT_PUBLIC_APP_URL) ??
+  toOrigin(process.env.VERCEL_URL) ??
+  "http://localhost:3000";
 
 /**
  * Every variable the full charge-and-record loop needs.
