@@ -3,6 +3,7 @@ import "server-only";
 import { createClient } from "./supabase/server";
 import { DEMO_ORG, demoProfiles } from "./demo-data";
 import { isStripeConfigured, missingStripeEnv } from "./stripe/config";
+import { SALES_EMAIL, TIERS, isSelfServe, type Tier } from "./stripe/tiers";
 
 /** Mirrors the subscription_status enum: Stripe's full set plus our "none". */
 export type SubscriptionStatus =
@@ -50,6 +51,12 @@ export type BillingSummary = {
    * zeros — "up to 0 users" reads as a plan, not as a broken query.
    */
   loadError: string | null;
+  /** Plans on offer, for the pricing cards. */
+  tiers: Tier[];
+  /** Which of them can be bought without talking to someone. */
+  selfServe: Record<string, boolean>;
+  /** Where the non-self-serve tier points. Empty means show no link. */
+  salesEmail: string;
 };
 
 /**
@@ -77,8 +84,8 @@ export async function getBillingSummary(): Promise<BillingSummary> {
       seatsAvailable: Math.max(0, seatLimit - members),
       members,
       pendingInvites: 0,
-      priceCents: 29900,
-      monthlyTotalCents: 29900,
+      priceCents: 2900,
+      monthlyTotalCents: 2900,
       status: "none",
       currentPeriodEnd: null,
       hasSubscription: false,
@@ -87,6 +94,9 @@ export async function getBillingSummary(): Promise<BillingSummary> {
       stripeReady: false,
       missingEnv: missingStripeEnv,
       loadError: null,
+    tiers: TIERS,
+    selfServe: Object.fromEntries(TIERS.map((t) => [t.key, isSelfServe(t)])),
+    salesEmail: SALES_EMAIL,
     };
   }
 
@@ -167,6 +177,9 @@ export async function getBillingSummary(): Promise<BillingSummary> {
     stripeReady: isStripeConfigured,
     missingEnv: missingStripeEnv,
     loadError,
+    tiers: TIERS,
+    selfServe: Object.fromEntries(TIERS.map((t) => [t.key, isSelfServe(t)])),
+    salesEmail: SALES_EMAIL,
   };
 }
 

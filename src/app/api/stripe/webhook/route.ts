@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import type Stripe from "stripe";
 import { getStripe } from "@/lib/stripe/client";
 import { FREE_SEATS, INCLUDED_SEATS, STRIPE_WEBHOOK_SECRET } from "@/lib/stripe/config";
+import { tierByPriceId } from "@/lib/stripe/tiers";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 /**
@@ -59,6 +60,19 @@ function priceCentsOf(subscription: Stripe.Subscription): number | null {
   return subscription.items.data[0]?.price?.unit_amount ?? null;
 }
 
+/**
+ * Which tier was actually bought, derived from the Price on the subscription.
+ *
+ * Taken from Stripe rather than from whatever the client requested at checkout,
+ * so the recorded plan can never disagree with the invoice. An unrecognised
+ * Price — one created directly in the dashboard for a negotiated deal — is
+ * recorded as enterprise, which is what such a Price almost always is.
+ */
+function planOf(subscription: Stripe.Subscription): string {
+  const priceId = subscription.items.data[0]?.price?.id;
+  return tierByPriceId(priceId)?.key ?? "enterprise";
+}
+
 function orgIdOf(subscription: Stripe.Subscription): string | null {
   return subscription.metadata?.org_id ?? null;
 }
@@ -106,7 +120,7 @@ export async function POST(request: NextRequest) {
             seat_limit: includedSeats(subscription),
             price_cents: priceCentsOf(subscription) ?? 0,
             current_period_end: periodEnd(subscription),
-            plan: "team",
+            plan: planOf(subscription),
           })
           .eq("id", orgId);
         break;
@@ -123,6 +137,9 @@ export async function POST(request: NextRequest) {
           subscription_status: statusOf(subscription),
           seat_limit: includedSeats(subscription),
           price_cents: priceCentsOf(subscription) ?? 0,
+          // Re-read on every update so an in-app plan change, or one made in
+          // the Stripe dashboard, lands in the database the same way.
+          plan: planOf(subscription),
           current_period_end: periodEnd(subscription),
           stripe_subscription_id: subscription.id,
         };
