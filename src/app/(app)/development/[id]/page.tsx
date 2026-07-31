@@ -3,6 +3,13 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, MapPin } from "lucide-react";
 import { Pill, StatusPill, humanise } from "@/components/phases/badges";
 import {
+  NewComparableForm,
+  NewConstraintForm,
+  NewOfferForm,
+  NewProFormaForm,
+  NewStudyForm,
+} from "@/components/phases/forms";
+import {
   getComparables,
   getConstraints,
   getOffers,
@@ -80,7 +87,10 @@ export default async function PropertyPage({
 
       {/* Feasibility ------------------------------------------------ */}
       <section>
-        <h2 className="text-lg font-semibold tracking-tight">Feasibility</h2>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2 className="text-lg font-semibold tracking-tight">Feasibility</h2>
+          <NewStudyForm propertyId={property.id} />
+        </div>
         <div className="card mt-3 divide-y divide-line">
           {studies.length === 0 && (
             <p className="p-5 text-sm text-ink-muted">No studies ordered yet.</p>
@@ -112,9 +122,11 @@ export default async function PropertyPage({
       </section>
 
       {/* Constraints ------------------------------------------------ */}
-      {constraints.length > 0 && (
-        <section>
-          <h2 className="text-lg font-semibold tracking-tight">Site constraints</h2>
+      <section>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <h2 className="text-lg font-semibold tracking-tight">Site constraints</h2>
+            <NewConstraintForm propertyId={property.id} />
+          </div>
           <ul className="card mt-3 divide-y divide-line">
             {constraints.map((c) => (
               <li key={c.id} className="flex flex-wrap items-start gap-3 p-4">
@@ -133,15 +145,19 @@ export default async function PropertyPage({
             ))}
           </ul>
         </section>
-      )}
 
       {/* Pro formas ------------------------------------------------- */}
       <section>
-        <h2 className="text-lg font-semibold tracking-tight">Pro formas</h2>
-        <p className="mt-1 text-sm text-ink-muted">
-          Totals and profit are computed in the database from the inputs, so they cannot
-          drift from them.
-        </p>
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h2 className="text-lg font-semibold tracking-tight">Pro formas</h2>
+            <p className="mt-1 text-sm text-ink-muted">
+              Totals and profit are computed in the database from the inputs, so they
+              cannot drift from them.
+            </p>
+          </div>
+          <NewProFormaForm propertyId={property.id} />
+        </div>
         <div className="mt-3 grid grid-cols-1 gap-3 lg:grid-cols-2">
           {proFormas.length === 0 && (
             <p className="card p-5 text-sm text-ink-muted">No scenarios yet.</p>
@@ -201,9 +217,11 @@ export default async function PropertyPage({
       </section>
 
       {/* Comparables ------------------------------------------------ */}
-      {comparables.length > 0 && (
-        <section>
-          <h2 className="text-lg font-semibold tracking-tight">Comparable sales</h2>
+      <section>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <h2 className="text-lg font-semibold tracking-tight">Comparable sales</h2>
+            <NewComparableForm propertyId={property.id} />
+          </div>
           <div className="card mt-3 overflow-x-auto">
             <table className="w-full min-w-lg text-sm">
               <thead>
@@ -243,12 +261,13 @@ export default async function PropertyPage({
             </table>
           </div>
         </section>
-      )}
 
       {/* Offers ----------------------------------------------------- */}
-      {offers.length > 0 && (
-        <section>
-          <h2 className="text-lg font-semibold tracking-tight">Offers</h2>
+      <section>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <h2 className="text-lg font-semibold tracking-tight">Offers</h2>
+            <NewOfferForm propertyId={property.id} />
+          </div>
           <ul className="card mt-3 divide-y divide-line">
             {offers.map((offer) => (
               <li key={offer.id} className="flex flex-wrap items-start gap-3 p-4">
@@ -268,7 +287,6 @@ export default async function PropertyPage({
             ))}
           </ul>
         </section>
-      )}
     </div>
   );
 }

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { AlertTriangle, ArrowUpRight, MapPin } from "lucide-react";
 import { StatusPill } from "@/components/phases/badges";
+import { NewPropertyForm } from "@/components/phases/forms";
 import { getConstraints, getProFormas, getProperties, getStudies } from "@/lib/data";
 import { formatCompactCurrency, formatDate } from "@/lib/utils";
 
@@ -32,6 +33,7 @@ export default async function DevelopmentPage() {
             {formatCompactCurrency(pipelineValue)} asking
           </p>
         </div>
+        <NewPropertyForm />
       </div>
 
       <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">

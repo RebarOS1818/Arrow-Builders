@@ -1,9 +1,17 @@
 import { AlertTriangle, Star } from "lucide-react";
 import { Pill, StatusPill, humanise } from "@/components/phases/badges";
 import {
+  NewBidPackageForm,
+  NewChangeOrderForm,
+  NewContractForm,
+  NewQuoteForm,
+  NewSubcontractorForm,
+} from "@/components/phases/forms";
+import {
   getBidPackages,
   getChangeOrders,
   getContracts,
+  getProjects,
   getSubcontractors,
 } from "@/lib/data";
 import { formatCompactCurrency, formatCurrency, formatDate } from "@/lib/utils";
@@ -14,12 +22,26 @@ export const dynamic = "force-dynamic";
 const INSURANCE_WARNING_DAYS = 60;
 
 export default async function ConstructionPage() {
-  const [subs, packages, contracts, changeOrders] = await Promise.all([
+  const [subs, packages, contracts, changeOrders, projects] = await Promise.all([
     getSubcontractors(),
     getBidPackages(),
     getContracts(),
     getChangeOrders(),
+    getProjects(),
   ]);
+
+  // Select options for the forms. Built here because the page already has the
+  // rows; fetching them again inside each form would be three more round trips.
+  const projectOptions = projects.map((p) => ({ value: p.id, label: p.name }));
+  const subOptions = subs.map((s) => ({ value: s.id, label: s.company_name }));
+  const packageOptions = packages.map((p) => ({
+    value: p.id,
+    label: `${p.project.name} — ${p.name}`,
+  }));
+  const contractOptions = contracts.map((c) => ({
+    value: c.id,
+    label: `${c.contract_number} — ${c.title}`,
+  }));
 
   const committed = contracts.reduce(
     (sum, c) => sum + (c.totals?.current_amount ?? c.original_amount),
@@ -101,11 +123,16 @@ export default async function ConstructionPage() {
 
       {/* Contracts -------------------------------------------------- */}
       <section>
-        <h2 className="text-lg font-semibold tracking-tight">Contracts</h2>
-        <p className="mt-1 text-sm text-ink-muted">
-          Current value is the original plus approved change orders — computed in the
-          database, so it cannot disagree with the orders below.
-        </p>
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h2 className="text-lg font-semibold tracking-tight">Contracts</h2>
+            <p className="mt-1 text-sm text-ink-muted">
+              Current value is the original plus approved change orders — computed in
+              the database, so it cannot disagree with the orders below.
+            </p>
+          </div>
+          <NewContractForm projects={projectOptions} subcontractors={subOptions} />
+        </div>
         <div className="card mt-3 overflow-x-auto">
           <table className="w-full min-w-3xl text-sm">
             <thead>
@@ -163,7 +190,10 @@ export default async function ConstructionPage() {
 
       {/* Change orders ---------------------------------------------- */}
       <section>
-        <h2 className="text-lg font-semibold tracking-tight">Change orders</h2>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2 className="text-lg font-semibold tracking-tight">Change orders</h2>
+          <NewChangeOrderForm contracts={contractOptions} />
+        </div>
         <ul className="card mt-3 divide-y divide-line">
           {changeOrders.length === 0 && (
             <li className="p-5 text-sm text-ink-muted">No change orders.</li>
@@ -201,7 +231,13 @@ export default async function ConstructionPage() {
 
       {/* Bid packages ----------------------------------------------- */}
       <section>
-        <h2 className="text-lg font-semibold tracking-tight">Bid packages</h2>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2 className="text-lg font-semibold tracking-tight">Bid packages</h2>
+          <div className="flex flex-wrap gap-2">
+            <NewQuoteForm packages={packageOptions} subcontractors={subOptions} />
+            <NewBidPackageForm projects={projectOptions} />
+          </div>
+        </div>
         <div className="mt-3 space-y-3">
           {packages.map((pkg) => {
             const sorted = [...pkg.quotes].sort((a, b) => a.amount - b.amount);
@@ -279,7 +315,10 @@ export default async function ConstructionPage() {
 
       {/* Subcontractors --------------------------------------------- */}
       <section>
-        <h2 className="text-lg font-semibold tracking-tight">Subcontractors</h2>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2 className="text-lg font-semibold tracking-tight">Subcontractors</h2>
+          <NewSubcontractorForm />
+        </div>
         <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
           {subs.map((sub) => {
             const expires = sub.insurance_expires_at ? new Date(sub.insurance_expires_at) : null;
