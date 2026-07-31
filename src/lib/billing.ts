@@ -44,6 +44,12 @@ export type BillingSummary = {
   stripeReady: boolean;
   /** Env vars still missing, so the billing page can name them exactly. */
   missingEnv: string[];
+  /**
+   * Set when the organization row could not be read. Everything derived from it
+   * is meaningless in that case, so the page must say so rather than render the
+   * zeros — "up to 0 users" reads as a plan, not as a broken query.
+   */
+  loadError: string | null;
 };
 
 /**
@@ -80,6 +86,7 @@ export async function getBillingSummary(): Promise<BillingSummary> {
       canManage: false,
       stripeReady: false,
       missingEnv: missingStripeEnv,
+      loadError: null,
     };
   }
 
@@ -112,6 +119,15 @@ export async function getBillingSummary(): Promise<BillingSummary> {
       .is("accepted_at", null)
       .is("revoked_at", null),
   ]);
+
+  // A failed read is not an empty plan. Surfaced rather than swallowed: the
+  // usual cause is a migration that has not been run, and silently substituting
+  // zeros hides that behind numbers that look deliberate.
+  const loadError = org.error
+    ? org.error.message.includes("price_cents")
+      ? "The billing columns are missing from the database. Run supabase/migrations/0006_flat_fee.sql."
+      : `Could not read your organization: ${org.error.message}`
+    : null;
 
   const row = org.data as {
     id: string;
@@ -150,6 +166,7 @@ export async function getBillingSummary(): Promise<BillingSummary> {
     canManage: isAdmin && isStripeConfigured,
     stripeReady: isStripeConfigured,
     missingEnv: missingStripeEnv,
+    loadError,
   };
 }
 

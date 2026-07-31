@@ -37,6 +37,12 @@ export default async function BillingPage({
         </p>
       </div>
 
+      {billing.loadError && (
+        <Banner tone="warn" icon={AlertTriangle}>
+          {billing.loadError}
+        </Banner>
+      )}
+
       {checkout === "success" && (
         <Banner tone="ok" icon={CheckCircle2}>
           Subscription started. Invite up to {billing.seatLimit} users at no extra charge.
@@ -53,6 +59,7 @@ export default async function BillingPage({
         </Banner>
       )}
 
+      {!billing.loadError && (
       <section className="card p-6">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
@@ -110,6 +117,7 @@ export default async function BillingPage({
           />
         </div>
       </section>
+      )}
 
       <section className="card p-6">
         <h2 className="font-semibold tracking-tight">How users are counted</h2>
