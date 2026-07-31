@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { AppHeader } from "@/components/layout/app-header";
+import { TopNav } from "@/components/layout/top-nav";
 import { Sidebar } from "@/components/layout/sidebar";
 import { prefersReducedMotion, project, spring, type SpringHandle } from "@/lib/spring";
 
@@ -164,7 +164,11 @@ export function AppShell({
   }
 
   return (
-    <div className="flex min-h-screen">
+    /*
+     * The reference nests everything inside one large rounded panel floating on
+     * a tinted page, rather than running the layout to the window edges.
+     */
+    <div className="min-h-screen p-2 sm:p-4 lg:p-6">
       {open && (
         <div
           ref={scrimRef}
@@ -175,6 +179,7 @@ export function AppShell({
         />
       )}
 
+      {/* Navigation is horizontal from lg; below that this drawer takes over. */}
       <Sidebar
         ref={drawerRef}
         crew={crew}
@@ -186,8 +191,8 @@ export function AppShell({
         onPointerUp={onPointerUp}
       />
 
-      <div className="min-w-0 flex-1 px-4 py-5 sm:px-6">
-        <AppHeader
+      <div className="min-h-[calc(100vh-3rem)] rounded-[2rem] bg-shell px-4 py-5 shadow-soft ring-1 ring-white/60 sm:px-6 sm:py-6">
+        <TopNav
           user={user}
           onMenu={() => setOpen(true)}
           menuButtonRef={triggerRef}

@@ -69,7 +69,7 @@ export function Sidebar({
          drawer impossible to grab mid-flight. `touch-none` stops the browser
          claiming the horizontal drag for its own scroll gesture. */
       className={cn(
-        "sidebar-surface fixed inset-y-0 left-0 z-50 flex w-60 shrink-0 touch-none flex-col overflow-y-auto px-4 py-5 lg:static lg:z-auto lg:visible lg:shadow-none",
+        "sidebar-surface fixed inset-y-0 left-0 z-50 flex w-60 shrink-0 touch-none flex-col overflow-y-auto px-4 py-5 lg:hidden",
         open ? "visible shadow-material" : "invisible",
         dragging && "select-none",
       )}

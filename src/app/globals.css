@@ -1,39 +1,54 @@
 @import "tailwindcss";
 
 @theme {
-  /* Brand — violet, kept as the accent so the app stays recognisably theirs. */
-  --color-brand-50: #f4f2ff;
-  --color-brand-100: #ebe7fe;
-  --color-brand-200: #d9d2fd;
-  --color-brand-300: #bcaefb;
-  --color-brand-400: #9a83f7;
-  --color-brand-500: #7f61f0;
-  --color-brand-600: #6d4de3;
-  --color-brand-700: #5c3ccb;
-  --color-brand-800: #4c32a6;
-  --color-brand-900: #402c85;
+  /*
+   * Soft blue with a mint counterpoint, per the reference. Replaces the violet
+   * ramp — `brand` is still the accent every component reaches for, so changing
+   * it here recolours the whole app coherently rather than component by
+   * component.
+   */
+  --color-brand-50: #eef4fe;
+  --color-brand-100: #dfeafd;
+  --color-brand-200: #ccdcf8;
+  --color-brand-300: #a8c7f5;
+  --color-brand-400: #7ea9ee;
+  --color-brand-500: #5b8ce4;
+  --color-brand-600: #3f6fd1;
+  --color-brand-700: #3159ad;
+  --color-brand-800: #2a4988;
+  --color-brand-900: #253d6d;
 
-  /* Cool neutral surfaces */
-  --color-canvas: #f2f2f7;
+  /* Mint, the reference's second accent: positive figures and healthy status. */
+  --color-mint-50: #eef7f2;
+  --color-mint-100: #d9ebe1;
+  --color-mint-200: #bfdfcd;
+  --color-mint-300: #93cbaf;
+  --color-mint-400: #5cb98e;
+  --color-mint-500: #34c88a;
+  --color-mint-600: #22a06e;
+
+  /* Surfaces: a tinted page behind a near-white shell. */
+  --color-canvas: #dbe8fa;
+  --color-shell: #eef4fe;
   --color-surface: #ffffff;
-  --color-line: #eef0f5;
-  --color-line-strong: #dfe3ec;
-  --color-ink: #1c1c1e;
-  --color-ink-muted: #6e6e73;
-  --color-ink-subtle: #a1a1a6;
+  --color-line: #e3ecfa;
+  --color-line-strong: #cfdcf1;
+  --color-ink: #16181d;
+  --color-ink-muted: #5f6672;
+  --color-ink-subtle: #949cab;
 
   /* Status */
-  --color-status-ontrack: #16a34a;
-  --color-status-behind: #f08c2e;
-  --color-status-risk: #e5484d;
-  --color-status-done: #16a34a;
+  --color-status-ontrack: #22a06e;
+  --color-status-behind: #e8a33d;
+  --color-status-risk: #e5615c;
+  --color-status-done: #22a06e;
 
   /* Trade colors (schedule legend) */
-  --color-trade-general: #6d4de3;
-  --color-trade-concrete: #f08c2e;
-  --color-trade-electrical: #2b7fff;
-  --color-trade-plumbing: #12b0a6;
-  --color-trade-finishes: #e964a8;
+  --color-trade-general: #3f6fd1;
+  --color-trade-concrete: #e8a33d;
+  --color-trade-electrical: #5b8ce4;
+  --color-trade-plumbing: #34c88a;
+  --color-trade-finishes: #9d8bd8;
 
   /*
    * System font first. It already ships optical sizing, tracking tables and
@@ -44,13 +59,13 @@
   --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui,
     var(--font-inter), "Segoe UI", sans-serif;
 
-  --radius-card: 1.125rem;
-  --radius-tile: 0.75rem;
+  /* The reference leans on large, soft radii throughout. */
+  --radius-card: 1.5rem;
+  --radius-tile: 1rem;
 
-  --shadow-soft: 0 1px 2px rgb(0 0 0 / 0.04), 0 8px 24px -12px rgb(0 0 0 / 0.08);
-  --shadow-lift: 0 2px 4px rgb(0 0 0 / 0.05), 0 16px 32px -16px rgb(0 0 0 / 0.14);
-  /* Bigger surfaces read as thicker: deeper shadow, stronger blur. */
-  --shadow-material: 0 8px 16px -4px rgb(0 0 0 / 0.08), 0 24px 48px -24px rgb(0 0 0 / 0.22);
+  --shadow-soft: 0 1px 2px rgb(37 61 109 / 0.04), 0 8px 24px -14px rgb(37 61 109 / 0.14);
+  --shadow-lift: 0 2px 4px rgb(37 61 109 / 0.06), 0 16px 32px -18px rgb(37 61 109 / 0.2);
+  --shadow-material: 0 8px 16px -4px rgb(37 61 109 / 0.08), 0 24px 48px -24px rgb(37 61 109 / 0.28);
 }
 
 html,
@@ -60,6 +75,13 @@ body {
 
 body {
   background-color: var(--color-canvas);
+  /* Blue washing to mint at the far corner, as in the reference. */
+  background-image: radial-gradient(
+    120% 120% at 100% 100%,
+    rgb(52 200 138 / 0.16) 0%,
+    rgb(219 232 250 / 0) 55%
+  );
+  background-attachment: fixed;
   color: var(--color-ink);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -99,6 +121,17 @@ small,
   box-shadow: var(--shadow-soft);
 }
 
+/* The reference alternates plain, blue and mint cards to group related panels. */
+@utility card-blue {
+  background-color: var(--color-brand-200);
+  border-radius: var(--radius-card);
+}
+
+@utility card-mint {
+  background-color: var(--color-mint-100);
+  border-radius: var(--radius-card);
+}
+
 /* Inset panel inside a card (chart wells, table shells). */
 @utility well {
   background-color: var(--color-canvas);
@@ -116,20 +149,14 @@ small,
 }
 
 /*
- * The sidebar is a translucent drawer on small screens and a plain static
- * column from `lg` up.
+ * The mobile navigation drawer. Navigation is horizontal from `lg`, so this only
+ * ever renders below that breakpoint.
  *
- * Written as a plain class rather than @utility because it needs a media query,
- * a transform driven by a custom property, and backdrop-filter together — and
- * because the position must come from CSS, not from a Tailwind translate
- * utility, so that the desktop breakpoint can simply drop it.
+ * Written as a plain class rather than @utility because the transform has to
+ * come from CSS — driven by a custom property the spring writes each frame —
+ * alongside backdrop-filter, which @utility handles awkwardly.
  */
 .sidebar-surface {
-  background-color: var(--color-surface);
-}
-
-@media (width < 64rem) {
-  .sidebar-surface {
     /*
      * A full-height drawer is a big surface, so it reads as thick: high opacity
      * and a strong blur. Thin translucency over busy content collapses
@@ -140,9 +167,8 @@ small,
     backdrop-filter: blur(30px) saturate(180%);
     /* A bright edge is light catching the material. */
     border-right: 1px solid rgb(255 255 255 / 0.6);
-    /* Driven frame-by-frame by the spring; closed until it says otherwise. */
-    transform: translate3d(var(--drawer-x, -100%), 0, 0);
-  }
+  /* Driven frame-by-frame by the spring; closed until it says otherwise. */
+  transform: translate3d(var(--drawer-x, -100%), 0, 0);
 }
 
 @media (prefers-reduced-transparency: reduce) {
