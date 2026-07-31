@@ -43,12 +43,16 @@
   --color-status-risk: #e5615c;
   --color-status-done: #22a06e;
 
-  /* Trade colors (schedule legend) */
+  /*
+   * Trade colours. A legend has to be readable at a glance, so these are spread
+   * across the hue wheel rather than kept inside the blue family — five shades
+   * of one hue is a palette that matches and a legend that does not work.
+   */
   --color-trade-general: #3f6fd1;
   --color-trade-concrete: #e8a33d;
-  --color-trade-electrical: #5b8ce4;
-  --color-trade-plumbing: #34c88a;
-  --color-trade-finishes: #9d8bd8;
+  --color-trade-electrical: #7c6fe0;
+  --color-trade-plumbing: #22a06e;
+  --color-trade-finishes: #e5799e;
 
   /*
    * The reference's typeface, with the system font behind it so text still

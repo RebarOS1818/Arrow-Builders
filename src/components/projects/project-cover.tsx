@@ -5,10 +5,10 @@ import { cn } from "@/lib/utils";
  * elevation motif keyed off the project id. A `cover_url` overrides it.
  */
 const PALETTES = [
-  { from: "#8b6df0", to: "#5b3fd0", ink: "#2c1c66" },
-  { from: "#7aa8f5", to: "#3f6fd8", ink: "#1b2f66" },
-  { from: "#f0a06d", to: "#e0763a", ink: "#6b3312" },
-  { from: "#5fc8bd", to: "#2c9c94", ink: "#0f3e3a" },
+  { from: "#7ea9ee", to: "#3f6fd1", ink: "#1e3566" },
+  { from: "#6fd3a6", to: "#22a06e", ink: "#0f4433" },
+  { from: "#9fbef7", to: "#5b8ce4", ink: "#24406f" },
+  { from: "#a8dcc4", to: "#4bb489", ink: "#164a38" },
 ];
 
 function paletteFor(seed: string) {

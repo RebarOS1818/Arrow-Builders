@@ -76,13 +76,25 @@ export function TopNav({
         </span>
       </Link>
 
-      <nav className="scroll-hidden hidden min-w-0 flex-1 items-center gap-1 overflow-x-auto px-4 lg:flex">
+      {/*
+        The links get the row before the search box does: a half-visible
+        destination reads as broken, whereas a search field appearing only on
+        wide screens reads as a deliberate progressive enhancement. The mask
+        fades the scroll edge so it is clear there is more, rather than looking
+        like a clipped layout.
+      */}
+      <nav
+        className="scroll-hidden hidden min-w-0 flex-1 items-center gap-0.5 overflow-x-auto px-3 lg:flex"
+        style={{
+          maskImage: "linear-gradient(to right, black calc(100% - 24px), transparent)",
+        }}
+      >
         {NAV.map((item) => (
           <Link
             key={item.href}
             href={item.href}
             className={cn(
-              "shrink-0 rounded-full px-3.5 py-2 text-sm transition-colors",
+              "shrink-0 rounded-full px-3 py-2 text-sm transition-colors",
               isActive(item.href)
                 ? "bg-surface font-semibold text-ink shadow-soft"
                 : "font-medium text-ink-muted hover:text-ink",
@@ -93,7 +105,7 @@ export function TopNav({
         ))}
       </nav>
 
-      <label className="relative ml-auto hidden max-w-72 flex-1 md:block lg:ml-0">
+      <label className="relative ml-auto hidden max-w-64 shrink md:block lg:ml-0 lg:hidden 2xl:block">
         <Search className="pointer-events-none absolute left-4 top-1/2 size-4.5 -translate-y-1/2 text-ink-subtle" />
         <input
           type="search"
