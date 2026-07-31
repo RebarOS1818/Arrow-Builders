@@ -51,13 +51,11 @@
   --color-trade-finishes: #9d8bd8;
 
   /*
-   * System font first. It already ships optical sizing, tracking tables and
-   * legibility tuning — on Apple hardware this resolves to SF Pro, which is
-   * what makes the interface read as native rather than as a web page wearing
-   * a costume. Inter is the fallback for everything else.
+   * The reference's typeface, with the system font behind it so text still
+   * renders correctly while the web font loads or if it fails.
    */
-  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui,
-    var(--font-inter), "Segoe UI", sans-serif;
+  --font-sans: var(--font-display), -apple-system, BlinkMacSystemFont, system-ui,
+    "Segoe UI", sans-serif;
 
   /* The reference leans on large, soft radii throughout. */
   --radius-card: 1.5rem;
