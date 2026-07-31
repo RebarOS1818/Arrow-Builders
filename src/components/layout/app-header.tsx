@@ -18,7 +18,7 @@ export function AppHeader({
   menuButtonRef?: React.Ref<HTMLButtonElement>;
 }) {
   return (
-    <header className="flex items-center gap-3 pb-5">
+    <header className="material sticky top-0 z-30 -mx-4 flex items-center gap-3 px-4 py-3 sm:-mx-6 sm:px-6">
       <button
         ref={menuButtonRef}
         type="button"
@@ -26,7 +26,7 @@ export function AppHeader({
         aria-label="Open navigation"
         aria-controls="app-sidebar"
         aria-expanded={menuOpen}
-        className="grid size-10 shrink-0 place-items-center rounded-full bg-surface text-ink-muted shadow-soft hover:text-ink lg:hidden"
+        className="pressable grid size-10 shrink-0 place-items-center rounded-full bg-surface text-ink-muted shadow-soft hover:text-ink lg:hidden"
       >
         <Menu className="size-4.5" />
       </button>
@@ -53,7 +53,7 @@ export function AppHeader({
 
         <Link
           href="/settings"
-          className="flex items-center gap-2.5 rounded-full pl-0.5 pr-1 sm:pr-2"
+          className="pressable flex items-center gap-2.5 rounded-full pl-0.5 pr-1 sm:pr-2"
         >
           <Avatar name={user.full_name} initials={user.initials} size="lg" />
           <span className="hidden text-sm font-semibold sm:block">{user.full_name}</span>
@@ -78,7 +78,7 @@ function IconButton({
     <Link
       href={href}
       aria-label={label}
-      className="relative grid size-10 place-items-center rounded-full bg-surface text-ink-muted shadow-soft transition-colors hover:text-ink"
+      className="pressable relative grid size-10 place-items-center rounded-full bg-surface text-ink-muted shadow-soft hover:text-ink"
     >
       {children}
       {dot && (

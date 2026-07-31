@@ -31,13 +31,23 @@ const OVERVIEW = [
 ];
 
 export function Sidebar({
+  ref,
   crew,
   open = false,
+  dragging = false,
   onClose,
+  onPointerDown,
+  onPointerMove,
+  onPointerUp,
 }: {
+  ref?: React.Ref<HTMLElement>;
   crew: { id: string; full_name: string; initials: string; role: string }[];
   open?: boolean;
+  dragging?: boolean;
   onClose?: () => void;
+  onPointerDown?: (event: React.PointerEvent) => void;
+  onPointerMove?: (event: React.PointerEvent) => void;
+  onPointerUp?: (event: React.PointerEvent) => void;
 }) {
   const pathname = usePathname();
   const isActive = (href: string) =>
@@ -47,11 +57,21 @@ export function Sidebar({
     /* Off-canvas below lg; `invisible` when closed keeps the links out of the tab
        order. The lg: overrides pin it back as an ordinary static column. */
     <aside
+      ref={ref}
       id="app-sidebar"
       aria-label="Main navigation"
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={onPointerUp}
+      onPointerCancel={onPointerUp}
+      /* Position is written straight to style by the spring, so no transition
+         here — a transition would fight the frame-by-frame updates and make the
+         drawer impossible to grab mid-flight. `touch-none` stops the browser
+         claiming the horizontal drag for its own scroll gesture. */
       className={cn(
-        "fixed inset-y-0 left-0 z-50 flex w-60 shrink-0 flex-col overflow-y-auto bg-surface px-4 py-5 transition-transform duration-200 lg:static lg:z-auto lg:visible lg:translate-x-0 lg:shadow-none lg:transition-none",
-        open ? "translate-x-0 shadow-lift" : "invisible -translate-x-full",
+        "sidebar-surface fixed inset-y-0 left-0 z-50 flex w-60 shrink-0 touch-none flex-col overflow-y-auto px-4 py-5 lg:static lg:z-auto lg:visible lg:shadow-none",
+        open ? "visible shadow-material" : "invisible",
+        dragging && "select-none",
       )}
     >
       <div className="mb-7 flex items-center justify-between gap-2 px-2">

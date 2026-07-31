@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 @theme {
-  /* Brand — violet, per the reference design */
+  /* Brand — violet, kept as the accent so the app stays recognisably theirs. */
   --color-brand-50: #f4f2ff;
   --color-brand-100: #ebe7fe;
   --color-brand-200: #d9d2fd;
@@ -14,13 +14,13 @@
   --color-brand-900: #402c85;
 
   /* Cool neutral surfaces */
-  --color-canvas: #f6f7fb;
+  --color-canvas: #f2f2f7;
   --color-surface: #ffffff;
   --color-line: #eef0f5;
   --color-line-strong: #dfe3ec;
-  --color-ink: #191a23;
-  --color-ink-muted: #7b7f8d;
-  --color-ink-subtle: #a2a6b3;
+  --color-ink: #1c1c1e;
+  --color-ink-muted: #6e6e73;
+  --color-ink-subtle: #a1a1a6;
 
   /* Status */
   --color-status-ontrack: #16a34a;
@@ -35,14 +35,22 @@
   --color-trade-plumbing: #12b0a6;
   --color-trade-finishes: #e964a8;
 
-  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system,
-    "Segoe UI", sans-serif;
+  /*
+   * System font first. It already ships optical sizing, tracking tables and
+   * legibility tuning — on Apple hardware this resolves to SF Pro, which is
+   * what makes the interface read as native rather than as a web page wearing
+   * a costume. Inter is the fallback for everything else.
+   */
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui,
+    var(--font-inter), "Segoe UI", sans-serif;
 
-  --radius-card: 1.25rem;
-  --radius-tile: 0.875rem;
+  --radius-card: 1.125rem;
+  --radius-tile: 0.75rem;
 
-  --shadow-soft: 0 1px 2px rgb(25 26 35 / 0.04), 0 8px 24px -12px rgb(25 26 35 / 0.08);
-  --shadow-lift: 0 2px 4px rgb(25 26 35 / 0.05), 0 16px 32px -16px rgb(25 26 35 / 0.14);
+  --shadow-soft: 0 1px 2px rgb(0 0 0 / 0.04), 0 8px 24px -12px rgb(0 0 0 / 0.08);
+  --shadow-lift: 0 2px 4px rgb(0 0 0 / 0.05), 0 16px 32px -16px rgb(0 0 0 / 0.14);
+  /* Bigger surfaces read as thicker: deeper shadow, stronger blur. */
+  --shadow-material: 0 8px 16px -4px rgb(0 0 0 / 0.08), 0 24px 48px -24px rgb(0 0 0 / 0.22);
 }
 
 html,
@@ -54,9 +62,37 @@ body {
   background-color: var(--color-canvas);
   color: var(--color-ink);
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
-/* Cards are borderless with a soft lift, the way the reference reads. */
+/*
+ * Tracking is size-specific: large text reads too loose as it grows and wants
+ * negative tracking, small text wants a touch of positive. A single
+ * letter-spacing value is wrong somewhere, so headings tighten by size and body
+ * copy sits near zero.
+ */
+h1,
+.text-display {
+  letter-spacing: -0.022em;
+  line-height: 1.08;
+}
+
+h2 {
+  letter-spacing: -0.018em;
+  line-height: 1.16;
+}
+
+h3 {
+  letter-spacing: -0.012em;
+  line-height: 1.24;
+}
+
+small,
+.text-xs {
+  letter-spacing: 0.004em;
+}
+
+/* Cards are borderless with a soft lift. */
 @utility card {
   background-color: var(--color-surface);
   border-radius: var(--radius-card);
@@ -69,12 +105,75 @@ body {
   border-radius: var(--radius-tile);
 }
 
+/*
+ * Translucent chrome. Content scrolls *under* these rather than being clipped
+ * by an opaque strip, which is what gives the interface depth. The bright top
+ * edge is light catching the material.
+ */
+@utility material {
+  background-color: rgb(255 255 255 / 0.8);
+  backdrop-filter: blur(20px) saturate(180%);
+}
+
+/*
+ * The sidebar is a translucent drawer on small screens and a plain static
+ * column from `lg` up.
+ *
+ * Written as a plain class rather than @utility because it needs a media query,
+ * a transform driven by a custom property, and backdrop-filter together — and
+ * because the position must come from CSS, not from a Tailwind translate
+ * utility, so that the desktop breakpoint can simply drop it.
+ */
+.sidebar-surface {
+  background-color: var(--color-surface);
+}
+
+@media (width < 64rem) {
+  .sidebar-surface {
+    /*
+     * A full-height drawer is a big surface, so it reads as thick: high opacity
+     * and a strong blur. Thin translucency over busy content collapses
+     * legibility, and the alpha alone has to carry it where backdrop-filter is
+     * unsupported — the blur is an enhancement, not what keeps text readable.
+     */
+    background-color: rgb(255 255 255 / 0.94);
+    backdrop-filter: blur(30px) saturate(180%);
+    /* A bright edge is light catching the material. */
+    border-right: 1px solid rgb(255 255 255 / 0.6);
+    /* Driven frame-by-frame by the spring; closed until it says otherwise. */
+    transform: translate3d(var(--drawer-x, -100%), 0, 0);
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .sidebar-surface {
+    background-color: #ffffff;
+    backdrop-filter: none;
+  }
+}
+
+/* Heavier material for structural regions — sheets, popovers. */
+@utility material-thick {
+  background-color: rgb(255 255 255 / 0.82);
+  backdrop-filter: blur(30px) saturate(180%);
+}
+
+/*
+ * Press feedback on pointer-down, not on release. Waiting for click to
+ * acknowledge a press is the single thing that makes an interface feel dead.
+ */
+@utility pressable {
+  transition: transform 120ms cubic-bezier(0.32, 0.72, 0, 1);
+  &:active {
+    transform: scale(0.97);
+  }
+}
+
 @utility scroll-thin {
   scrollbar-width: thin;
   scrollbar-color: var(--color-line-strong) transparent;
 }
 
-/* Horizontal card rails hide their scrollbar — arrows drive them instead. */
 @utility scroll-hidden {
   scrollbar-width: none;
   &::-webkit-scrollbar {
@@ -84,4 +183,48 @@ body {
 
 ::selection {
   background-color: var(--color-brand-100);
+}
+
+/*
+ * Reduced motion is not "no feedback" — it is a gentler, non-vestibular
+ * equivalent. Slides and springs become short cross-fades; opacity and colour
+ * changes that aid comprehension stay.
+ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 150ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .pressable:active {
+    transform: none;
+  }
+}
+
+/* Frostier, not see-through, when the user has asked for less transparency. */
+@media (prefers-reduced-transparency: reduce) {
+  .material,
+  .material-thick {
+    background-color: rgb(255 255 255 / 0.98);
+    backdrop-filter: none;
+  }
+}
+
+/* Near-solid backgrounds with a defined border when more contrast is asked for. */
+@media (prefers-contrast: more) {
+  .material,
+  .material-thick {
+    background-color: #ffffff;
+    backdrop-filter: none;
+    border-color: var(--color-ink);
+  }
+
+  .card {
+    box-shadow: none;
+    outline: 1px solid var(--color-line-strong);
+  }
 }

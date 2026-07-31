@@ -52,7 +52,7 @@ export function BillingActions({
         type="button"
         onClick={openPortal}
         disabled={pending}
-        className="inline-flex items-center gap-2 rounded-full bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-700 disabled:opacity-60"
+        className="pressable inline-flex items-center gap-2 rounded-full bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-700 disabled:opacity-60"
       >
         {pending ? <Loader2 className="size-4 animate-spin" /> : <ExternalLink className="size-4" />}
         Manage billing
