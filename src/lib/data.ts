@@ -15,7 +15,32 @@ import {
   demoProjects,
   demoTasks,
 } from "./demo-data";
+import {
+  demoBidPackages,
+  demoChangeOrders,
+  demoComparables,
+  demoConstraints,
+  demoContractTotals,
+  demoContracts,
+  demoOffers,
+  demoProFormas,
+  demoProperties,
+  demoQuotes,
+  demoStudies,
+  demoSubcontractors,
+} from "./demo-phases";
 import type {
+  BidPackageWithQuotes,
+  ChangeOrderWithContract,
+  Comparable,
+  ContractTotal,
+  ContractWithParties,
+  FeasibilityStudy,
+  Offer,
+  ProForma,
+  Property,
+  SiteConstraint,
+  Subcontractor,
   ApprovalWithProject,
   CashFlowPoint,
   DashboardMetrics,
@@ -270,4 +295,196 @@ export async function getToday(): Promise<string> {
   const db = await createClient();
   if (!db) return DEMO_TODAY;
   return new Date().toISOString().slice(0, 10);
+}
+
+/* ------------------------------------------------------------------ */
+/* Development phase                                                   */
+/* ------------------------------------------------------------------ */
+
+export async function getProperties(): Promise<Property[]> {
+  return withFallback(
+    async (db) => {
+      const { data } = await db.from("properties").select("*").order("identified_at", { ascending: false });
+      return data as Property[] | null;
+    },
+    () => demoProperties,
+  );
+}
+
+export async function getProperty(id: string): Promise<Property | null> {
+  return withFallback(
+    async (db) => {
+      const { data } = await db.from("properties").select("*").eq("id", id).single();
+      return data as Property | null;
+    },
+    () => demoProperties.find((p) => p.id === id) ?? null,
+  );
+}
+
+export async function getStudies(propertyId?: string): Promise<FeasibilityStudy[]> {
+  return withFallback(
+    async (db) => {
+      let query = db.from("feasibility_studies").select("*").order("kind");
+      if (propertyId) query = query.eq("property_id", propertyId);
+      const { data } = await query;
+      return data as FeasibilityStudy[] | null;
+    },
+    () => (propertyId ? demoStudies.filter((s) => s.property_id === propertyId) : demoStudies),
+  );
+}
+
+export async function getConstraints(propertyId?: string): Promise<SiteConstraint[]> {
+  return withFallback(
+    async (db) => {
+      let query = db.from("site_constraints").select("*").order("severity", { ascending: false });
+      if (propertyId) query = query.eq("property_id", propertyId);
+      const { data } = await query;
+      return data as SiteConstraint[] | null;
+    },
+    () =>
+      propertyId ? demoConstraints.filter((c) => c.property_id === propertyId) : demoConstraints,
+  );
+}
+
+export async function getProFormas(propertyId?: string): Promise<ProForma[]> {
+  return withFallback(
+    async (db) => {
+      let query = db.from("pro_formas").select("*").order("created_at");
+      if (propertyId) query = query.eq("property_id", propertyId);
+      const { data } = await query;
+      return data as ProForma[] | null;
+    },
+    () => (propertyId ? demoProFormas.filter((p) => p.property_id === propertyId) : demoProFormas),
+  );
+}
+
+export async function getComparables(propertyId: string): Promise<Comparable[]> {
+  return withFallback(
+    async (db) => {
+      const { data } = await db
+        .from("comparables")
+        .select("*")
+        .eq("property_id", propertyId)
+        .order("sale_date", { ascending: false });
+      return data as Comparable[] | null;
+    },
+    () => demoComparables.filter((c) => c.property_id === propertyId),
+  );
+}
+
+export async function getOffers(propertyId?: string): Promise<Offer[]> {
+  return withFallback(
+    async (db) => {
+      let query = db.from("offers").select("*").order("offered_at", { ascending: false });
+      if (propertyId) query = query.eq("property_id", propertyId);
+      const { data } = await query;
+      return data as Offer[] | null;
+    },
+    () => (propertyId ? demoOffers.filter((o) => o.property_id === propertyId) : demoOffers),
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Construction phase                                                  */
+/* ------------------------------------------------------------------ */
+
+export async function getSubcontractors(): Promise<Subcontractor[]> {
+  return withFallback(
+    async (db) => {
+      const { data } = await db.from("subcontractors").select("*").order("company_name");
+      return data as Subcontractor[] | null;
+    },
+    () => demoSubcontractors,
+  );
+}
+
+export async function getBidPackages(): Promise<BidPackageWithQuotes[]> {
+  return withFallback(
+    async (db) => {
+      const { data } = await db
+        .from("bid_packages")
+        .select("*, project:projects(id, name), quotes(*, subcontractor:subcontractors(id, company_name, rating))")
+        .order("due_at");
+      return data as BidPackageWithQuotes[] | null;
+    },
+    () =>
+      demoBidPackages.map((pkg) => ({
+        ...pkg,
+        project: projectRef(pkg.project_id),
+        quotes: demoQuotes
+          .filter((q) => q.bid_package_id === pkg.id)
+          .map((q) => ({
+            ...q,
+            subcontractor: (() => {
+              const sub = demoSubcontractors.find((s) => s.id === q.subcontractor_id);
+              return {
+                id: q.subcontractor_id,
+                company_name: sub?.company_name ?? "Unknown",
+                rating: sub?.rating ?? null,
+              };
+            })(),
+          })),
+      })),
+  );
+}
+
+export async function getContracts(): Promise<ContractWithParties[]> {
+  return withFallback(
+    async (db) => {
+      const { data } = await db
+        .from("contracts")
+        .select("*, subcontractor:subcontractors(id, company_name), project:projects(id, name)")
+        .order("contract_number");
+      if (!data) return null;
+
+      // The view carries the change-order arithmetic, so the page never has to
+      // recompute what a contract is currently worth.
+      const { data: totals } = await db.from("contract_totals").select("*");
+      const byId = new Map(
+        ((totals as ContractTotal[] | null) ?? []).map((t) => [t.contract_id, t]),
+      );
+      return (data as ContractWithParties[]).map((c) => ({
+        ...c,
+        totals: byId.get(c.id) ?? null,
+      }));
+    },
+    () =>
+      demoContracts.map((contract) => {
+        const sub = demoSubcontractors.find((s) => s.id === contract.subcontractor_id);
+        return {
+          ...contract,
+          subcontractor: {
+            id: contract.subcontractor_id,
+            company_name: sub?.company_name ?? "Unknown",
+          },
+          project: projectRef(contract.project_id),
+          totals: demoContractTotals.find((t) => t.contract_id === contract.id) ?? null,
+        };
+      }),
+  );
+}
+
+export async function getChangeOrders(): Promise<ChangeOrderWithContract[]> {
+  return withFallback(
+    async (db) => {
+      const { data } = await db
+        .from("change_orders")
+        .select("*, contract:contracts(id, contract_number, title), project:projects(id, name)")
+        .order("submitted_at", { ascending: false });
+      return data as ChangeOrderWithContract[] | null;
+    },
+    () =>
+      demoChangeOrders.map((co) => {
+        const contract = demoContracts.find((c) => c.id === co.contract_id);
+        return {
+          ...co,
+          contract: {
+            id: co.contract_id,
+            contract_number: contract?.contract_number ?? "—",
+            title: contract?.title ?? "Unknown contract",
+          },
+          project: projectRef(co.project_id),
+        };
+      }),
+  );
 }

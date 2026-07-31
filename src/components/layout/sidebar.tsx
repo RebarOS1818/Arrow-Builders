@@ -5,7 +5,9 @@ import { usePathname } from "next/navigation";
 import {
   CalendarDays,
   FileText,
+  Hammer,
   HardHat,
+  Landmark,
   LayoutDashboard,
   ListChecks,
   LogOut,
@@ -21,6 +23,8 @@ import { cn } from "@/lib/utils";
 
 const OVERVIEW = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/development", label: "Development", icon: Landmark },
+  { href: "/construction", label: "Construction", icon: Hammer },
   { href: "/projects", label: "Projects", icon: HardHat },
   { href: "/tasks", label: "Tasks", icon: ListChecks },
   { href: "/schedule", label: "Schedule", icon: CalendarDays },
