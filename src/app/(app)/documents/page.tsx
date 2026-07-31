@@ -1,5 +1,6 @@
 import { Suspense } from "react";
-import { FileText, Upload } from "lucide-react";
+import { DocumentLink } from "@/components/documents/document-link";
+import { UploadDocument } from "@/components/documents/upload-document";
 import { FilterSelect } from "@/components/ui/filter-select";
 import { getDocuments, getProjects } from "@/lib/data";
 import { formatDate } from "@/lib/utils";
@@ -59,13 +60,7 @@ export default async function DocumentsPage({
               ]}
             />
           </Suspense>
-          <button
-            type="button"
-            className="flex items-center gap-1.5 rounded-lg bg-brand-700 px-3.5 py-2 text-sm font-semibold text-white hover:bg-brand-800"
-          >
-            <Upload className="size-4" />
-            Upload
-          </button>
+          <UploadDocument projects={projects.map((p) => ({ id: p.id, name: p.name }))} />
         </div>
       </div>
 
@@ -85,10 +80,11 @@ export default async function DocumentsPage({
             {visible.map((document) => (
               <tr key={document.id} className="hover:bg-canvas/60">
                 <td className="px-4 py-3">
-                  <span className="flex items-center gap-2 font-medium">
-                    <FileText className="size-4 shrink-0 text-ink-subtle" />
-                    {document.name}
-                  </span>
+                  <DocumentLink
+                    id={document.id}
+                    name={document.name}
+                    hasFile={Boolean(document.storage_path)}
+                  />
                 </td>
                 <td className="px-4 py-3 text-ink-muted">{document.project.name}</td>
                 <td className="px-4 py-3">

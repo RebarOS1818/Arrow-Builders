@@ -144,12 +144,12 @@ export const demoCashFlow: CashFlowPoint[] = [
 ];
 
 export const demoDocuments: DocumentRecord[] = [
-  { id: "d-1", org_id: DEMO_ORG.id, project_id: "p-riverside", name: "Riverside – Structural Set Rev C.pdf", category: "Drawings", size_kb: 18_420, uploaded_at: "2025-05-15T14:00:00-05:00", uploaded_by: "Marcus Webb" },
-  { id: "d-2", org_id: DEMO_ORG.id, project_id: "p-maple", name: "Foundation Pour Log 05-15.xlsx", category: "Field Reports", size_kb: 240, uploaded_at: "2025-05-15T18:30:00-05:00", uploaded_by: "Alicia Reyes" },
-  { id: "d-3", org_id: DEMO_ORG.id, project_id: "p-westgate", name: "Window Frame Submittal.pdf", category: "Submittals", size_kb: 6_180, uploaded_at: "2025-05-14T11:05:00-05:00", uploaded_by: "Priya Nair" },
-  { id: "d-4", org_id: DEMO_ORG.id, project_id: "p-riverside", name: "Change Order 12 – Signed.pdf", category: "Contracts", size_kb: 890, uploaded_at: "2025-05-16T09:10:00-05:00", uploaded_by: "Jordan Mills" },
-  { id: "d-5", org_id: DEMO_ORG.id, project_id: "p-maple", name: "Site Safety Plan 2025.docx", category: "Safety", size_kb: 1_320, uploaded_at: "2025-05-09T08:00:00-05:00", uploaded_by: "Sofia Ibarra" },
-  { id: "d-6", org_id: DEMO_ORG.id, project_id: "p-westgate", name: "Steel Erection Sequence.pdf", category: "Drawings", size_kb: 9_640, uploaded_at: "2025-05-12T10:45:00-05:00", uploaded_by: "Marcus Webb" },
+  { id: "d-1", org_id: DEMO_ORG.id, storage_path: null, project_id: "p-riverside", name: "Riverside – Structural Set Rev C.pdf", category: "Drawings", size_kb: 18_420, uploaded_at: "2025-05-15T14:00:00-05:00", uploaded_by: "Marcus Webb" },
+  { id: "d-2", org_id: DEMO_ORG.id, storage_path: null, project_id: "p-maple", name: "Foundation Pour Log 05-15.xlsx", category: "Field Reports", size_kb: 240, uploaded_at: "2025-05-15T18:30:00-05:00", uploaded_by: "Alicia Reyes" },
+  { id: "d-3", org_id: DEMO_ORG.id, storage_path: null, project_id: "p-westgate", name: "Window Frame Submittal.pdf", category: "Submittals", size_kb: 6_180, uploaded_at: "2025-05-14T11:05:00-05:00", uploaded_by: "Priya Nair" },
+  { id: "d-4", org_id: DEMO_ORG.id, storage_path: null, project_id: "p-riverside", name: "Change Order 12 – Signed.pdf", category: "Contracts", size_kb: 890, uploaded_at: "2025-05-16T09:10:00-05:00", uploaded_by: "Jordan Mills" },
+  { id: "d-5", org_id: DEMO_ORG.id, storage_path: null, project_id: "p-maple", name: "Site Safety Plan 2025.docx", category: "Safety", size_kb: 1_320, uploaded_at: "2025-05-09T08:00:00-05:00", uploaded_by: "Sofia Ibarra" },
+  { id: "d-6", org_id: DEMO_ORG.id, storage_path: null, project_id: "p-westgate", name: "Steel Erection Sequence.pdf", category: "Drawings", size_kb: 9_640, uploaded_at: "2025-05-12T10:45:00-05:00", uploaded_by: "Marcus Webb" },
 ];
 
 /** Headline numbers are portfolio-wide and include projects outside the demo detail set. */

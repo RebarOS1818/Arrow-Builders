@@ -113,17 +113,24 @@ export function RecordForm({
 
   return (
     <>
-      <button
-        ref={triggerRef}
-        type="button"
-        onClick={() => setOpen(true)}
-        disabled={disabled}
-        title={disabled ? disabledReason : undefined}
-        className="pressable inline-flex items-center gap-2 rounded-full bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-50"
-      >
-        <Plus className="size-4" />
-        {triggerLabel}
-      </button>
+      <span className="inline-flex flex-wrap items-center gap-x-3 gap-y-1">
+        <button
+          ref={triggerRef}
+          type="button"
+          onClick={() => setOpen(true)}
+          disabled={disabled}
+          className="pressable inline-flex items-center gap-2 rounded-full bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          <Plus className="size-4" />
+          {triggerLabel}
+        </button>
+        {/* Written out rather than left to a `title`: a disabled button swallows
+            the events a tooltip needs, so the explanation would never appear
+            and the button would just look broken. */}
+        {disabled && disabledReason && (
+          <span className="text-xs text-ink-subtle">{disabledReason}</span>
+        )}
+      </span>
 
       {open && (
         <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center">

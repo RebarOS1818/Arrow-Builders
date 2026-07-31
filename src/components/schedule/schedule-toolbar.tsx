@@ -9,7 +9,6 @@ import {
   ChevronRight,
   GanttChartSquare,
   LayoutGrid,
-  SlidersHorizontal,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { addDays } from "@/lib/week";
@@ -116,18 +115,10 @@ export function ScheduleToolbar({
         />
         <button
           type="button"
-          className="flex items-center gap-1.5 rounded-lg border border-line bg-surface px-3 py-2 text-sm font-medium text-ink-muted hover:text-ink"
-        >
-          <SlidersHorizontal className="size-4" />
-          Filters
-        </button>
-        <button
-          type="button"
           onClick={() => setParams({ create: "1", view: null })}
           className="flex items-center gap-1.5 rounded-lg bg-brand-700 px-3.5 py-2 text-sm font-semibold text-white hover:bg-brand-800"
         >
           Create Task
-          <ChevronDown className="size-4 opacity-80" />
         </button>
       </div>
     </div>
