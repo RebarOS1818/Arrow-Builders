@@ -144,7 +144,7 @@ export function PlanCards({
                     disabled={!canManage || pending !== null}
                     onClick={() => choose(tier.key)}
                     title={canManage ? undefined : "Only admins can manage billing"}
-                    className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-50"
+                    className="pressable inline-flex w-full items-center justify-center gap-2 rounded-full bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     {pending === tier.key && <Loader2 className="size-4 animate-spin" />}
                     {hasSubscription ? `Switch to ${tier.name}` : `Choose ${tier.name}`}
@@ -152,7 +152,7 @@ export function PlanCards({
                 ) : salesEmail ? (
                   <a
                     href={`mailto:${salesEmail}?subject=${encodeURIComponent(`${tier.name} plan enquiry`)}`}
-                    className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-canvas px-4 py-2.5 text-sm font-semibold text-ink transition-colors hover:bg-line"
+                    className="pressable inline-flex w-full items-center justify-center gap-2 rounded-full bg-canvas px-4 py-2.5 text-sm font-semibold text-ink transition-colors hover:bg-line"
                   >
                     <Mail className="size-4" />
                     Contact us

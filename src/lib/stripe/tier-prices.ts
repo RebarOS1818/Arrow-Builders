@@ -33,13 +33,28 @@ export async function resolveTiers(): Promise<ResolvedTier[]> {
       if (!tier.priceId) return tier;
 
       try {
-        const price = await stripe.prices.retrieve(tier.priceId);
+        // The product is expanded so its metadata can serve as a fallback below.
+        const price = await stripe.prices.retrieve(tier.priceId, { expand: ["product"] });
 
         if (!price.active) {
           return { ...tier, unavailable: "This plan's price is archived in Stripe." };
         }
 
-        const declared = Number.parseInt(price.metadata?.included_seats ?? "", 10);
+        // included_seats is read from the Price first, then the Product.
+        //
+        // The Price is the correct home for it — two Prices on one Product can
+        // grant different allowances — but Stripe's dashboard shows the
+        // Product's metadata panel far more prominently, so that is where it
+        // tends to get typed. Falling back costs nothing and turns a silently
+        // ignored setting into one that works.
+        const product = price.product;
+        const productMeta =
+          product && typeof product === "object" && !("deleted" in product)
+            ? product.metadata
+            : undefined;
+
+        const seats = (price.metadata?.included_seats ?? productMeta?.included_seats ?? "").trim();
+        const declared = Number.parseInt(seats, 10);
         const includedSeats =
           Number.isFinite(declared) && declared > 0 ? declared : tier.includedSeats;
 

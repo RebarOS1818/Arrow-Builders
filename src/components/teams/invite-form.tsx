@@ -101,7 +101,7 @@ export function InviteForm({
           type="submit"
           disabled={pending || seatsFull}
           title={seatsFull ? "The plan\u2019s user limit is reached" : undefined}
-          className="inline-flex items-center gap-2 rounded-full bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-50"
+          className="pressable inline-flex items-center gap-2 rounded-full bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {pending ? <Loader2 className="size-4 animate-spin" /> : <UserPlus className="size-4" />}
           Send invite
@@ -152,7 +152,7 @@ export function InviteForm({
             <button
               type="button"
               onClick={() => navigator.clipboard?.writeText(link.url)}
-              className="shrink-0 rounded-full bg-brand-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-brand-700"
+              className="pressable shrink-0 rounded-full bg-brand-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-brand-700"
             >
               Copy
             </button>

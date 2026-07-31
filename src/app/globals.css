@@ -1,48 +1,73 @@
 @import "tailwindcss";
 
 @theme {
-  /* Brand — violet, per the reference design */
-  --color-brand-50: #f4f2ff;
-  --color-brand-100: #ebe7fe;
-  --color-brand-200: #d9d2fd;
-  --color-brand-300: #bcaefb;
-  --color-brand-400: #9a83f7;
-  --color-brand-500: #7f61f0;
-  --color-brand-600: #6d4de3;
-  --color-brand-700: #5c3ccb;
-  --color-brand-800: #4c32a6;
-  --color-brand-900: #402c85;
+  /*
+   * Soft blue with a mint counterpoint, per the reference. Replaces the violet
+   * ramp — `brand` is still the accent every component reaches for, so changing
+   * it here recolours the whole app coherently rather than component by
+   * component.
+   */
+  --color-brand-50: #eef4fe;
+  --color-brand-100: #dfeafd;
+  --color-brand-200: #ccdcf8;
+  --color-brand-300: #a8c7f5;
+  --color-brand-400: #7ea9ee;
+  --color-brand-500: #5b8ce4;
+  --color-brand-600: #3f6fd1;
+  --color-brand-700: #3159ad;
+  --color-brand-800: #2a4988;
+  --color-brand-900: #253d6d;
 
-  /* Cool neutral surfaces */
-  --color-canvas: #f6f7fb;
+  /* Mint, the reference's second accent: positive figures and healthy status. */
+  --color-mint-50: #eef7f2;
+  --color-mint-100: #d9ebe1;
+  --color-mint-200: #bfdfcd;
+  --color-mint-300: #93cbaf;
+  --color-mint-400: #5cb98e;
+  --color-mint-500: #34c88a;
+  --color-mint-600: #22a06e;
+
+  /* Surfaces: a tinted page behind a near-white shell. */
+  --color-canvas: #dbe8fa;
+  --color-shell: #eef4fe;
   --color-surface: #ffffff;
-  --color-line: #eef0f5;
-  --color-line-strong: #dfe3ec;
-  --color-ink: #191a23;
-  --color-ink-muted: #7b7f8d;
-  --color-ink-subtle: #a2a6b3;
+  --color-line: #e3ecfa;
+  --color-line-strong: #cfdcf1;
+  --color-ink: #16181d;
+  --color-ink-muted: #5f6672;
+  --color-ink-subtle: #949cab;
 
   /* Status */
-  --color-status-ontrack: #16a34a;
-  --color-status-behind: #f08c2e;
-  --color-status-risk: #e5484d;
-  --color-status-done: #16a34a;
+  --color-status-ontrack: #22a06e;
+  --color-status-behind: #e8a33d;
+  --color-status-risk: #e5615c;
+  --color-status-done: #22a06e;
 
-  /* Trade colors (schedule legend) */
-  --color-trade-general: #6d4de3;
-  --color-trade-concrete: #f08c2e;
-  --color-trade-electrical: #2b7fff;
-  --color-trade-plumbing: #12b0a6;
-  --color-trade-finishes: #e964a8;
+  /*
+   * Trade colours. A legend has to be readable at a glance, so these are spread
+   * across the hue wheel rather than kept inside the blue family — five shades
+   * of one hue is a palette that matches and a legend that does not work.
+   */
+  --color-trade-general: #3f6fd1;
+  --color-trade-concrete: #e8a33d;
+  --color-trade-electrical: #7c6fe0;
+  --color-trade-plumbing: #22a06e;
+  --color-trade-finishes: #e5799e;
 
-  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system,
+  /*
+   * The reference's typeface, with the system font behind it so text still
+   * renders correctly while the web font loads or if it fails.
+   */
+  --font-sans: var(--font-display), -apple-system, BlinkMacSystemFont, system-ui,
     "Segoe UI", sans-serif;
 
-  --radius-card: 1.25rem;
-  --radius-tile: 0.875rem;
+  /* The reference leans on large, soft radii throughout. */
+  --radius-card: 1.5rem;
+  --radius-tile: 1rem;
 
-  --shadow-soft: 0 1px 2px rgb(25 26 35 / 0.04), 0 8px 24px -12px rgb(25 26 35 / 0.08);
-  --shadow-lift: 0 2px 4px rgb(25 26 35 / 0.05), 0 16px 32px -16px rgb(25 26 35 / 0.14);
+  --shadow-soft: 0 1px 2px rgb(37 61 109 / 0.04), 0 8px 24px -14px rgb(37 61 109 / 0.14);
+  --shadow-lift: 0 2px 4px rgb(37 61 109 / 0.06), 0 16px 32px -18px rgb(37 61 109 / 0.2);
+  --shadow-material: 0 8px 16px -4px rgb(37 61 109 / 0.08), 0 24px 48px -24px rgb(37 61 109 / 0.28);
 }
 
 html,
@@ -52,15 +77,61 @@ body {
 
 body {
   background-color: var(--color-canvas);
+  /* Blue washing to mint at the far corner, as in the reference. */
+  background-image: radial-gradient(
+    120% 120% at 100% 100%,
+    rgb(52 200 138 / 0.16) 0%,
+    rgb(219 232 250 / 0) 55%
+  );
+  background-attachment: fixed;
   color: var(--color-ink);
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
-/* Cards are borderless with a soft lift, the way the reference reads. */
+/*
+ * Tracking is size-specific: large text reads too loose as it grows and wants
+ * negative tracking, small text wants a touch of positive. A single
+ * letter-spacing value is wrong somewhere, so headings tighten by size and body
+ * copy sits near zero.
+ */
+h1,
+.text-display {
+  letter-spacing: -0.022em;
+  line-height: 1.08;
+}
+
+h2 {
+  letter-spacing: -0.018em;
+  line-height: 1.16;
+}
+
+h3 {
+  letter-spacing: -0.012em;
+  line-height: 1.24;
+}
+
+small,
+.text-xs {
+  letter-spacing: 0.004em;
+}
+
+/* Cards are borderless with a soft lift. */
 @utility card {
   background-color: var(--color-surface);
   border-radius: var(--radius-card);
   box-shadow: var(--shadow-soft);
+}
+
+/* The reference alternates plain, blue and mint cards to group related panels. */
+@utility card-blue {
+  background-color: var(--color-brand-200);
+  border-radius: var(--radius-card);
+}
+
+@utility card-mint {
+  background-color: var(--color-mint-100);
+  border-radius: var(--radius-card);
 }
 
 /* Inset panel inside a card (chart wells, table shells). */
@@ -69,12 +140,68 @@ body {
   border-radius: var(--radius-tile);
 }
 
+/*
+ * Translucent chrome. Content scrolls *under* these rather than being clipped
+ * by an opaque strip, which is what gives the interface depth. The bright top
+ * edge is light catching the material.
+ */
+@utility material {
+  background-color: rgb(255 255 255 / 0.8);
+  backdrop-filter: blur(20px) saturate(180%);
+}
+
+/*
+ * The mobile navigation drawer. Navigation is horizontal from `lg`, so this only
+ * ever renders below that breakpoint.
+ *
+ * Written as a plain class rather than @utility because the transform has to
+ * come from CSS — driven by a custom property the spring writes each frame —
+ * alongside backdrop-filter, which @utility handles awkwardly.
+ */
+.sidebar-surface {
+    /*
+     * A full-height drawer is a big surface, so it reads as thick: high opacity
+     * and a strong blur. Thin translucency over busy content collapses
+     * legibility, and the alpha alone has to carry it where backdrop-filter is
+     * unsupported — the blur is an enhancement, not what keeps text readable.
+     */
+    background-color: rgb(255 255 255 / 0.94);
+    backdrop-filter: blur(30px) saturate(180%);
+    /* A bright edge is light catching the material. */
+    border-right: 1px solid rgb(255 255 255 / 0.6);
+  /* Driven frame-by-frame by the spring; closed until it says otherwise. */
+  transform: translate3d(var(--drawer-x, -100%), 0, 0);
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .sidebar-surface {
+    background-color: #ffffff;
+    backdrop-filter: none;
+  }
+}
+
+/* Heavier material for structural regions — sheets, popovers. */
+@utility material-thick {
+  background-color: rgb(255 255 255 / 0.82);
+  backdrop-filter: blur(30px) saturate(180%);
+}
+
+/*
+ * Press feedback on pointer-down, not on release. Waiting for click to
+ * acknowledge a press is the single thing that makes an interface feel dead.
+ */
+@utility pressable {
+  transition: transform 120ms cubic-bezier(0.32, 0.72, 0, 1);
+  &:active {
+    transform: scale(0.97);
+  }
+}
+
 @utility scroll-thin {
   scrollbar-width: thin;
   scrollbar-color: var(--color-line-strong) transparent;
 }
 
-/* Horizontal card rails hide their scrollbar — arrows drive them instead. */
 @utility scroll-hidden {
   scrollbar-width: none;
   &::-webkit-scrollbar {
@@ -84,4 +211,48 @@ body {
 
 ::selection {
   background-color: var(--color-brand-100);
+}
+
+/*
+ * Reduced motion is not "no feedback" — it is a gentler, non-vestibular
+ * equivalent. Slides and springs become short cross-fades; opacity and colour
+ * changes that aid comprehension stay.
+ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 150ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .pressable:active {
+    transform: none;
+  }
+}
+
+/* Frostier, not see-through, when the user has asked for less transparency. */
+@media (prefers-reduced-transparency: reduce) {
+  .material,
+  .material-thick {
+    background-color: rgb(255 255 255 / 0.98);
+    backdrop-filter: none;
+  }
+}
+
+/* Near-solid backgrounds with a defined border when more contrast is asked for. */
+@media (prefers-contrast: more) {
+  .material,
+  .material-thick {
+    background-color: #ffffff;
+    backdrop-filter: none;
+    border-color: var(--color-ink);
+  }
+
+  .card {
+    box-shadow: none;
+    outline: 1px solid var(--color-line-strong);
+  }
 }
