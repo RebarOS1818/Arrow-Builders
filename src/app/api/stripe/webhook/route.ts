@@ -46,9 +46,31 @@ function periodEnd(subscription: Stripe.Subscription): string | null {
  * metadata so it can differ per client without a deploy, and falls back to the
  * configured bundle when a Price has no metadata set.
  */
-function includedSeats(subscription: Stripe.Subscription): number {
-  const raw = subscription.items.data[0]?.price?.metadata?.included_seats;
-  const parsed = Number.parseInt(raw ?? "", 10);
+async function includedSeats(
+  stripe: Stripe,
+  subscription: Stripe.Subscription,
+): Promise<number> {
+  const price = subscription.items.data[0]?.price;
+  let raw = price?.metadata?.included_seats;
+
+  // Fall back to the Product's metadata, matching what the pricing cards do.
+  // The Price is the right home for this, but Stripe's dashboard surfaces the
+  // Product's metadata panel far more prominently, so that is where it tends to
+  // get typed. The webhook must agree with the cards or the seat limit granted
+  // would not match the allowance advertised.
+  if (!raw && price?.id) {
+    try {
+      const full = await stripe.prices.retrieve(price.id, { expand: ["product"] });
+      const product = full.product;
+      if (product && typeof product === "object" && !("deleted" in product)) {
+        raw = product.metadata?.included_seats;
+      }
+    } catch {
+      // Leave raw unset; the configured default below is the safe answer.
+    }
+  }
+
+  const parsed = Number.parseInt((raw ?? "").trim(), 10);
   return Number.isFinite(parsed) && parsed > 0 ? parsed : INCLUDED_SEATS;
 }
 
@@ -117,7 +139,7 @@ export async function POST(request: NextRequest) {
               typeof session.customer === "string" ? session.customer : session.customer?.id,
             stripe_subscription_id: subscription.id,
             subscription_status: statusOf(subscription),
-            seat_limit: includedSeats(subscription),
+            seat_limit: await includedSeats(stripe, subscription),
             price_cents: priceCentsOf(subscription) ?? 0,
             current_period_end: periodEnd(subscription),
             plan: planOf(subscription),
@@ -135,7 +157,7 @@ export async function POST(request: NextRequest) {
         // larger Price in the Stripe dashboard raises their ceiling here too.
         const patch = {
           subscription_status: statusOf(subscription),
-          seat_limit: includedSeats(subscription),
+          seat_limit: await includedSeats(stripe, subscription),
           price_cents: priceCentsOf(subscription) ?? 0,
           // Re-read on every update so an in-app plan change, or one made in
           // the Stripe dashboard, lands in the database the same way.
