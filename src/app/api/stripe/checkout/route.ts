@@ -1,10 +1,27 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getStripe } from "@/lib/stripe/client";
-import { APP_URL, STRIPE_PRICE_ID } from "@/lib/stripe/config";
+import { APP_URL } from "@/lib/stripe/config";
+import { isSelfServe, tierByKey } from "@/lib/stripe/tiers";
 
-/** Starts the flat-fee subscription for the caller's organization. Admins only. */
-export async function POST() {
+/** Starts a flat-fee subscription on the requested tier. Admins only. */
+export async function POST(request: Request) {
+  // The tier is validated against the server's own list rather than trusted:
+  // the request could otherwise name any Price in the Stripe account, including
+  // one meant for a different client.
+  const body = (await request.json().catch(() => ({}))) as { tier?: string };
+  const tier = tierByKey(body.tier ?? "starter");
+
+  if (!tier) {
+    return NextResponse.json({ error: "Unknown plan." }, { status: 400 });
+  }
+  if (!isSelfServe(tier)) {
+    return NextResponse.json(
+      { error: `${tier.name} is arranged with our team rather than bought online.` },
+      { status: 400 },
+    );
+  }
+
   const stripe = getStripe();
   const db = await createClient();
 
@@ -52,8 +69,9 @@ export async function POST() {
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
       // Flat fee: one unit of a fixed-price recurring item, whatever the head
-      // count. The user allowance rides on the Price's included_seats metadata.
-      line_items: [{ price: STRIPE_PRICE_ID, quantity: 1 }],
+      // count. The user allowance rides on the Price's included_seats metadata,
+      // and the plan recorded on the org comes from the Price the webhook sees.
+      line_items: [{ price: tier.priceId, quantity: 1 }],
       customer: row?.stripe_customer_id ?? undefined,
       customer_email: row?.stripe_customer_id ? undefined : (user.email ?? undefined),
       client_reference_id: orgId,

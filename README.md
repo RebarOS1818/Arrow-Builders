@@ -74,14 +74,39 @@ costs the invite. The form reports what happened and always shows the link.
 
 ## Billing
 
-A flat monthly fee for up to 50 users, not a per-seat charge — the Stripe
-subscription quantity is always 1, and adding or removing people never changes
-the invoice.
+Three plans — **Starter**, **Premium** and **Enterprise** — each a flat monthly
+fee for a bundle of users. The Stripe subscription quantity is always 1, so
+adding or removing people never changes the invoice.
+
+Tiers are declared in `src/lib/stripe/tiers.ts` but priced in Stripe. Both the
+amount and the user allowance are read from the Price at runtime, so repricing a
+plan or changing its allowance is a dashboard edit, not a deploy:
+
+| Plan | Price ID | Bought how |
+| --- | --- | --- |
+| Starter | `STRIPE_PRICE_ID_STARTER` | Stripe Checkout |
+| Premium | `STRIPE_PRICE_ID_PREMIUM` | Stripe Checkout |
+| Enterprise | none | Contact sales |
+
+Enterprise has no Price, which is what makes it unbuyable online — the card
+shows a mailto link instead, and you set the organization's plan and seat limit
+yourself once terms are agreed. A negotiated Price created directly in the
+dashboard is recorded as enterprise, since an unrecognised Price is almost
+always exactly that.
 
 The allowance comes from the Price's `included_seats` metadata, falling back to
-`INCLUDED_SEATS` in `src/lib/stripe/config.ts`. It is deliberately not read from
-the subscription quantity: under a flat fee that is always 1, which would drop
-the ceiling to a single user the moment the subscription started.
+the tier's `includedSeats`. It is deliberately **not** read from the
+subscription quantity: under a flat fee that is always 1, which would drop the
+ceiling to a single user the moment the subscription started.
+
+Which plan an organization is on is derived from the Price on the subscription,
+never from what the browser asked for, so the recorded plan cannot disagree with
+the invoice.
+
+Subscribing and switching plan are separate endpoints (`/api/stripe/checkout`
+and `/api/stripe/change-plan`) because they are different Stripe operations —
+sending an existing subscriber through Checkout again leaves them with two
+subscriptions and two invoices.
 
 Inviting past the limit is refused by a database trigger, so access can never
 exceed what is billed. A pending invite holds a place until accepted or revoked.

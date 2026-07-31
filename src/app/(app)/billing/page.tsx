@@ -2,6 +2,7 @@ import Link from "next/link";
 import { AlertTriangle, CheckCircle2, Info } from "lucide-react";
 import { BillingActions } from "@/components/billing/billing-actions";
 import { SeatMeter } from "@/components/billing/seat-meter";
+import { PlanCards } from "@/components/billing/plan-cards";
 import { formatCents, getBillingSummary, type SubscriptionStatus } from "@/lib/billing";
 import { cn, formatDate } from "@/lib/utils";
 
@@ -119,6 +120,24 @@ export default async function BillingPage({
           />
         </div>
       </section>
+      )}
+
+      {!billing.loadError && (
+        <section>
+          <h2 className="text-lg font-semibold tracking-tight">
+            {billing.hasSubscription ? "Change plan" : "Choose a plan"}
+          </h2>
+          <div className="mt-3">
+            <PlanCards
+              tiers={billing.tiers}
+              selfServe={billing.selfServe}
+              salesEmail={billing.salesEmail}
+              currentPlan={billing.plan}
+              hasSubscription={billing.hasSubscription}
+              canManage={billing.canManage}
+            />
+          </div>
+        </section>
       )}
 
       <section className="card p-6">

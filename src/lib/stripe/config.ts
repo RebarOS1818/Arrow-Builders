@@ -1,13 +1,14 @@
 import "server-only";
 
 import { SUPABASE_SERVICE_ROLE_KEY as SERVICE_ROLE_KEY } from "../supabase/server-config";
+import { selfServeTiers } from "./tiers";
 
 export const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY ?? "";
 export const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET ?? "";
 
 /**
- * Recurring flat-fee Price created in the Stripe dashboard. Set an
- * `included_seats` metadata key on it to override the user allowance below.
+ * Per-tier Prices live in ./tiers. At least one self-serve tier must have a
+ * Price or nothing can be bought, which is what readiness below checks.
  */
 export const STRIPE_PRICE_ID = process.env.STRIPE_PRICE_ID ?? "";
 
@@ -62,9 +63,11 @@ export const APP_URL =
  */
 const REQUIRED_ENV = {
   STRIPE_SECRET_KEY,
-  STRIPE_PRICE_ID,
   STRIPE_WEBHOOK_SECRET,
   SUPABASE_SERVICE_ROLE_KEY: SERVICE_ROLE_KEY,
+  // Named for the variable a fresh install would set. Starter also accepts the
+  // unsuffixed STRIPE_PRICE_ID, so an existing single-plan install stays ready.
+  STRIPE_PRICE_ID_STARTER: selfServeTiers().length > 0 ? "set" : "",
 } as const;
 
 /** Names of the variables still unset, for a precise setup message. */

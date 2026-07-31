@@ -1,9 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { CreditCard, ExternalLink, Loader2 } from "lucide-react";
+import { ExternalLink, Loader2 } from "lucide-react";
 
-/** Kicks off Stripe Checkout or the billing portal and follows the returned URL. */
+/**
+ * Opens the Stripe billing portal — card, invoices and cancellation.
+ *
+ * Starting a subscription lives in PlanCards instead, because it needs a tier.
+ * A second, tier-less subscribe button here would quietly enrol everyone on
+ * Starter regardless of which plan they had just picked.
+ */
 export function BillingActions({
   hasSubscription,
   canManage,
@@ -11,20 +17,20 @@ export function BillingActions({
   hasSubscription: boolean;
   canManage: boolean;
 }) {
-  const [pending, setPending] = useState<"checkout" | "portal" | null>(null);
+  const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  async function go(kind: "checkout" | "portal") {
-    setPending(kind);
+  async function openPortal() {
+    setPending(true);
     setError(null);
     try {
-      const response = await fetch(`/api/stripe/${kind}`, { method: "POST" });
+      const response = await fetch("/api/stripe/portal", { method: "POST" });
       const body = (await response.json()) as { url?: string; error?: string };
       if (!response.ok || !body.url) throw new Error(body.error ?? "Something went wrong.");
-      window.location.href = body.url;
+      window.location.assign(body.url);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Something went wrong.");
-      setPending(null);
+      setPending(false);
     }
   }
 
@@ -36,39 +42,21 @@ export function BillingActions({
     );
   }
 
+  // Nothing to manage until there is a subscription; the plan cards below are
+  // the way in.
+  if (!hasSubscription) return null;
+
   return (
     <div>
-      <div className="flex flex-wrap gap-2">
-        {hasSubscription ? (
-          <button
-            type="button"
-            onClick={() => go("portal")}
-            disabled={pending !== null}
-            className="inline-flex items-center gap-2 rounded-full bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-700 disabled:opacity-60"
-          >
-            {pending === "portal" ? (
-              <Loader2 className="size-4 animate-spin" />
-            ) : (
-              <ExternalLink className="size-4" />
-            )}
-            Manage billing
-          </button>
-        ) : (
-          <button
-            type="button"
-            onClick={() => go("checkout")}
-            disabled={pending !== null}
-            className="inline-flex items-center gap-2 rounded-full bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-700 disabled:opacity-60"
-          >
-            {pending === "checkout" ? (
-              <Loader2 className="size-4 animate-spin" />
-            ) : (
-              <CreditCard className="size-4" />
-            )}
-            Start subscription
-          </button>
-        )}
-      </div>
+      <button
+        type="button"
+        onClick={openPortal}
+        disabled={pending}
+        className="inline-flex items-center gap-2 rounded-full bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-700 disabled:opacity-60"
+      >
+        {pending ? <Loader2 className="size-4 animate-spin" /> : <ExternalLink className="size-4" />}
+        Manage billing
+      </button>
 
       {error && <p className="mt-3 text-sm text-status-risk">{error}</p>}
     </div>
