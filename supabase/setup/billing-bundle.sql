@@ -354,14 +354,26 @@ begin
 end;
 $$;
 
-alter table organizations
-  rename column price_per_seat_cents to price_cents;
+do $$
+begin
+  if exists (
+    select 1 from information_schema.columns
+     where table_schema = 'public' and table_name = 'organizations'
+       and column_name = 'price_per_seat_cents'
+  ) and not exists (
+    select 1 from information_schema.columns
+     where table_schema = 'public' and table_name = 'organizations'
+       and column_name = 'price_cents'
+  ) then
+    alter table organizations rename column price_per_seat_cents to price_cents;
+  end if;
+end $$;
 comment on column organizations.price_cents is
   'Flat monthly fee for the whole organization, not a per-user rate. Written by the Stripe webhook from the Price, so the app never displays a figure the customer is not actually charged.';
-alter table organizations
-  alter column price_cents set default 0;
 comment on column organizations.seat_limit is
   'Users included in the plan. Set from the Stripe Price metadata by the webhook.';
+alter table organizations
+  alter column price_cents set default 0;
 alter table organizations
   alter column seat_limit set default 3;
 update organizations

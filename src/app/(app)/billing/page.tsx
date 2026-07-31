@@ -33,7 +33,9 @@ export default async function BillingPage({
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Billing</h1>
         <p className="mt-1 text-sm text-ink-muted">
-          {billing.orgName} is on a flat monthly plan for up to {billing.seatLimit} users.
+          {billing.loadError
+            ? "Plan details are unavailable until the database is up to date."
+            : `${billing.orgName} is on a flat monthly plan for up to ${billing.seatLimit} users.`}
         </p>
       </div>
 
@@ -131,8 +133,9 @@ export default async function BillingPage({
             amount, so there is nothing to prorate.
           </li>
           <li>
-            Inviting past {billing.seatLimit} is refused by the database, so the number
-            of people with access can never exceed the plan.
+            Inviting past the plan{"’"}s limit
+            {billing.loadError ? "" : ` of ${billing.seatLimit}`} is refused by the
+            database, so the number of people with access can never exceed the plan.
           </li>
         </ul>
         <Link
