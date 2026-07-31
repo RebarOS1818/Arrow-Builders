@@ -4,29 +4,41 @@
 -- be derived from it — the webhook reads the allowance from the Price's
 -- included_seats metadata instead. Nothing here depends on Stripe; this
 -- migration only renames the price column and moves the default ceiling.
+--
+-- Written to be safe to run more than once. These migrations get pasted into
+-- the Supabase SQL editor by hand, often on a phone, and anything that can only
+-- be applied once eventually gets applied twice — a partial paste, a lost
+-- scroll position, an uncertain "did that go through?". A bare ALTER ... RENAME
+-- fails the second time with `column "price_per_seat_cents" does not exist`,
+-- which reads as a broken schema rather than one that is already correct.
 
-alter table organizations
-  rename column price_per_seat_cents to price_cents;
+do $$
+begin
+  if exists (
+    select 1 from information_schema.columns
+     where table_schema = 'public' and table_name = 'organizations'
+       and column_name = 'price_per_seat_cents'
+  ) and not exists (
+    select 1 from information_schema.columns
+     where table_schema = 'public' and table_name = 'organizations'
+       and column_name = 'price_cents'
+  ) then
+    alter table organizations rename column price_per_seat_cents to price_cents;
+  end if;
+end $$;
 
 comment on column organizations.price_cents is
   'Flat monthly fee for the whole organization, not a per-user rate. Written by the Stripe webhook from the Price, so the app never displays a figure the customer is not actually charged.';
 
--- 2900 was the old per-seat rate and would be a wrong flat fee. Zero reads as
--- "not yet known", which is honest until the webhook records the real amount.
-alter table organizations
-  alter column price_cents set default 0;
-
 comment on column organizations.seat_limit is
   'Users included in the plan. Set from the Stripe Price metadata by the webhook.';
 
--- New organizations start on the free ceiling; a paid plan raises it.
+alter table organizations
+  alter column price_cents set default 0;
+
 alter table organizations
   alter column seat_limit set default 3;
 
--- Existing paid organizations were given a seat_limit equal to their Stripe
--- quantity, which under flat-fee pricing would be the number of users they
--- happened to have at checkout. Lift those to the standard bundle. Rows still
--- on the old free default are left alone.
 update organizations
    set seat_limit = 50
  where stripe_subscription_id is not null
