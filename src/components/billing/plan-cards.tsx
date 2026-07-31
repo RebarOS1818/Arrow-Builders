@@ -11,6 +11,8 @@ type TierCard = {
   includedSeats: number;
   listPriceCents: number | null;
   highlights: string[];
+  /** Why the tier cannot be bought, when Stripe could not price it. */
+  unavailable?: string;
 };
 
 function money(cents: number) {
@@ -78,7 +80,9 @@ export function PlanCards({
           // that as current would replace Starter's buy button with "Your
           // current plan" — leaving no way to actually subscribe to it.
           const isCurrent = hasSubscription && tier.key === currentPlan;
-          const buyable = selfServe[tier.key];
+          // A tier Stripe could not price must not offer a button: the click
+          // would fail at checkout, after raising the customer's expectations.
+          const buyable = selfServe[tier.key] && !tier.unavailable;
 
           return (
             <article
@@ -111,6 +115,14 @@ export function PlanCards({
               </p>
 
               <ul className="mt-4 flex-1 space-y-2">
+                {/* Rendered from the allowance itself, so the headline user
+                    count can never drift from what the plan actually grants. */}
+                <li className="flex items-start gap-2 text-sm text-ink-muted">
+                  <Check className="mt-0.5 size-4 shrink-0 text-brand-600" />
+                  {tier.listPriceCents === null
+                    ? "Users by agreement"
+                    : `Up to ${tier.includedSeats} users`}
+                </li>
                 {tier.highlights.map((line) => (
                   <li key={line} className="flex items-start gap-2 text-sm text-ink-muted">
                     <Check className="mt-0.5 size-4 shrink-0 text-brand-600" />
@@ -120,7 +132,11 @@ export function PlanCards({
               </ul>
 
               <div className="mt-5">
-                {isCurrent ? (
+                {tier.unavailable ? (
+                  <p className="text-sm text-status-risk">
+                    Unavailable — {tier.unavailable}
+                  </p>
+                ) : isCurrent ? (
                   <p className="text-sm font-medium text-ink-muted">Your current plan</p>
                 ) : buyable ? (
                   <button

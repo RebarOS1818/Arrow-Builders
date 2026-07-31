@@ -46,7 +46,7 @@ export const TIERS: Tier[] = [
     priceId: STARTER_PRICE,
     includedSeats: 10,
     listPriceCents: 2900,
-    highlights: ["Up to 10 users", "All projects and scheduling", "Email invites"],
+    highlights: ["All projects and scheduling", "Email invites"],
   },
   {
     key: "premium",
@@ -55,7 +55,7 @@ export const TIERS: Tier[] = [
     priceId: PREMIUM_PRICE,
     includedSeats: 50,
     listPriceCents: 9900,
-    highlights: ["Up to 50 users", "Everything in Starter", "Priority support"],
+    highlights: ["Everything in Starter", "Priority support"],
   },
   {
     key: "enterprise",
@@ -64,7 +64,7 @@ export const TIERS: Tier[] = [
     priceId: "",
     includedSeats: 250,
     listPriceCents: null,
-    highlights: ["Unlimited users by agreement", "Everything in Premium", "Onboarding and SLA"],
+    highlights: ["Everything in Premium", "Onboarding and SLA"],
   },
 ];
 
