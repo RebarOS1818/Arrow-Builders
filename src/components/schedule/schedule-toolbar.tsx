@@ -55,6 +55,7 @@ export function ScheduleToolbar({
             key={item.id}
             type="button"
             onClick={() => setParams({ view: item.id === "calendar" ? null : item.id })}
+            aria-pressed={view === item.id}
             className={cn(
               "flex items-center gap-1.5 rounded-[6px] px-2.5 py-1.5 text-sm font-medium transition-colors",
               view === item.id
@@ -80,9 +81,14 @@ export function ScheduleToolbar({
         <button
           type="button"
           onClick={() => setParams({ week: null })}
+          // Already on this week, so the click would change nothing. Disabled
+          // rather than inert, which is indistinguishable from broken.
+          disabled={weekStart === todayWeekStart}
           className={cn(
             "rounded-lg border border-line bg-surface px-3 py-1.5 text-sm font-medium",
-            weekStart === todayWeekStart ? "text-ink" : "text-ink-muted hover:text-ink",
+            weekStart === todayWeekStart
+              ? "cursor-not-allowed text-ink-subtle"
+              : "text-ink-muted hover:text-ink",
           )}
         >
           Today
