@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, CalendarDays, FileText, MapPin } from "lucide-react";
+import { ArrowLeft, CalendarDays, FileText } from "lucide-react";
+import { MapLink } from "@/components/phases/map-link";
 import { EditProjectForm } from "@/components/projects/new-project-form";
 import { ProjectCover } from "@/components/projects/project-cover";
 import { ProgressRing } from "@/components/ui/progress-ring";
@@ -63,10 +64,11 @@ export default async function ProjectDetailPage({
               <h1 className="text-2xl font-bold tracking-tight">{project.name}</h1>
               <EditProjectForm project={project} />
             </div>
-            <p className="mt-1 flex items-center gap-1.5 text-sm text-ink-muted">
-              <MapPin className="size-4" />
-              {project.city}, {project.state}
-            </p>
+            <MapLink
+              className="mt-1 flex flex-wrap items-center gap-1.5 text-sm text-ink-muted"
+              city={project.city}
+              state={project.state}
+            />
             <div className="mt-3 flex items-center gap-3">
               <StatusLabel status={project.status} />
               <span className="flex items-center gap-1.5 text-sm text-ink-muted">

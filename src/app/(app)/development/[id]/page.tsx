@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, MapPin } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { Pill, StatusPill, humanise } from "@/components/phases/badges";
+import { MapLink, mapsQuery, mapsUrl } from "@/components/phases/map-link";
 import {
   NewComparableForm,
   NewConstraintForm,
@@ -62,11 +63,13 @@ export default async function PropertyPage({
             <h1 className="text-3xl font-bold tracking-tight">{property.name}</h1>
             <StatusPill kind="property" value={property.status} />
           </div>
-          <p className="mt-1 flex items-center gap-1.5 text-sm text-ink-muted">
-            <MapPin className="size-3.5" />
-            {[property.address, property.city, property.state].filter(Boolean).join(", ")}
-            {property.parcel_number && ` · APN ${property.parcel_number}`}
-          </p>
+          <MapLink
+            className="mt-1 flex flex-wrap items-center gap-1.5 text-sm text-ink-muted"
+            address={property.address}
+            city={property.city}
+            state={property.state}
+            suffix={property.parcel_number ? ` · APN ${property.parcel_number}` : undefined}
+          />
         </div>
       </div>
 
@@ -237,7 +240,29 @@ export default async function PropertyPage({
               <tbody className="divide-y divide-line">
                 {comparables.map((c) => (
                   <tr key={c.id}>
-                    <td className="px-5 py-3 font-medium">{c.address}</td>
+                    <td className="px-5 py-3 font-medium">
+                      {/* A comp is near the parcel by definition, so its own
+                          city fills the gap when the row only carries a street. */}
+                      {mapsQuery({ address: c.address, city: property.city }) ? (
+                        <a
+                          href={mapsUrl(
+                            mapsQuery({
+                              address: c.address,
+                              city: property.city,
+                              state: property.state,
+                            })!,
+                          )}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          title="Open in Google Maps"
+                          className="underline decoration-dotted underline-offset-4 hover:text-brand-700 hover:decoration-solid"
+                        >
+                          {c.address}
+                        </a>
+                      ) : (
+                        "—"
+                      )}
+                    </td>
                     <td className="px-5 py-3 text-ink-muted">
                       {c.sale_date ? formatDate(c.sale_date) : "—"}
                     </td>
