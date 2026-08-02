@@ -19,6 +19,7 @@ export function EditProfileForm({ profile }: { profile: Profile }) {
       title="Edit your profile"
       submitLabel="Save"
       action={updateProfile}
+      edit
       fields={[
         { name: "full_name", label: "Name", required: true, defaultValue: profile.full_name, wide: true },
         {
@@ -60,6 +61,7 @@ export function RenameOrgForm({
       description="Shown throughout the app and on invitations you send."
       submitLabel="Save"
       action={updateOrganization}
+      edit
       disabled={!canRename}
       disabledReason="Only admins can rename the organization"
       fields={[{ name: "name", label: "Name", required: true, defaultValue: name, wide: true }]}

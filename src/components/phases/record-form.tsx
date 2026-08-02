@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, Plus, X } from "lucide-react";
+import { Loader2, Pencil, Plus, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export type FieldType =
@@ -49,6 +49,7 @@ export function RecordForm({
   action,
   disabled,
   disabledReason,
+  edit,
 }: {
   title: string;
   description?: string;
@@ -58,6 +59,8 @@ export function RecordForm({
   action: (data: FormData) => Promise<ActionResult>;
   disabled?: boolean;
   disabledReason?: string;
+  /** Editing an existing record rather than adding one. Changes the icon only. */
+  edit?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -121,7 +124,7 @@ export function RecordForm({
           disabled={disabled}
           className="pressable inline-flex items-center gap-2 rounded-full bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-50"
         >
-          <Plus className="size-4" />
+          {edit ? <Pencil className="size-3.5" /> : <Plus className="size-4" />}
           {triggerLabel}
         </button>
         {/* Written out rather than left to a `title`: a disabled button swallows
