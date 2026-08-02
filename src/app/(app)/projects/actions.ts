@@ -1,0 +1,52 @@
+"use server";
+
+import { revalidatePath } from "next/cache";
+import { callerOrg, num, readableError, str, type ActionResult } from "@/lib/forms";
+
+/**
+ * Creating a project.
+ *
+ * This was the gap that made the rest of the app unreachable on a fresh
+ * account: contracts, change orders, bid packages and documents all hang off a
+ * project, and there was no way to make one without opening the SQL editor.
+ */
+export async function createProject(data: FormData): Promise<ActionResult> {
+  const caller = await callerOrg();
+  if (!caller.ok) return caller;
+
+  const name = str(data, "name");
+  if (!name) return { ok: false, error: "Give the project a name." };
+
+  const completion = num(data, "completion_pct") ?? 0;
+  if (completion < 0 || completion > 100) {
+    return { ok: false, error: "Completion must be between 0 and 100." };
+  }
+
+  const budgetTotal = num(data, "budget_total") ?? 0;
+  const budgetSpent = num(data, "budget_spent") ?? 0;
+  // Not a database constraint — a project can genuinely run over — but a spend
+  // above budget entered on day one is almost always a swapped pair of fields.
+  if (budgetTotal > 0 && budgetSpent > budgetTotal * 2) {
+    return { ok: false, error: "Spent is more than double the budget. Check the two figures." };
+  }
+
+  const { error } = await caller.db.from("projects").insert({
+    org_id: caller.orgId,
+    name,
+    city: str(data, "city") ?? "",
+    state: str(data, "state") ?? "",
+    status: str(data, "status") ?? "on_schedule",
+    completion_pct: Math.round(completion),
+    budget_total: budgetTotal,
+    budget_spent: budgetSpent,
+    target_date: str(data, "target_date"),
+    property_id: str(data, "property_id"),
+  });
+
+  if (error) return { ok: false, error: readableError(error) };
+
+  revalidatePath("/projects");
+  revalidatePath("/");
+  revalidatePath("/construction");
+  return { ok: true };
+}

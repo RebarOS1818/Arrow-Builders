@@ -98,6 +98,8 @@ export type DocumentRecord = {
   name: string;
   category: string;
   size_kb: number;
+  /** Null for records that predate storage, and for the demo dataset. */
+  storage_path: string | null;
   uploaded_at: string;
   uploaded_by: string;
 };

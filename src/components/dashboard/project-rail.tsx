@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { ProjectCard } from "@/components/projects/project-card";
@@ -21,6 +21,35 @@ export function ProjectRail({
   viewAllHref: string;
 }) {
   const rail = useRef<HTMLDivElement>(null);
+  const [atStart, setAtStart] = useState(true);
+  const [atEnd, setAtEnd] = useState(true);
+
+  // An arrow that scrolls nothing because the rail is already at its end reads
+  // as a broken button. Both are disabled at the edges instead, and when every
+  // card fits on screen both stay disabled.
+  useEffect(() => {
+    const node = rail.current;
+    if (!node) return;
+
+    function measure() {
+      if (!node) return;
+      const max = node.scrollWidth - node.clientWidth;
+      // A pixel of slack: fractional scroll positions never land exactly on 0
+      // or on the maximum.
+      setAtStart(node.scrollLeft <= 1);
+      setAtEnd(node.scrollLeft >= max - 1);
+    }
+
+    measure();
+    node.addEventListener("scroll", measure, { passive: true });
+    const observer = new ResizeObserver(measure);
+    observer.observe(node);
+
+    return () => {
+      node.removeEventListener("scroll", measure);
+      observer.disconnect();
+    };
+  }, [projects.length]);
 
   function page(direction: -1 | 1) {
     const node = rail.current;
@@ -45,16 +74,18 @@ export function ProjectRail({
           <button
             type="button"
             onClick={() => page(-1)}
+            disabled={atStart}
             aria-label="Previous projects"
-            className="grid size-8 place-items-center rounded-full bg-surface text-ink-muted shadow-soft hover:text-ink"
+            className="grid size-8 place-items-center rounded-full bg-surface text-ink-muted shadow-soft transition-opacity hover:text-ink disabled:cursor-not-allowed disabled:opacity-40"
           >
             <ChevronLeft className="size-4" />
           </button>
           <button
             type="button"
             onClick={() => page(1)}
+            disabled={atEnd}
             aria-label="Next projects"
-            className="grid size-8 place-items-center rounded-full bg-brand-600 text-white shadow-soft hover:bg-brand-700"
+            className="grid size-8 place-items-center rounded-full bg-brand-600 text-white shadow-soft transition-opacity hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-40"
           >
             <ChevronRight className="size-4" />
           </button>

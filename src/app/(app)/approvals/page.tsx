@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ApprovalActions } from "@/components/approvals/approval-actions";
 import { getApprovals } from "@/lib/data";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import type { ApprovalKind } from "@/lib/types";
@@ -53,20 +54,7 @@ export default async function ApprovalsPage() {
                   {approval.amount != null ? formatCurrency(approval.amount) : "—"}
                 </td>
                 <td className="px-4 py-3 text-right">
-                  <div className="flex justify-end gap-2">
-                    <button
-                      type="button"
-                      className="rounded-md border border-line px-2.5 py-1 text-xs font-medium text-ink-muted hover:text-ink"
-                    >
-                      Reject
-                    </button>
-                    <button
-                      type="button"
-                      className="rounded-md bg-brand-700 px-2.5 py-1 text-xs font-semibold text-white hover:bg-brand-800"
-                    >
-                      Approve
-                    </button>
-                  </div>
+                  <ApprovalActions id={approval.id} reference={approval.reference} />
                 </td>
               </tr>
             ))}

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import { AlertTriangle } from "lucide-react";
+import { NewTaskForm } from "@/components/tasks/new-task-form";
 import { FilterSelect } from "@/components/ui/filter-select";
 import { TRADE_LABELS, TradeDot } from "@/components/ui/badge";
 import { getProjects, getTasks } from "@/lib/data";
@@ -83,6 +84,7 @@ export default async function TasksPage({
                 })),
               ]}
             />
+            <NewTaskForm projects={projects.map((p) => ({ id: p.id, name: p.name }))} />
           </div>
         </Suspense>
       </div>
