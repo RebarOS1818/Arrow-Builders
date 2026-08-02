@@ -23,6 +23,7 @@ export type Profile = {
   trade: Trade | null;
   avatar_url: string | null;
   on_site_today: boolean;
+  is_admin: boolean;
 };
 
 export type Project = {

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, CalendarDays, FileText, MapPin } from "lucide-react";
+import { EditProjectForm } from "@/components/projects/new-project-form";
 import { ProjectCover } from "@/components/projects/project-cover";
 import { ProgressRing } from "@/components/ui/progress-ring";
 import { StatusLabel, TRADE_LABELS, TradeDot } from "@/components/ui/badge";
@@ -58,7 +59,10 @@ export default async function ProjectDetailPage({
 
         <div className="flex flex-wrap items-start justify-between gap-6 p-5">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">{project.name}</h1>
+            <div className="flex flex-wrap items-center gap-3">
+              <h1 className="text-2xl font-bold tracking-tight">{project.name}</h1>
+              <EditProjectForm project={project} />
+            </div>
             <p className="mt-1 flex items-center gap-1.5 text-sm text-ink-muted">
               <MapPin className="size-4" />
               {project.city}, {project.state}
