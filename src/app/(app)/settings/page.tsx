@@ -1,6 +1,7 @@
 import { CheckCircle2, CircleDashed } from "lucide-react";
 import { Avatar } from "@/components/ui/avatar";
 import { SignOutButton } from "@/components/auth/sign-out-button";
+import { EditProfileForm, RenameOrgForm } from "@/components/settings/settings-forms";
 import { getCurrentProfile, getOrganization } from "@/lib/data";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 
@@ -14,18 +15,28 @@ export default async function SettingsPage() {
       <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
 
       <section className="card p-5">
-        <h2 className="font-semibold tracking-tight">Profile</h2>
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <h2 className="font-semibold tracking-tight">Profile</h2>
+          <EditProfileForm profile={profile} />
+        </div>
         <div className="mt-4 flex items-center gap-4">
           <Avatar name={profile.full_name} initials={profile.initials} size="lg" />
           <div>
             <p className="font-medium">{profile.full_name}</p>
-            <p className="text-sm text-ink-muted">{profile.role}</p>
+            <p className="text-sm text-ink-muted">
+              {profile.role}
+              {profile.trade && ` · ${profile.trade}`}
+              {profile.on_site_today && " · on site today"}
+            </p>
           </div>
         </div>
       </section>
 
       <section className="card p-5">
-        <h2 className="font-semibold tracking-tight">Organization</h2>
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <h2 className="font-semibold tracking-tight">Organization</h2>
+          <RenameOrgForm name={org.name} canRename={profile.is_admin} />
+        </div>
         <dl className="mt-3 space-y-2 text-sm">
           <Row label="Name" value={org.name} />
           <Row label="Slug" value={org.slug} />

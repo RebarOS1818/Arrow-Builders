@@ -50,3 +50,53 @@ export async function createProject(data: FormData): Promise<ActionResult> {
   revalidatePath("/construction");
   return { ok: true };
 }
+
+/**
+ * Updating a project.
+ *
+ * Progress and spend are the two figures that change every week, and until now
+ * there was no way to move either without the SQL editor. The id comes from the
+ * form but is scoped by org_id in the filter, so a submitted id belonging to
+ * another tenant matches nothing rather than updating it.
+ */
+export async function updateProject(data: FormData): Promise<ActionResult> {
+  const caller = await callerOrg();
+  if (!caller.ok) return caller;
+
+  const id = str(data, "id");
+  if (!id) return { ok: false, error: "Which project?" };
+
+  const name = str(data, "name");
+  if (!name) return { ok: false, error: "The project needs a name." };
+
+  const completion = num(data, "completion_pct") ?? 0;
+  if (completion < 0 || completion > 100) {
+    return { ok: false, error: "Completion must be between 0 and 100." };
+  }
+
+  const { data: updated, error } = await caller.db
+    .from("projects")
+    .update({
+      name,
+      city: str(data, "city") ?? "",
+      state: str(data, "state") ?? "",
+      status: str(data, "status") ?? "on_schedule",
+      completion_pct: Math.round(completion),
+      budget_total: num(data, "budget_total") ?? 0,
+      budget_spent: num(data, "budget_spent") ?? 0,
+      target_date: str(data, "target_date"),
+    })
+    .eq("id", id)
+    .eq("org_id", caller.orgId)
+    .select("id");
+
+  if (error) return { ok: false, error: readableError(error) };
+  if (!updated || updated.length === 0) {
+    return { ok: false, error: "That project no longer exists." };
+  }
+
+  revalidatePath("/projects");
+  revalidatePath(`/projects/${id}`);
+  revalidatePath("/");
+  return { ok: true };
+}

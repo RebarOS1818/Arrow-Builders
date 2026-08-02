@@ -18,14 +18,14 @@ export const DEMO_TODAY = "2025-05-16";
 export const DEMO_ORG = { id: "org-greenfield", name: "Greenfield Construction", slug: "greenfield" };
 
 export const demoProfiles: Profile[] = [
-  { id: "u-jordan", org_id: DEMO_ORG.id, full_name: "Jordan Mills", initials: "JM", role: "Development Manager", trade: null, avatar_url: null, on_site_today: false },
-  { id: "u-alicia", org_id: DEMO_ORG.id, full_name: "Alicia Reyes", initials: "AR", role: "Superintendent", trade: "concrete", avatar_url: null, on_site_today: true },
-  { id: "u-marcus", org_id: DEMO_ORG.id, full_name: "Marcus Webb", initials: "MW", role: "Project Engineer", trade: "general", avatar_url: null, on_site_today: true },
-  { id: "u-priya", org_id: DEMO_ORG.id, full_name: "Priya Nair", initials: "PN", role: "Estimator", trade: null, avatar_url: null, on_site_today: false },
-  { id: "u-devon", org_id: DEMO_ORG.id, full_name: "Devon Clarke", initials: "DC", role: "Foreman", trade: "electrical", avatar_url: null, on_site_today: true },
-  { id: "u-sofia", org_id: DEMO_ORG.id, full_name: "Sofia Ibarra", initials: "SI", role: "Safety Lead", trade: null, avatar_url: null, on_site_today: true },
-  { id: "u-glenn", org_id: DEMO_ORG.id, full_name: "Glenn Portis", initials: "GP", role: "Plumbing Lead", trade: "plumbing", avatar_url: null, on_site_today: false },
-  { id: "u-hana", org_id: DEMO_ORG.id, full_name: "Hana Osei", initials: "HO", role: "Finishes Lead", trade: "finishes", avatar_url: null, on_site_today: false },
+  { id: "u-jordan", org_id: DEMO_ORG.id, full_name: "Jordan Mills", initials: "JM", role: "Development Manager", trade: null, avatar_url: null, on_site_today: false, is_admin: true },
+  { id: "u-alicia", org_id: DEMO_ORG.id, full_name: "Alicia Reyes", initials: "AR", role: "Superintendent", trade: "concrete", avatar_url: null, on_site_today: true, is_admin: false },
+  { id: "u-marcus", org_id: DEMO_ORG.id, full_name: "Marcus Webb", initials: "MW", role: "Project Engineer", trade: "general", avatar_url: null, on_site_today: true, is_admin: false },
+  { id: "u-priya", org_id: DEMO_ORG.id, full_name: "Priya Nair", initials: "PN", role: "Estimator", trade: null, avatar_url: null, on_site_today: false, is_admin: false },
+  { id: "u-devon", org_id: DEMO_ORG.id, full_name: "Devon Clarke", initials: "DC", role: "Foreman", trade: "electrical", avatar_url: null, on_site_today: true, is_admin: false },
+  { id: "u-sofia", org_id: DEMO_ORG.id, full_name: "Sofia Ibarra", initials: "SI", role: "Safety Lead", trade: null, avatar_url: null, on_site_today: true, is_admin: false },
+  { id: "u-glenn", org_id: DEMO_ORG.id, full_name: "Glenn Portis", initials: "GP", role: "Plumbing Lead", trade: "plumbing", avatar_url: null, on_site_today: false, is_admin: false },
+  { id: "u-hana", org_id: DEMO_ORG.id, full_name: "Hana Osei", initials: "HO", role: "Finishes Lead", trade: "finishes", avatar_url: null, on_site_today: false, is_admin: false },
 ];
 
 export const demoProjects: Project[] = [
