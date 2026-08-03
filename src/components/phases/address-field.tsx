@@ -44,6 +44,12 @@ export function AddressField({
   // Why it is off, when the server can say. Shown rather than logged, because
   // the person who can fix it is the one looking at this form.
   const [diagnostic, setDiagnostic] = useState<Diagnostic | null>(null);
+  // Google's own refusal, passed through. Previously a rejected key, a disabled
+  // API and unenabled billing all produced an identical silence.
+  const [problem, setProblem] = useState<string | null>(null);
+  // A search that ran and matched nothing looks the same as one that never ran,
+  // unless it is said.
+  const [empty, setEmpty] = useState(false);
   const [lat, setLat] = useState<string>("");
   const [lng, setLng] = useState<string>("");
 
@@ -88,14 +94,29 @@ export function AddressField({
           if (body?.diagnostic) setDiagnostic(body.diagnostic);
           return;
         }
-        if (!response.ok) return;
+        if (!response.ok) {
+          if (cancelled) return;
+          const body = (await response.json().catch(() => null)) as {
+            detail?: string;
+            status?: string | null;
+          } | null;
+          setProblem(
+            body?.detail
+              ? `Google refused the lookup: ${body.detail}`
+              : `Address lookup failed (HTTP ${response.status}).`,
+          );
+          return;
+        }
 
         const data = (await response.json()) as { suggestions?: Suggestion[] };
         if (cancelled) return;
         setAvailable(true);
-        setSuggestions(data.suggestions ?? []);
+        setProblem(null);
+        const found = data.suggestions ?? [];
+        setSuggestions(found);
+        setEmpty(found.length === 0);
         setActive(-1);
-        setOpen((data.suggestions ?? []).length > 0);
+        setOpen(found.length > 0);
       } catch {
         // A failed lookup leaves the typed text alone, which is the whole point.
       } finally {
@@ -278,6 +299,16 @@ export function AddressField({
           ? "Type the address. Suggestions are off until a Google Maps key is set."
           : "Start typing, then pick a suggestion to fill city, state and coordinates."}
       </span>
+
+      {problem && (
+        <span className="mt-1 block text-xs text-status-risk">{problem}</span>
+      )}
+
+      {empty && !problem && (
+        <span className="mt-1 block text-xs text-ink-subtle">
+          No matches. Keep typing, or enter the address by hand.
+        </span>
+      )}
 
       {diagnostic && (
         <span className="mt-1 block text-xs text-ink-subtle">
