@@ -2,7 +2,7 @@
 
 import { useEffect, useId, useRef, useState } from "react";
 import { Loader2, MapPin } from "lucide-react";
-import type { PlaceDetail, Suggestion } from "@/app/api/places/route";
+import type { Diagnostic, PlaceDetail, Suggestion } from "@/app/api/places/route";
 
 /**
  * An address input that suggests real addresses as you type.
@@ -41,6 +41,9 @@ export function AddressField({
   // Null until the first lookup answers; false disables the feature for good in
   // this session, so an unconfigured deployment does not retry on every keypress.
   const [available, setAvailable] = useState<boolean | null>(null);
+  // Why it is off, when the server can say. Shown rather than logged, because
+  // the person who can fix it is the one looking at this form.
+  const [diagnostic, setDiagnostic] = useState<Diagnostic | null>(null);
   const [lat, setLat] = useState<string>("");
   const [lng, setLng] = useState<string>("");
 
@@ -77,7 +80,12 @@ export function AddressField({
         });
 
         if (response.status === 501 || response.status === 503) {
-          if (!cancelled) setAvailable(false);
+          if (cancelled) return;
+          setAvailable(false);
+          const body = (await response.json().catch(() => null)) as {
+            diagnostic?: Diagnostic;
+          } | null;
+          if (body?.diagnostic) setDiagnostic(body.diagnostic);
           return;
         }
         if (!response.ok) return;
@@ -270,6 +278,18 @@ export function AddressField({
           ? "Type the address. Suggestions are off until a Google Maps key is set."
           : "Start typing, then pick a suggestion to fill city, state and coordinates."}
       </span>
+
+      {diagnostic && (
+        <span className="mt-1 block text-xs text-ink-subtle">
+          This deployment sees no{" "}
+          <code className="font-mono">GOOGLE_MAPS_API_KEY</code> — environment{" "}
+          <b>{diagnostic.environment}</b>, build{" "}
+          <b>{diagnostic.build}</b>.{" "}
+          {diagnostic.relatedNames.length === 0
+            ? "No related variable is set on it at all."
+            : `Related variables it can see: ${diagnostic.relatedNames.join(", ")}.`}
+        </span>
+      )}
 
       {/* Only present when a suggestion was chosen; a typed address saves with
           null coordinates rather than a guess. */}
