@@ -208,7 +208,7 @@ export default async function PropertyPage({
                     </p>
                     <p
                       className={`text-xl font-semibold ${
-                        belowTarget ? "text-status-behind" : "text-mint-600"
+                        belowTarget ? "text-status-behind-ink" : "text-mint-600"
                       }`}
                     >
                       {margin.toFixed(1)}%

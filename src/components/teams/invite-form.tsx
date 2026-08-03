@@ -110,7 +110,7 @@ export function InviteForm({
 
       <p className="mt-3 text-xs text-ink-muted">
         {seatsFull ? (
-          <span className="text-status-behind">
+          <span className="text-status-behind-ink">
             Your plan is full.{" "}
             <Link href="/billing" className="font-semibold underline">
               Change plan

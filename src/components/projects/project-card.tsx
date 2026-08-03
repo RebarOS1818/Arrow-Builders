@@ -6,7 +6,7 @@ import type { Project, ProjectStatus } from "@/lib/types";
 
 const STATUS_CHIP: Record<ProjectStatus, string> = {
   on_schedule: "bg-brand-50 text-brand-700",
-  behind_schedule: "bg-orange-50 text-status-behind",
+  behind_schedule: "bg-orange-50 text-status-behind-ink",
   at_risk: "bg-rose-50 text-status-risk",
   complete: "bg-canvas text-ink-muted",
 };

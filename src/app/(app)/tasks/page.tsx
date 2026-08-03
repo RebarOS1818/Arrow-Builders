@@ -53,7 +53,7 @@ export default async function TasksPage({
             {tasks.some((t) => t.overdue) && (
               <>
                 {" · "}
-                <span className="font-medium text-status-behind">
+                <span className="font-medium text-status-behind-ink">
                   {tasks.filter((t) => t.overdue).length} overdue
                 </span>
               </>
@@ -109,7 +109,7 @@ export default async function TasksPage({
                     {task.title}
                     {task.overdue && (
                       <AlertTriangle
-                        className="size-3.5 text-status-behind"
+                        className="size-3.5 text-status-behind-ink"
                         aria-label="Overdue"
                       />
                     )}

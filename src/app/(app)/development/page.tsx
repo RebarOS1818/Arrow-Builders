@@ -140,7 +140,7 @@ function Figure({
     <div>
       <dt className="text-xs text-ink-subtle">{label}</dt>
       <dd
-        className={`mt-0.5 font-semibold ${tone === "warn" ? "text-status-behind" : "text-ink"}`}
+        className={`mt-0.5 font-semibold ${tone === "warn" ? "text-status-behind-ink" : "text-ink"}`}
       >
         {value}
       </dd>

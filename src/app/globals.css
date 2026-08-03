@@ -2,23 +2,30 @@
 
 @theme {
   /*
-   * Soft blue with a mint counterpoint, per the reference. Replaces the violet
-   * ramp — `brand` is still the accent every component reaches for, so changing
-   * it here recolours the whole app coherently rather than component by
-   * component.
+   * Arrow Upscale Builders' slate navy, taken from the website, where it is the
+   * header, footer and section ground. The ramp is built on its own hue and
+   * saturation so every step belongs to the same colour rather than being a
+   * separate blue that happens to sit nearby — brand-700 is the brand hex
+   * exactly.
+   *
+   * `brand` is what every component reaches for, so this recolours the whole app
+   * coherently rather than component by component.
    */
-  --color-brand-50: #eef4fe;
-  --color-brand-100: #dfeafd;
-  --color-brand-200: #ccdcf8;
-  --color-brand-300: #a8c7f5;
-  --color-brand-400: #7ea9ee;
-  --color-brand-500: #5b8ce4;
-  --color-brand-600: #3f6fd1;
-  --color-brand-700: #3159ad;
-  --color-brand-800: #2a4988;
-  --color-brand-900: #253d6d;
+  --color-brand-50: #f4f6fb;
+  --color-brand-100: #eaeef6;
+  --color-brand-200: #d3dae9;
+  --color-brand-300: #adb9d1;
+  --color-brand-400: #7b8db2;
+  --color-brand-500: #546892;
+  --color-brand-600: #415376; /* buttons: 7.7:1 against white */
+  --color-brand-700: #344058; /* the brand colour itself */
+  --color-brand-800: #283143;
+  --color-brand-900: #1e2533;
 
-  /* Mint, the reference's second accent: positive figures and healthy status. */
+  /*
+   * Green for positive figures and healthy status. Not a brand colour — it means
+   * "good", which is why it survives a rebrand unchanged.
+   */
   --color-mint-50: #eef7f2;
   --color-mint-100: #d9ebe1;
   --color-mint-200: #bfdfcd;
@@ -27,28 +34,42 @@
   --color-mint-500: #34c88a;
   --color-mint-600: #22a06e;
 
-  /* Surfaces: a tinted page behind a near-white shell. */
-  --color-canvas: #dbe8fa;
-  --color-shell: #eef4fe;
+  /* Surfaces: a tinted page behind a near-white shell, tinted by the brand hue. */
+  --color-canvas: #e4e8f1;
+  --color-shell: #f6f8fb;
   --color-surface: #ffffff;
-  --color-line: #e3ecfa;
-  --color-line-strong: #cfdcf1;
+  --color-line: #dbe0eb;
+  --color-line-strong: #c0c8d8;
   --color-ink: #16181d;
   --color-ink-muted: #5f6672;
-  --color-ink-subtle: #949cab;
+  /*
+   * Darkened from #949cab, which was 2.8:1 on white — below the 4.5:1 needed for
+   * body text, and this token carries hints and captions people actually have to
+   * read. Now 4.6:1 on a card.
+   */
+  --color-ink-subtle: #6c7689;
 
-  /* Status */
+  /*
+   * Status. Deliberately untouched by the rebrand: these encode meaning, and the
+   * brand's amber is within a few degrees of this one, so letting the brand take
+   * amber would have made "behind schedule" indistinguishable from decoration.
+   */
   --color-status-ontrack: #22a06e;
   --color-status-behind: #e8a33d;
   --color-status-risk: #e5615c;
   --color-status-done: #22a06e;
+  /*
+   * The same amber, dark enough to read as text. #e8a33d is 2.2:1 on white —
+   * fine as a fill or a dot, unreadable as a word.
+   */
+  --color-status-behind-ink: #9c6511;
 
   /*
    * Trade colours. A legend has to be readable at a glance, so these are spread
    * across the hue wheel rather than kept inside the blue family — five shades
    * of one hue is a palette that matches and a legend that does not work.
    */
-  --color-trade-general: #3f6fd1;
+  --color-trade-general: #546892;
   --color-trade-concrete: #e8a33d;
   --color-trade-electrical: #7c6fe0;
   --color-trade-plumbing: #22a06e;
@@ -65,9 +86,9 @@
   --radius-card: 1.5rem;
   --radius-tile: 1rem;
 
-  --shadow-soft: 0 1px 2px rgb(37 61 109 / 0.04), 0 8px 24px -14px rgb(37 61 109 / 0.14);
-  --shadow-lift: 0 2px 4px rgb(37 61 109 / 0.06), 0 16px 32px -18px rgb(37 61 109 / 0.2);
-  --shadow-material: 0 8px 16px -4px rgb(37 61 109 / 0.08), 0 24px 48px -24px rgb(37 61 109 / 0.28);
+  --shadow-soft: 0 1px 2px rgb(52 64 88 / 0.04), 0 8px 24px -14px rgb(52 64 88 / 0.14);
+  --shadow-lift: 0 2px 4px rgb(52 64 88 / 0.06), 0 16px 32px -18px rgb(52 64 88 / 0.2);
+  --shadow-material: 0 8px 16px -4px rgb(52 64 88 / 0.08), 0 24px 48px -24px rgb(52 64 88 / 0.28);
 }
 
 html,
@@ -77,11 +98,11 @@ body {
 
 body {
   background-color: var(--color-canvas);
-  /* Blue washing to mint at the far corner, as in the reference. */
+  /* A quiet wash of the brand navy, rather than the reference's mint corner. */
   background-image: radial-gradient(
     120% 120% at 100% 100%,
-    rgb(52 200 138 / 0.16) 0%,
-    rgb(219 232 250 / 0) 55%
+    rgb(52 64 88 / 0.09) 0%,
+    rgb(228 232 241 / 0) 55%
   );
   background-attachment: fixed;
   color: var(--color-ink);

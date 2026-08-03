@@ -161,7 +161,7 @@ export default async function ConstructionPage() {
                     <td
                       className={`px-5 py-3 text-right ${
                         changes > 0
-                          ? "text-status-behind"
+                          ? "text-status-behind-ink"
                           : changes < 0
                             ? "text-mint-600"
                             : "text-ink-subtle"
@@ -297,7 +297,7 @@ export default async function ConstructionPage() {
                           )}
                           <p
                             className={`w-28 shrink-0 text-right font-semibold ${
-                              overBudget ? "text-status-behind" : ""
+                              overBudget ? "text-status-behind-ink" : ""
                             }`}
                           >
                             {formatCurrency(quote.amount)}
@@ -335,7 +335,7 @@ export default async function ConstructionPage() {
                   </div>
                   {sub.rating !== null && (
                     <span className="flex shrink-0 items-center gap-1 text-sm font-medium">
-                      <Star className="size-3.5 fill-current text-status-behind" />
+                      <Star className="size-3.5 fill-current text-status-behind-ink" />
                       {sub.rating.toFixed(1)}
                     </span>
                   )}
@@ -388,7 +388,7 @@ function Stat({
       <p className="text-xs text-ink-subtle">{label}</p>
       <p
         className={`mt-0.5 text-lg font-semibold tracking-tight ${
-          tone === "warn" ? "text-status-behind" : ""
+          tone === "warn" ? "text-status-behind-ink" : ""
         }`}
       >
         {value}
