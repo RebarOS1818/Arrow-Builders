@@ -41,6 +41,23 @@ export type PlaceDetail = {
   longitude: number | null;
 };
 
+/**
+ * Google's own reason, made safe to show.
+ *
+ * "Address lookup failed" is what the field said before, and it told nobody
+ * anything: a disabled API, unenabled billing and a referrer-restricted key all
+ * produced the same silence. Google's message names which one it is, so it is
+ * worth passing through — with the key stripped out, in case it ever appears in
+ * the text.
+ */
+async function googleError(response: Response, key: string) {
+  const body = (await response.json().catch(() => null)) as {
+    error?: { message?: string; status?: string };
+  } | null;
+  const raw = body?.error?.message ?? `Google returned HTTP ${response.status}.`;
+  return { detail: raw.split(key).join("[key]"), status: body?.error?.status ?? null };
+}
+
 function component(
   components: { longText: string; shortText: string; types: string[] }[],
   type: string,
@@ -125,7 +142,10 @@ export async function POST(request: Request) {
       );
 
       if (!response.ok) {
-        return NextResponse.json({ error: "Could not read that address." }, { status: 502 });
+        return NextResponse.json(
+          { error: "Could not read that address.", ...(await googleError(response, key)) },
+          { status: 502 },
+        );
       }
 
       const place = (await response.json()) as {
@@ -170,7 +190,10 @@ export async function POST(request: Request) {
     });
 
     if (!response.ok) {
-      return NextResponse.json({ error: "Address lookup failed." }, { status: 502 });
+      return NextResponse.json(
+        { error: "Address lookup failed.", ...(await googleError(response, key)) },
+        { status: 502 },
+      );
     }
 
     const data = (await response.json()) as {
