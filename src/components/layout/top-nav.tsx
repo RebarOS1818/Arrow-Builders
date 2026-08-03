@@ -14,11 +14,10 @@ import {
   Menu,
   PieChart,
   Search,
-  Settings,
   Stamp,
   Users,
 } from "lucide-react";
-import { Avatar } from "@/components/ui/avatar";
+import { ProfileMenu } from "@/components/layout/profile-menu";
 import { cn } from "@/lib/utils";
 
 const NAV = [
@@ -48,7 +47,7 @@ export function TopNav({
   menuOpen = false,
   menuButtonRef,
 }: {
-  user: { full_name: string; initials: string };
+  user: { full_name: string; initials: string; role: string };
   onMenu?: () => void;
   menuOpen?: boolean;
   menuButtonRef?: React.Ref<HTMLButtonElement>;
@@ -128,16 +127,11 @@ export function TopNav({
           <Bell className="size-4.5" />
           <span className="absolute right-2.5 top-2.5 size-2 rounded-full bg-mint-500 ring-2 ring-surface" />
         </Link>
-        <Link
-          href="/settings"
-          aria-label="Settings"
-          className="pressable hidden size-10 place-items-center rounded-full bg-surface text-ink-muted shadow-soft hover:text-ink sm:grid"
-        >
-          <Settings className="size-4.5" />
-        </Link>
-        <Link href="/settings" className="pressable shrink-0 rounded-full">
-          <Avatar name={user.full_name} initials={user.initials} size="lg" />
-        </Link>
+        <ProfileMenu
+          name={user.full_name}
+          initials={user.initials}
+          role={user.role}
+        />
       </div>
     </header>
   );

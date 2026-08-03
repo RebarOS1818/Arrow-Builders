@@ -10,7 +10,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   return (
     <AppShell
-      user={{ full_name: profile.full_name, initials: profile.initials }}
+      user={{ full_name: profile.full_name, initials: profile.initials, role: profile.role }}
       crew={onSite}
     >
       {children}

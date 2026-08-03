@@ -25,7 +25,7 @@ export function AppShell({
   crew,
   children,
 }: {
-  user: { full_name: string; initials: string };
+  user: { full_name: string; initials: string; role: string };
   crew: CrewMember[];
   children: React.ReactNode;
 }) {
