@@ -34,7 +34,7 @@ export default async function ProjectsPage() {
             {behind > 0 && (
               <>
                 {" · "}
-                <span className="font-medium text-status-behind">
+                <span className="font-medium text-status-behind-ink">
                   {behind} needing attention
                 </span>
               </>

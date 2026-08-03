@@ -12,9 +12,9 @@ const STATUS_COPY: Record<SubscriptionStatus, { label: string; tone: string }> =
   none: { label: "No subscription", tone: "bg-canvas text-ink-muted" },
   trialing: { label: "Trialing", tone: "bg-brand-50 text-brand-700" },
   active: { label: "Active", tone: "bg-emerald-50 text-status-ontrack" },
-  past_due: { label: "Past due", tone: "bg-orange-50 text-status-behind" },
+  past_due: { label: "Past due", tone: "bg-orange-50 text-status-behind-ink" },
   canceled: { label: "Canceled", tone: "bg-canvas text-ink-muted" },
-  incomplete: { label: "Incomplete", tone: "bg-orange-50 text-status-behind" },
+  incomplete: { label: "Incomplete", tone: "bg-orange-50 text-status-behind-ink" },
   incomplete_expired: { label: "Expired", tone: "bg-canvas text-ink-muted" },
   unpaid: { label: "Unpaid", tone: "bg-rose-50 text-status-risk" },
   paused: { label: "Paused", tone: "bg-canvas text-ink-muted" },
@@ -107,7 +107,7 @@ export default async function BillingPage({
         </div>
 
         {seatsFull && (
-          <p className="mt-4 rounded-tile bg-orange-50 p-3 text-sm text-status-behind">
+          <p className="mt-4 rounded-tile bg-orange-50 p-3 text-sm text-status-behind-ink">
             All {billing.seatLimit} users on this plan are in use. New invites are
             blocked until someone is removed, or the plan is changed.
           </p>

@@ -16,7 +16,7 @@ export function StatPills({ metrics }: { metrics: DashboardMetrics }) {
     {
       href: "/tasks",
       icon: ListChecks,
-      tone: "bg-orange-50 text-status-behind",
+      tone: "bg-orange-50 text-status-behind-ink",
       caption: `${metrics.tasksOverdue} overdue`,
       title: `${metrics.tasksTotal} Tasks`,
     },

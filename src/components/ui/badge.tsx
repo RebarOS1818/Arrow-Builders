@@ -34,7 +34,7 @@ const STATUS_LABELS: Record<ProjectStatus, string> = {
 
 const STATUS_TONE: Record<ProjectStatus, string> = {
   on_schedule: "text-status-ontrack",
-  behind_schedule: "text-status-behind",
+  behind_schedule: "text-status-behind-ink",
   at_risk: "text-status-risk",
   complete: "text-ink-muted",
 };

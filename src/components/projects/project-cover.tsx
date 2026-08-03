@@ -4,11 +4,18 @@ import { cn } from "@/lib/utils";
  * Projects rarely have a photo on day one, so covers render as a generated
  * elevation motif keyed off the project id. A `cover_url` overrides it.
  */
+/*
+ * Four variations on the brand navy rather than four unrelated hues. They stay
+ * distinguishable enough to tell projects apart at a glance, which is the whole
+ * point of keying them off the id — but they no longer include green, which in
+ * this app means "on schedule". A decorative green cover on a project running
+ * three weeks late is a small lie told in colour.
+ */
 const PALETTES = [
-  { from: "#7ea9ee", to: "#3f6fd1", ink: "#1e3566" },
-  { from: "#6fd3a6", to: "#22a06e", ink: "#0f4433" },
-  { from: "#9fbef7", to: "#5b8ce4", ink: "#24406f" },
-  { from: "#a8dcc4", to: "#4bb489", ink: "#164a38" },
+  { from: "#8699c1", to: "#405377", ink: "#1e2a43" },
+  { from: "#7a9db8", to: "#3d566c", ink: "#1b2c3c" },
+  { from: "#9096c1", to: "#484e7a", ink: "#212645" },
+  { from: "#7aa0ae", to: "#3e5965", ink: "#1b2e37" },
 ];
 
 function paletteFor(seed: string) {

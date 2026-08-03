@@ -40,10 +40,10 @@ export function MetricTiles({ metrics }: { metrics: DashboardMetrics }) {
       label: "Tasks",
       value: String(metrics.tasksTotal),
       icon: CheckCircle2,
-      iconTone: "bg-orange-50 text-status-behind",
+      iconTone: "bg-orange-50 text-status-behind-ink",
       foot: (
         <Dot tone="bg-status-behind">
-          <span className="text-status-behind">{metrics.tasksOverdue} overdue</span>
+          <span className="text-status-behind-ink">{metrics.tasksOverdue} overdue</span>
         </Dot>
       ),
       trend: [40, 52, 48, 61, 58, 72, 78, 86],

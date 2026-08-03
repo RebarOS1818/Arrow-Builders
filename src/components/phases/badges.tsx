@@ -12,7 +12,7 @@ const TONES = {
   neutral: "bg-canvas text-ink-muted",
   info: "bg-brand-50 text-brand-700",
   good: "bg-mint-50 text-mint-600",
-  warn: "bg-orange-50 text-status-behind",
+  warn: "bg-orange-50 text-status-behind-ink",
   bad: "bg-rose-50 text-status-risk",
 } as const;
 

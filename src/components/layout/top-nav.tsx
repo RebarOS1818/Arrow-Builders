@@ -72,7 +72,7 @@ export function TopNav({
       </button>
 
       <Link href="/" className="flex shrink-0 items-center gap-2.5">
-        <span className="grid size-9 place-items-center rounded-full bg-mint-500 text-white">
+        <span className="grid size-9 place-items-center rounded-full bg-brand-700 text-white">
           <HardHat className="size-5" />
         </span>
         <span className="hidden whitespace-nowrap text-lg font-semibold tracking-tight sm:block">
