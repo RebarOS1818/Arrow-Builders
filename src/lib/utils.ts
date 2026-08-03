@@ -11,22 +11,36 @@ export function cn(...inputs: ClassValue[]) {
  */
 export const SITE_TIME_ZONE = "America/Chicago";
 
-const compactCurrency = new Intl.NumberFormat("en-US", {
-  style: "currency",
-  currency: "USD",
-  notation: "compact",
-  maximumFractionDigits: 2,
-});
-
 const fullCurrency = new Intl.NumberFormat("en-US", {
   style: "currency",
   currency: "USD",
   maximumFractionDigits: 0,
 });
 
-/** $2.48M — used for headline metrics. */
+/**
+ * $2.48M — used for headline metrics.
+ *
+ * Formatted by hand rather than with Intl's compact notation, which disagrees
+ * with itself across runtimes: Node renders 1_400_000 as "$1.40M" and every
+ * browser renders it as "$1.4M". Server and client then produce different text
+ * for the same number, which React reports as a hydration mismatch and repairs
+ * by throwing away and re-rendering the tree.
+ */
 export function formatCompactCurrency(value: number) {
-  return compactCurrency.format(value);
+  const sign = value < 0 ? "-" : "";
+  const n = Math.abs(value);
+  const [scaled, suffix] =
+    n >= 1_000_000_000
+      ? [n / 1_000_000_000, "B"]
+      : n >= 1_000_000
+        ? [n / 1_000_000, "M"]
+        : n >= 1_000
+          ? [n / 1_000, "K"]
+          : [n, ""];
+
+  // Two decimals, then trailing zeros dropped: 2.15M, 1.4M, 980K.
+  const digits = scaled.toFixed(2).replace(/\.?0+$/, "");
+  return `${sign}$${digits}${suffix}`;
 }
 
 /** $0.88M — budgets always read in millions so the pair stays comparable. */
