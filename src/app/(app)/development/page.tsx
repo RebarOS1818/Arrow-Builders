@@ -1,7 +1,8 @@
 import Link from "next/link";
-import { AlertTriangle, ArrowUpRight, MapPin } from "lucide-react";
+import { AlertTriangle, ArrowUpRight, Columns3, LayoutGrid, MapPin } from "lucide-react";
 import { StatusPill } from "@/components/phases/badges";
 import { NewPropertyForm } from "@/components/phases/forms";
+import { PropertyBoard } from "@/components/phases/property-board";
 import { getConstraints, getProFormas, getProperties, getStudies } from "@/lib/data";
 import { formatCompactCurrency, formatDate } from "@/lib/utils";
 
@@ -12,7 +13,14 @@ export const dynamic = "force-dynamic";
  * without opening it: how far the studies have got, whether anything fatal has
  * been found, and whether the numbers work.
  */
-export default async function DevelopmentPage() {
+export default async function DevelopmentPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ view?: string }>;
+}) {
+  // Grid stays reachable: it carries study counts, margin and blockers, which
+  // the board deliberately leaves out to keep a column scannable.
+  const view = (await searchParams).view === "grid" ? "grid" : "board";
   const [properties, studies, constraints, proFormas] = await Promise.all([
     getProperties(),
     getStudies(),
@@ -33,9 +41,40 @@ export default async function DevelopmentPage() {
             {formatCompactCurrency(pipelineValue)} asking
           </p>
         </div>
-        <NewPropertyForm />
+        <div className="flex items-center gap-2">
+          <div className="flex items-center rounded-full bg-surface p-0.5 shadow-soft">
+            <Link
+              href="/development"
+              aria-current={view === "board" ? "page" : undefined}
+              className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm transition-colors ${
+                view === "board"
+                  ? "bg-brand-600 font-semibold text-white"
+                  : "font-medium text-ink-muted hover:text-ink"
+              }`}
+            >
+              <Columns3 className="size-4" />
+              Board
+            </Link>
+            <Link
+              href="/development?view=grid"
+              aria-current={view === "grid" ? "page" : undefined}
+              className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm transition-colors ${
+                view === "grid"
+                  ? "bg-brand-600 font-semibold text-white"
+                  : "font-medium text-ink-muted hover:text-ink"
+              }`}
+            >
+              <LayoutGrid className="size-4" />
+              Grid
+            </Link>
+          </div>
+          <NewPropertyForm />
+        </div>
       </div>
 
+      {view === "board" && <PropertyBoard properties={properties} />}
+
+      {view === "grid" && (
       <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
         {properties.map((property) => {
           const theirStudies = studies.filter((s) => s.property_id === property.id);
@@ -117,6 +156,7 @@ export default async function DevelopmentPage() {
           );
         })}
       </div>
+      )}
 
       {properties.length === 0 && (
         <p className="card p-8 text-center text-sm text-ink-muted">

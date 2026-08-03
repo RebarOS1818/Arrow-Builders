@@ -191,3 +191,43 @@ export async function createOffer(data: FormData): Promise<ActionResult> {
   revalidateProperty(propertyId);
   return { ok: true };
 }
+
+const PROPERTY_STATUSES = [
+  "prospect",
+  "under_review",
+  "under_contract",
+  "acquired",
+  "passed",
+] as const;
+
+/**
+ * Moving a property between board columns.
+ *
+ * The status arrives from a drag, so it is checked against the enum here rather
+ * than trusted. Postgres would reject an invalid value anyway, but with a type
+ * error about an enum rather than a sentence, and a dropped card should explain
+ * itself in the language of the board.
+ */
+export async function moveProperty(id: string, status: string): Promise<ActionResult> {
+  const caller = await callerOrg();
+  if (!caller.ok) return caller;
+
+  if (!(PROPERTY_STATUSES as readonly string[]).includes(status)) {
+    return { ok: false, error: "That is not a status a property can be in." };
+  }
+
+  const { data, error } = await caller.db
+    .from("properties")
+    .update({ status })
+    .eq("id", id)
+    // Scoped by org as well as id: an id belonging to another tenant then
+    // matches no row instead of being moved.
+    .eq("org_id", caller.orgId)
+    .select("id");
+
+  if (error) return { ok: false, error: readableError(error) };
+  if (!data || data.length === 0) return { ok: false, error: "That property no longer exists." };
+
+  revalidateProperty(id);
+  return { ok: true };
+}
