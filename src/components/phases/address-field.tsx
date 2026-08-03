@@ -281,13 +281,14 @@ export function AddressField({
 
       {diagnostic && (
         <span className="mt-1 block text-xs text-ink-subtle">
-          This deployment sees no{" "}
-          <code className="font-mono">GOOGLE_MAPS_API_KEY</code> — environment{" "}
-          <b>{diagnostic.environment}</b>, build{" "}
-          <b>{diagnostic.build}</b>.{" "}
+          <code className="font-mono">GOOGLE_MAPS_API_KEY</code>{" "}
+          {diagnostic.key === "empty"
+            ? "is defined on this deployment but its value is empty."
+            : "is not defined on this deployment."}{" "}
+          Environment <b>{diagnostic.environment}</b>, build <b>{diagnostic.build}</b>.{" "}
           {diagnostic.relatedNames.length === 0
             ? "No related variable is set on it at all."
-            : `Related variables it can see: ${diagnostic.relatedNames.join(", ")}.`}
+            : `Related names present: ${diagnostic.relatedNames.join(", ")}.`}
         </span>
       )}
 

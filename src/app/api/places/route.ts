@@ -22,6 +22,13 @@ export type Suggestion = { id: string; primary: string; secondary: string };
 export type Diagnostic = {
   environment: string;
   build: string;
+  /**
+   * "absent" — no such variable on this deployment.
+   * "empty"  — the name is defined but its value is an empty string, which is
+   *            a different mistake with a different fix, and indistinguishable
+   *            from absent unless it is said outright.
+   */
+  key: "absent" | "empty";
   relatedNames: string[];
 };
 
@@ -57,6 +64,8 @@ function component(
  */
 function diagnostic() {
   return {
+    // Defined-but-blank is the failure that reads as "I already set that".
+    key: process.env.GOOGLE_MAPS_API_KEY === undefined ? ("absent" as const) : ("empty" as const),
     // Which environment is actually serving. A variable ticked for Preview only
     // is invisible here, and this is what makes that visible.
     environment: process.env.VERCEL_ENV ?? "local",
