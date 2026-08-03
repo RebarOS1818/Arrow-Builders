@@ -19,6 +19,18 @@ export function mapsQuery(parts: {
   return [address, city, state].filter(Boolean).join(", ");
 }
 
+/**
+ * Coordinates beat text every time.
+ *
+ * A picked suggestion carries the exact point, so the link goes straight there
+ * instead of asking Google to re-guess an address it already resolved once.
+ */
+export function coordQuery(latitude?: number | null, longitude?: number | null) {
+  if (latitude === null || latitude === undefined) return null;
+  if (longitude === null || longitude === undefined) return null;
+  return `${latitude},${longitude}`;
+}
+
 export function mapsUrl(query: string) {
   // The documented cross-platform entry point: it hands off to the Google Maps
   // app on a phone and the website on a desktop, without either being hardcoded.
@@ -35,6 +47,8 @@ export function MapLink({
   address,
   city,
   state,
+  latitude,
+  longitude,
   suffix,
   className,
   showIcon = true,
@@ -42,12 +56,14 @@ export function MapLink({
   address?: string | null;
   city?: string | null;
   state?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
   /** Trailing text kept outside the link, such as a parcel number. */
   suffix?: string;
   className?: string;
   showIcon?: boolean;
 }) {
-  const query = mapsQuery({ address, city, state });
+  const query = coordQuery(latitude, longitude) ?? mapsQuery({ address, city, state });
   const label = [address, city, state].map((p) => p?.trim()).filter(Boolean).join(", ");
 
   if (!query) {
@@ -67,7 +83,11 @@ export function MapLink({
         href={mapsUrl(query)}
         target="_blank"
         rel="noopener noreferrer"
-        title="Open in Google Maps"
+        title={
+          coordQuery(latitude, longitude)
+            ? "Open in Google Maps — exact location"
+            : "Open in Google Maps — searched by address"
+        }
         className="rounded-sm underline decoration-dotted underline-offset-4 hover:text-brand-700 hover:decoration-solid focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
       >
         {label}

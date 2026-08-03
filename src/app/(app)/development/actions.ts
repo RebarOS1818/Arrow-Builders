@@ -31,6 +31,9 @@ export async function createProperty(data: FormData): Promise<ActionResult> {
     city: str(data, "city") ?? "",
     state: str(data, "state") ?? "",
     parcel_number: str(data, "parcel_number"),
+    // Present only when the address came from a picked suggestion.
+    latitude: num(data, "address_latitude"),
+    longitude: num(data, "address_longitude"),
     lot_size_acres: num(data, "lot_size_acres"),
     zoning_code: str(data, "zoning_code"),
     asking_price: num(data, "asking_price"),
@@ -153,6 +156,8 @@ export async function createComparable(data: FormData): Promise<ActionResult> {
     building_sqft: num(data, "building_sqft"),
     distance_miles: num(data, "distance_miles"),
     source: str(data, "source") ?? "",
+    latitude: num(data, "address_latitude"),
+    longitude: num(data, "address_longitude"),
   });
 
   if (error) return { ok: false, error: readableError(error) };

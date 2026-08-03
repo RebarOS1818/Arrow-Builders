@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { Pill, StatusPill, humanise } from "@/components/phases/badges";
-import { MapLink, mapsQuery, mapsUrl } from "@/components/phases/map-link";
+import { MapLink, coordQuery, mapsQuery, mapsUrl } from "@/components/phases/map-link";
 import {
   NewComparableForm,
   NewConstraintForm,
@@ -68,6 +68,8 @@ export default async function PropertyPage({
             address={property.address}
             city={property.city}
             state={property.state}
+            latitude={property.latitude}
+            longitude={property.longitude}
             suffix={property.parcel_number ? ` · APN ${property.parcel_number}` : undefined}
           />
         </div>
@@ -246,11 +248,12 @@ export default async function PropertyPage({
                       {mapsQuery({ address: c.address, city: property.city }) ? (
                         <a
                           href={mapsUrl(
-                            mapsQuery({
-                              address: c.address,
-                              city: property.city,
-                              state: property.state,
-                            })!,
+                            coordQuery(c.latitude, c.longitude) ??
+                              mapsQuery({
+                                address: c.address,
+                                city: property.city,
+                                state: property.state,
+                              })!,
                           )}
                           target="_blank"
                           rel="noopener noreferrer"

@@ -56,7 +56,7 @@ export const demoProperties: Property[] = [
     asking_price: 2_150_000,
     status: "under_review",
     notes: "Seller motivated; wants a 30-day close.",
-    identified_at: "2025-04-02",
+    identified_at: "2025-04-02", latitude: null, longitude: null,
   },
   {
     id: "prop-mill",
@@ -71,7 +71,7 @@ export const demoProperties: Property[] = [
     asking_price: 1_400_000,
     status: "under_contract",
     notes: "Feasibility period ends Aug 14.",
-    identified_at: "2025-03-11",
+    identified_at: "2025-03-11", latitude: null, longitude: null,
   },
   {
     id: "prop-quarry",
@@ -86,7 +86,7 @@ export const demoProperties: Property[] = [
     asking_price: 3_600_000,
     status: "passed",
     notes: "Passed: floodplain takes a third of the buildable area.",
-    identified_at: "2025-02-20",
+    identified_at: "2025-02-20", latitude: null, longitude: null,
   },
   {
     id: "prop-oak",
@@ -101,7 +101,7 @@ export const demoProperties: Property[] = [
     asking_price: 980_000,
     status: "prospect",
     notes: "Three adjacent lots; two owners approached so far.",
-    identified_at: "2025-05-06",
+    identified_at: "2025-05-06", latitude: null, longitude: null,
   },
 ];
 
@@ -129,9 +129,9 @@ export const demoProFormas: ProForma[] = [
 ];
 
 export const demoComparables: Comparable[] = [
-  { id: "cp-1", property_id: "prop-cedar", address: "3900 Cedar Hollow Rd", sale_price: 1_950_000, sale_date: "2025-01-14", building_sqft: null, lot_size_acres: 11.2, distance_miles: 0.4, price_per_sqft: null },
-  { id: "cp-2", property_id: "prop-cedar", address: "210 Ranch House Rd", sale_price: 2_420_000, sale_date: "2024-11-02", building_sqft: null, lot_size_acres: 14.0, distance_miles: 1.8, price_per_sqft: null },
-  { id: "cp-3", property_id: "prop-mill", address: "104 Mill Creek Way", sale_price: 1_280_000, sale_date: "2025-02-20", building_sqft: null, lot_size_acres: 4.6, distance_miles: 0.2, price_per_sqft: null },
+  { id: "cp-1", property_id: "prop-cedar", address: "3900 Cedar Hollow Rd", sale_price: 1_950_000, sale_date: "2025-01-14", building_sqft: null, lot_size_acres: 11.2, distance_miles: 0.4, price_per_sqft: null, latitude: null, longitude: null },
+  { id: "cp-2", property_id: "prop-cedar", address: "210 Ranch House Rd", sale_price: 2_420_000, sale_date: "2024-11-02", building_sqft: null, lot_size_acres: 14.0, distance_miles: 1.8, price_per_sqft: null, latitude: null, longitude: null },
+  { id: "cp-3", property_id: "prop-mill", address: "104 Mill Creek Way", sale_price: 1_280_000, sale_date: "2025-02-20", building_sqft: null, lot_size_acres: 4.6, distance_miles: 0.2, price_per_sqft: null, latitude: null, longitude: null },
 ];
 
 export const demoOffers: Offer[] = [
