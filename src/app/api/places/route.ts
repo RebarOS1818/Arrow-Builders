@@ -19,6 +19,12 @@ const DETAILS = "https://places.googleapis.com/v1/places";
 
 export type Suggestion = { id: string; primary: string; secondary: string };
 
+export type Diagnostic = {
+  environment: string;
+  build: string;
+  relatedNames: string[];
+};
+
 export type PlaceDetail = {
   address: string;
   city: string;
@@ -38,14 +44,35 @@ function component(
   return short ? hit.shortText : hit.longText;
 }
 
-export async function POST(request: Request) {
-  const key = process.env.GOOGLE_MAPS_API_KEY;
-  if (!key) {
-    // 501 rather than 500: the feature is absent, not broken. The field falls
-    // back to plain typing when it sees this.
-    return NextResponse.json({ error: "Address lookup is not configured." }, { status: 501 });
-  }
+/**
+ * What the running deployment can see, for when the key appears to be set but
+ * the server disagrees.
+ *
+ * Names and the deployment's own identity only — never a value, never a length.
+ * The name filter is deliberately narrow: "is GOOGLE_MAPS_API_KEY present" is
+ * the question, and listing every variable would answer far more than that.
+ *
+ * Returned only to a signed-in member, which is why the session check now comes
+ * before the key check rather than after.
+ */
+function diagnostic() {
+  return {
+    // Which environment is actually serving. A variable ticked for Preview only
+    // is invisible here, and this is what makes that visible.
+    environment: process.env.VERCEL_ENV ?? "local",
+    // If this build predates saving the variable, no redeploy happened.
+    build: process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 7) ?? "unknown",
+    // Catches a typo in the name: the intended variable is absent but something
+    // close to it is present.
+    relatedNames: Object.keys(process.env)
+      .filter((name) => /GOOGLE|MAPS|PLACES/i.test(name))
+      .sort(),
+  };
+}
 
+export async function POST(request: Request) {
+  // Session first. An anonymous caller should learn nothing about how this
+  // deployment is configured, including whether a key exists.
   const db = await createClient();
   if (!db) {
     return NextResponse.json({ error: "Address lookup needs a signed-in session." }, { status: 503 });
@@ -54,6 +81,16 @@ export async function POST(request: Request) {
     data: { user },
   } = await db.auth.getUser();
   if (!user) return NextResponse.json({ error: "Sign in first." }, { status: 401 });
+
+  const key = process.env.GOOGLE_MAPS_API_KEY;
+  if (!key) {
+    // 501 rather than 500: the feature is absent, not broken. The field falls
+    // back to plain typing when it sees this.
+    return NextResponse.json(
+      { error: "Address lookup is not configured.", diagnostic: diagnostic() },
+      { status: 501 },
+    );
+  }
 
   let body: { input?: string; placeId?: string; sessionToken?: string };
   try {
