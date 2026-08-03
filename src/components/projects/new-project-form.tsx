@@ -63,6 +63,7 @@ export function EditProjectForm({ project }: { project: Project }) {
       title="Edit project"
       submitLabel="Save"
       action={updateProject}
+      edit
       fields={[
         { name: "id", label: "", type: "hidden", defaultValue: project.id },
         { name: "name", label: "Name", required: true, defaultValue: project.name, wide: true },

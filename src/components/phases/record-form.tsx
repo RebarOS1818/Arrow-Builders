@@ -2,11 +2,13 @@
 
 import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, Plus, X } from "lucide-react";
+import { Loader2, Pencil, Plus, X } from "lucide-react";
+import { AddressField } from "./address-field";
 import { cn } from "@/lib/utils";
 
 export type FieldType =
   | "hidden"
+  | "address"
   | "text"
   | "textarea"
   | "number"
@@ -28,6 +30,8 @@ export type Field = {
   /** Columns to span in the two-column grid. */
   wide?: boolean;
   step?: string;
+  /** For "address": which sibling inputs a chosen suggestion should fill. */
+  fills?: { city?: string; state?: string; postalCode?: string };
 };
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
@@ -49,6 +53,7 @@ export function RecordForm({
   action,
   disabled,
   disabledReason,
+  edit,
 }: {
   title: string;
   description?: string;
@@ -58,6 +63,8 @@ export function RecordForm({
   action: (data: FormData) => Promise<ActionResult>;
   disabled?: boolean;
   disabledReason?: string;
+  /** Editing an existing record rather than adding one. Changes the icon only. */
+  edit?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -121,7 +128,7 @@ export function RecordForm({
           disabled={disabled}
           className="pressable inline-flex items-center gap-2 rounded-full bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-50"
         >
-          <Plus className="size-4" />
+          {edit ? <Pencil className="size-3.5" /> : <Plus className="size-4" />}
           {triggerLabel}
         </button>
         {/* Written out rather than left to a `title`: a disabled button swallows
@@ -213,6 +220,20 @@ function FieldInput({ field }: { field: Field }) {
   // input would otherwise render as a blank field the user could type into.
   if (type === "hidden") {
     return <input type="hidden" name={name} value={defaultValue ?? ""} readOnly />;
+  }
+
+  if (type === "address") {
+    return (
+      <AddressField
+        name={name}
+        label={label}
+        required={required}
+        placeholder={placeholder}
+        defaultValue={defaultValue}
+        fills={field.fills}
+        className={cn("block", field.wide && "sm:col-span-2")}
+      />
+    );
   }
 
   if (type === "checkbox") {

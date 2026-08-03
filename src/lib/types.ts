@@ -172,6 +172,9 @@ export type Property = {
   status: PropertyStatus;
   notes: string;
   identified_at: string;
+  /** Null unless the address was chosen from autocomplete. */
+  latitude: number | null;
+  longitude: number | null;
 };
 
 export type FeasibilityStudy = {
@@ -225,6 +228,8 @@ export type Comparable = {
   lot_size_acres: number | null;
   distance_miles: number | null;
   price_per_sqft: number | null;
+  latitude: number | null;
+  longitude: number | null;
 };
 
 export type Offer = {

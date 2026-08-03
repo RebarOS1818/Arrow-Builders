@@ -54,7 +54,7 @@ export function NewPropertyForm() {
       action={createProperty}
       fields={[
         { name: "name", label: "Name", required: true, placeholder: "Cedar Hollow Tract", wide: true },
-        { name: "address", label: "Address", placeholder: "4200 Cedar Hollow Rd" },
+        { name: "address", label: "Address", type: "address", placeholder: "4200 Cedar Hollow Rd" },
         { name: "parcel_number", label: "Parcel number (APN)", placeholder: "R-114523" },
         { name: "city", label: "City" },
         { name: "state", label: "State", placeholder: "TX" },
@@ -222,7 +222,7 @@ export function NewComparableForm({ propertyId }: { propertyId: string }) {
       action={createComparable}
       fields={[
         hidden("property_id", propertyId),
-        { name: "address", label: "Address", required: true, wide: true },
+        { name: "address", label: "Address", type: "address", required: true, wide: true },
         { name: "sale_price", label: "Sale price", type: "money" },
         { name: "sale_date", label: "Sale date", type: "date" },
         { name: "lot_size_acres", label: "Lot size (acres)", type: "number", step: "0.01" },
