@@ -1,4 +1,3 @@
-import { CrewPanel } from "@/components/dashboard/crew-panel";
 import { HeroBanner } from "@/components/dashboard/hero-banner";
 import { ProjectRail } from "@/components/dashboard/project-rail";
 import { SiteScheduleTable } from "@/components/dashboard/site-schedule-table";
@@ -22,9 +21,13 @@ export default async function DashboardPage() {
   ]);
 
   /** Each project's lead is the first crew member matching its dominant trade. */
-  const leads: Record<string, { full_name: string; initials: string; role: string }> = {};
+  const leads: Record<
+    string,
+    { full_name: string; initials: string; role: string }
+  > = {};
   for (const project of projects) {
-    const dominantTrade = tasks.find((t) => t.project_id === project.id)?.trade ?? null;
+    const dominantTrade =
+      tasks.find((t) => t.project_id === project.id)?.trade ?? null;
     const lead =
       team.find((m) => m.trade === dominantTrade) ??
       team.find((m) => m.role.includes("Superintendent")) ??
@@ -39,30 +42,24 @@ export default async function DashboardPage() {
   }
 
   return (
-    <div className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1fr)_320px]">
-      <div className="min-w-0 space-y-5">
-        <HeroBanner
-          eyebrow="Portfolio"
-          title="Keep every project on schedule and on budget"
-          cta="Open Schedule"
-          href="/schedule"
-        />
+    <div className="min-w-0 space-y-5">
+      <HeroBanner
+        eyebrow="Portfolio"
+        title="Keep every project on schedule and on budget"
+        cta="Open Schedule"
+        href="/schedule"
+      />
 
-        <StatPills metrics={metrics} />
+      <StatPills metrics={metrics} />
 
-        <ProjectRail
-          title="Active Projects"
-          projects={projects}
-          leads={leads}
-          viewAllHref="/projects"
-        />
+      <ProjectRail
+        title="Active Projects"
+        projects={projects}
+        leads={leads}
+        viewAllHref="/projects"
+      />
 
-        <SiteScheduleTable events={events} />
-      </div>
-
-      <div className="space-y-5">
-        <CrewPanel crew={team} />
-      </div>
+      <SiteScheduleTable events={events} />
     </div>
   );
 }
