@@ -46,18 +46,36 @@ export async function POST(request: NextRequest) {
   // would have Sola retry a payload that will never become actionable, and the
   // gateway sends notifications for one-off transactions too, which this app
   // does not take.
-  if (!scheduleId && !customerId) return NextResponse.json({ received: true });
+  //
+  // This is also the single most likely thing to be wrong. The published field
+  // list covers a card transaction and never says what a *recurring* run sends,
+  // so if those runs name the schedule differently, every one of them lands
+  // here and does nothing — statuses would freeze on whatever they were and a
+  // declined card would never show as past_due. Silent, and indistinguishable
+  // from working. So it says so, with the field names it actually received.
+  if (!scheduleId && !customerId) {
+    console.warn(
+      "[sola webhook] no schedule or customer id; nothing updated. fields:",
+      fields.map(([key]) => key).join(","),
+    );
+    return NextResponse.json({ received: true, matched: false });
+  }
 
   const match = scheduleId
     ? { column: "sola_schedule_id", value: scheduleId }
     : { column: "sola_customer_id", value: customerId! };
 
   try {
+    let updated = 0;
+
     if (result === "approved") {
       const amount = centsOf(field(fields, "xAmount"));
       const plan = amount === null ? undefined : planByAmountCents(amount);
 
-      await db
+      // The ids come back so a payload that names a schedule we have never
+      // heard of is distinguishable from one that updated a row. Both look
+      // identical from the outside otherwise.
+      const { data } = await db
         .from("organizations")
         .update({
           subscription_status: "active",
@@ -69,23 +87,30 @@ export async function POST(request: NextRequest) {
           ...(plan ? { plan: plan.key, seat_limit: plan.includedSeats } : {}),
           ...(amount === null ? {} : { price_cents: amount }),
         })
-        .eq(match.column, match.value);
+        .eq(match.column, match.value)
+        .select("id");
+      updated = data?.length ?? 0;
     } else if (result === "declined" || result === "error") {
       // Matching the Stripe path: a failed card is a dunning problem, not a
       // reason to lock a crew out mid-job. Access continues while Sola retries.
-      await db
+      const { data } = await db
         .from("organizations")
         .update({ subscription_status: "past_due" })
-        .eq(match.column, match.value);
+        .eq(match.column, match.value)
+        .select("id");
+      updated = data?.length ?? 0;
     }
+
+    console.info(
+      `[sola webhook] result=${result || "(none)"} by=${match.column} rows=${updated}`,
+    );
+    return NextResponse.json({ received: true, matched: updated > 0 });
   } catch (cause) {
     // A 500 asks Sola to send it again, which is what we want for a transient
     // database failure — the signature already proved the payload is genuine.
     const message = cause instanceof Error ? cause.message : "Handler failed.";
     return NextResponse.json({ error: message }, { status: 500 });
   }
-
-  return NextResponse.json({ received: true });
 }
 
 /**
