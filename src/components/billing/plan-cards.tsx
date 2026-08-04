@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Check, Loader2, Mail } from "lucide-react";
+import { SolaCardForm } from "@/components/billing/sola-card-form";
 import { cn } from "@/lib/utils";
 
 type TierCard = {
@@ -23,12 +24,20 @@ function money(cents: number) {
   }).format(cents / 100);
 }
 
+export type SolaConfig = {
+  ifieldsKey: string;
+  ifieldsVersion: string;
+  softwareName: string;
+  softwareVersion: string;
+};
+
 /**
  * The three plans, with the organization's current one marked.
  *
- * Subscribing and changing plan hit different endpoints because they are
- * different Stripe operations — a second Checkout for an existing subscriber
- * would leave them paying twice.
+ * Subscribing and changing plan are separate operations under either processor —
+ * a second checkout for an existing subscriber would leave them paying twice —
+ * but they differ in where they happen. Stripe sends the customer away to a
+ * hosted page; Sola has none, so the card form opens here instead.
  */
 export function PlanCards({
   tiers,
@@ -37,6 +46,8 @@ export function PlanCards({
   currentPlan,
   hasSubscription,
   canManage,
+  processor,
+  sola,
 }: {
   tiers: TierCard[];
   selfServe: Record<string, boolean>;
@@ -44,31 +55,65 @@ export function PlanCards({
   currentPlan: string;
   hasSubscription: boolean;
   canManage: boolean;
+  processor: "sola" | "stripe" | "none";
+  sola: SolaConfig | null;
 }) {
   const [pending, setPending] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  /** The plan whose card form is open, under Sola. */
+  const [subscribing, setSubscribing] = useState<TierCard | null>(null);
 
-  async function choose(tierKey: string) {
-    setPending(tierKey);
+  async function choose(tier: TierCard) {
+    // Sola takes the card here rather than on a hosted page, so a first
+    // subscription opens the form instead of calling anything.
+    if (processor === "sola" && !hasSubscription && sola) {
+      setError(null);
+      setSubscribing(tier);
+      return;
+    }
+
+    setPending(tier.key);
     setError(null);
     try {
-      const endpoint = hasSubscription ? "change-plan" : "checkout";
-      const response = await fetch(`/api/stripe/${endpoint}`, {
+      const endpoint =
+        processor === "sola"
+          ? "/api/sola/change-plan"
+          : `/api/stripe/${hasSubscription ? "change-plan" : "checkout"}`;
+
+      const response = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ tier: tierKey }),
+        // Stripe's routes read `tier`, Sola's read `plan`. Both are sent rather
+        // than branching, so neither route can be reached with the field it
+        // does not look for.
+        body: JSON.stringify({ tier: tier.key, plan: tier.key }),
       });
       const body = (await response.json()) as { url?: string; ok?: boolean; error?: string };
       if (!response.ok) throw new Error(body.error ?? "Something went wrong.");
 
-      // Checkout hands back a Stripe URL; a plan change completes server-side
-      // and only needs the page to re-read the (webhook-updated) organization.
+      // Stripe checkout hands back a URL; everything else completes server-side
+      // and only needs the page to re-read the organization.
       if (body.url) window.location.assign(body.url);
       else window.location.reload();
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Something went wrong.");
       setPending(null);
     }
+  }
+
+  if (subscribing && sola && subscribing.listPriceCents !== null) {
+    return (
+      <SolaCardForm
+        plan={subscribing.key}
+        planName={subscribing.name}
+        priceLabel={money(subscribing.listPriceCents)}
+        ifieldsKey={sola.ifieldsKey}
+        ifieldsVersion={sola.ifieldsVersion}
+        softwareName={sola.softwareName}
+        softwareVersion={sola.softwareVersion}
+        onCancel={() => setSubscribing(null)}
+      />
+    );
   }
 
   return (
@@ -142,7 +187,7 @@ export function PlanCards({
                   <button
                     type="button"
                     disabled={!canManage || pending !== null}
-                    onClick={() => choose(tier.key)}
+                    onClick={() => choose(tier)}
                     title={canManage ? undefined : "Only admins can manage billing"}
                     className="pressable inline-flex w-full items-center justify-center gap-2 rounded-full bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-50"
                   >
@@ -170,8 +215,9 @@ export function PlanCards({
 
       {hasSubscription && (
         <p className="mt-3 text-xs text-ink-muted">
-          Changing plan takes effect immediately. Stripe prorates the difference — an upgrade
-          charges the remainder of this month, a downgrade credits it.
+          {processor === "sola"
+            ? "Changing plan changes what the next monthly payment collects. The month already paid for is not prorated either way, so an upgrade takes full effect from the next payment date."
+            : "Changing plan takes effect immediately. Stripe prorates the difference — an upgrade charges the remainder of this month, a downgrade credits it."}
         </p>
       )}
     </div>
