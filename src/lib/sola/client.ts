@@ -100,14 +100,13 @@ export function solaExpiry(month: number, year: number) {
 }
 
 /**
- * Cardknox dates are MM/DD/YYYY.
+ * Schedule dates are YYYY-MM-DD.
  *
- * Used to set a schedule's StartDate. Worth being precise about: a CreateSchedule
- * with no StartDate charges the card immediately *and* on the recurring date, so
- * the first month would be paid for twice.
+ * Not the MM/DD/YYYY the gateway uses elsewhere — the recurring API documents
+ * this one as ISO, and a date in the wrong shape is rejected outright.
  */
 export function solaDate(date: Date) {
   const mm = String(date.getUTCMonth() + 1).padStart(2, "0");
   const dd = String(date.getUTCDate()).padStart(2, "0");
-  return `${mm}/${dd}/${date.getUTCFullYear()}`;
+  return `${date.getUTCFullYear()}-${mm}-${dd}`;
 }

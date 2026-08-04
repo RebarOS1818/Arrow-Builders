@@ -78,11 +78,18 @@ export async function POST(request: Request) {
   // ---------------------------------------------------------------- customer
   let customerId = org.sola_customer_id;
   if (!customerId) {
+    // Every name field is prefixed Bill/Ship — there is no bare `Company`, and
+    // sending one fails the whole call with "Invalid parameters: Company".
+    // At least one of BillFirstName, BillLastName or BillCompany is required.
+    const [billFirstName, billLastName] = splitName(cardholder);
+
     const created = await sola<{ CustomerId?: string }>("CreateCustomer", {
       // The organization id is carried as the customer number so a record in
       // the Sola portal can be traced back here without a database lookup.
       CustomerNumber: org.id,
-      Company: org.name,
+      BillCompany: org.name,
+      ...(billFirstName ? { BillFirstName: billFirstName } : {}),
+      ...(billLastName ? { BillLastName: billLastName } : {}),
       Email: org.email ?? "",
     });
     if (!created.ok) return NextResponse.json({ error: created.error }, { status: 502 });
@@ -127,9 +134,10 @@ export async function POST(request: Request) {
     IntervalType: "month",
     IntervalCount: 1,
     StartDate: solaDate(new Date()),
-    // Runs until cancelled. A finite count would silently stop billing an
-    // active customer, who would keep their access for free.
-    TotalPayments: 0,
+    // TotalPayments is deliberately absent. Left blank the schedule runs
+    // indefinitely, which is what a subscription is; 0 is not documented as
+    // meaning that, and a schedule that quietly stopped collecting would leave
+    // an active customer with free access nobody noticed.
     ScheduleName: `${plan.name} — ${org.name}`,
   });
   if (!schedule.ok) return NextResponse.json({ error: schedule.error }, { status: 402 });
@@ -173,6 +181,21 @@ export async function POST(request: Request) {
   }
 
   return NextResponse.json({ ok: true });
+}
+
+/**
+ * A cardholder name split into the two fields Sola asks for.
+ *
+ * Last word is the surname, everything before it the rest. Crude, and wrong for
+ * plenty of names — which is why BillCompany carries the organization name and
+ * these are sent only as a bonus for address verification. Neither is load
+ * bearing on its own.
+ */
+function splitName(full: string): [string, string] {
+  const parts = full.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return ["", ""];
+  if (parts.length === 1) return ["", parts[0]!];
+  return [parts.slice(0, -1).join(" "), parts.at(-1)!];
 }
 
 /** Same day next month, clamped by Date's own month arithmetic. */
