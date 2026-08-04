@@ -40,10 +40,13 @@ export function AppShell({
   const offset = useRef(-DRAWER_WIDTH);
   const gesture = useRef<{
     startX: number;
+    startY: number;
     startOffset: number;
     lastX: number;
     lastT: number;
     velocity: number;
+    /** Locked on the first real movement; a scroll never becomes a drag. */
+    axis: "drag" | "scroll" | null;
   } | null>(null);
 
   const paint = useCallback((x: number) => {
@@ -119,10 +122,14 @@ export function AppShell({
     animation.current?.stop();
     gesture.current = {
       startX: event.clientX,
+      startY: event.clientY,
       startOffset: offset.current,
       lastX: event.clientX,
       lastT: event.timeStamp,
       velocity: 0,
+      // Null until the first real movement decides which way this gesture is
+      // going; "scroll" then means leave it alone for the rest of the gesture.
+      axis: null,
     };
   }
 
@@ -131,8 +138,18 @@ export function AppShell({
     if (!g) return;
 
     const dx = event.clientX - g.startX;
+    const dy = event.clientY - g.startY;
+
+    // The drawer scrolls now, so a gesture has to be one thing or the other.
+    // Whichever axis moves further first wins and holds for the whole gesture:
+    // without this, scrolling the nav with a thumb that drifts a few pixels
+    // sideways would drag the drawer off screen mid-scroll.
+    if (g.axis === null && Math.max(Math.abs(dx), Math.abs(dy)) >= DRAG_THRESHOLD) {
+      g.axis = Math.abs(dy) > Math.abs(dx) ? "scroll" : "drag";
+    }
+    if (g.axis !== "drag") return;
+
     if (!dragging) {
-      if (Math.abs(dx) < DRAG_THRESHOLD) return;
       setDragging(true);
       event.currentTarget.setPointerCapture(event.pointerId);
     }
