@@ -2,9 +2,6 @@ import "server-only";
 
 import { createClient } from "./supabase/server";
 import { DEMO_ORG, demoProfiles } from "./demo-data";
-import { isStripeConfigured, missingStripeEnv } from "./stripe/config";
-import { SALES_EMAIL, TIERS, isSelfServe } from "./stripe/tiers";
-import { resolveTiers, type ResolvedTier } from "./stripe/tier-prices";
 import {
   SOLA_IFIELDS_KEY,
   SOLA_IFIELDS_VERSION,
@@ -14,24 +11,8 @@ import {
   missingSolaEnv,
   solaKeysLookSwapped,
 } from "./sola/config";
-import { SOLA_PLANS, isSelfServe as isSolaSelfServe } from "./sola/plans";
+import { SALES_EMAIL, SOLA_PLANS, isSelfServe } from "./sola/plans";
 import { reconcileSchedule } from "./sola/reconcile";
-
-/**
- * Which gateway takes the money.
- *
- * Sola wins when both are configured: it is the one being moved to, and a page
- * offering two ways to pay would let a customer start a second subscription
- * while the first was still collecting. "none" means nothing is configured, and
- * the page shows illustrative figures with every button disabled.
- */
-export type Processor = "sola" | "stripe" | "none";
-
-export const processor: Processor = isSolaConfigured
-  ? "sola"
-  : isStripeConfigured
-    ? "stripe"
-    : "none";
 
 /** Everything the browser needs to render Sola's card form. No secrets. */
 export type SolaBrowserConfig = {
@@ -41,7 +22,7 @@ export type SolaBrowserConfig = {
   softwareVersion: string;
 };
 
-/** Mirrors the subscription_status enum: Stripe's full set plus our "none". */
+/** Mirrors the subscription_status enum. */
 export type SubscriptionStatus =
   | "none"
   | "trialing"
@@ -53,7 +34,7 @@ export type SubscriptionStatus =
   | "unpaid"
   | "paused";
 
-/** A plan as the pricing cards need it, whichever processor priced it. */
+/** A plan as the pricing cards need it. */
 export type PlanCard = {
   key: string;
   name: string;
@@ -86,12 +67,10 @@ export type BillingSummary = {
    */
   isAdmin: boolean;
   /**
-   * Billing *actions* (checkout, portal) additionally need Stripe configured.
-   * Kept separate from isAdmin so an unconfigured install still manages its team.
+   * Billing *actions* additionally need Sola configured. Kept separate from
+   * isAdmin so an unconfigured install still manages its team.
    */
   canManage: boolean;
-  /** Which gateway is live, so the page knows which endpoints to call. */
-  processor: Processor;
   billingReady: boolean;
   /** Env vars still missing, so the billing page can name them exactly. */
   missingEnv: string[];
@@ -101,7 +80,7 @@ export type BillingSummary = {
    * the readiness check and would otherwise look fine.
    */
   configWarnings: string[];
-  /** Present only when Sola is the processor. */
+  /** Absent until Sola is configured, which is when a card can be taken. */
   sola: SolaBrowserConfig | null;
   /**
    * Set when the organization row could not be read. Everything derived from it
@@ -109,7 +88,7 @@ export type BillingSummary = {
    * zeros — "up to 0 users" reads as a plan, not as a broken query.
    */
   loadError: string | null;
-  /** Plans on offer. Priced by the live processor. */
+  /** Plans on offer. */
   tiers: PlanCard[];
   /** Which of them can be bought without talking to someone. */
   selfServe: Record<string, boolean>;
@@ -120,35 +99,27 @@ export type BillingSummary = {
 /**
  * Statuses that should still grant access. `past_due` is included deliberately —
  * a failed card is a dunning problem, not a reason to lock a crew out mid-job.
- * `unpaid` is where Stripe gives up on retries, so access stops there.
+ * `unpaid` is where a processor gives up on retries, so access stops there.
  */
 export function isEntitled(status: SubscriptionStatus) {
   return status === "active" || status === "trialing" || status === "past_due";
 }
 
 /**
- * The plans, priced by whichever gateway is live.
+ * The plans on offer.
  *
- * Stripe's prices are read from Stripe; Sola has no catalogue to read, so its
- * plans carry their own amounts. Everything below this call is processor-blind,
- * which is what keeps the billing page from growing a second copy of itself.
+ * Sola has no product catalogue to read prices from, so the plans carry their
+ * own amounts and there is nothing to look up.
  */
-async function offer(): Promise<Pick<BillingSummary, "tiers" | "selfServe">> {
-  if (processor === "sola") {
-    return {
-      tiers: SOLA_PLANS,
-      selfServe: Object.fromEntries(SOLA_PLANS.map((p) => [p.key, isSolaSelfServe(p)])),
-    };
-  }
-  const tiers: ResolvedTier[] = processor === "stripe" ? await resolveTiers() : TIERS;
+function offer(): Pick<BillingSummary, "tiers" | "selfServe"> {
   return {
-    tiers,
-    selfServe: Object.fromEntries(TIERS.map((t) => [t.key, isSelfServe(t)])),
+    tiers: SOLA_PLANS,
+    selfServe: Object.fromEntries(SOLA_PLANS.map((p) => [p.key, isSelfServe(p)])),
   };
 }
 
 /** Config the browser needs, and complaints about the config it has. */
-function setup(): Pick<BillingSummary, "processor" | "billingReady" | "missingEnv" | "configWarnings" | "sola"> {
+function setup(): Pick<BillingSummary, "billingReady" | "missingEnv" | "configWarnings" | "sola"> {
   const warnings = solaKeysLookSwapped
     ? [
         "NEXT_PUBLIC_SOLA_IFIELDS_KEY does not start with 'ifields_'. If the API key was pasted there it is being served to every visitor — rotate it.",
@@ -156,24 +127,17 @@ function setup(): Pick<BillingSummary, "processor" | "billingReady" | "missingEn
     : [];
 
   return {
-    processor,
-    billingReady: processor !== "none",
-    // Named for the gateway being set up. Reporting Stripe's missing variables
-    // to someone configuring Sola is how a setup message sends you to the wrong
-    // dashboard for an afternoon.
-    missingEnv: processor === "sola" || missingSolaEnv.length < missingStripeEnv.length
-      ? missingSolaEnv
-      : missingStripeEnv,
+    billingReady: isSolaConfigured,
+    missingEnv: missingSolaEnv,
     configWarnings: warnings,
-    sola:
-      processor === "sola"
-        ? {
-            ifieldsKey: SOLA_IFIELDS_KEY,
-            ifieldsVersion: SOLA_IFIELDS_VERSION,
-            softwareName: SOLA_SOFTWARE_NAME,
-            softwareVersion: SOLA_SOFTWARE_VERSION,
-          }
-        : null,
+    sola: isSolaConfigured
+      ? {
+          ifieldsKey: SOLA_IFIELDS_KEY,
+          ifieldsVersion: SOLA_IFIELDS_VERSION,
+          softwareName: SOLA_SOFTWARE_NAME,
+          softwareVersion: SOLA_SOFTWARE_VERSION,
+        }
+      : null,
   };
 }
 
@@ -202,7 +166,7 @@ export async function getBillingSummary(): Promise<BillingSummary> {
       canManage: false,
       ...setup(),
       loadError: null,
-      ...(await offer()),
+      ...offer(),
       salesEmail: SALES_EMAIL,
     };
   }
@@ -220,17 +184,12 @@ export async function getBillingSummary(): Promise<BillingSummary> {
   const orgId = (profile as { org_id: string | null } | null)?.org_id ?? "";
   const isAdmin = Boolean((profile as { is_admin: boolean } | null)?.is_admin);
 
-  // sola_schedule_id is only asked for when Sola is live: on a Stripe install
-  // that has not run migration 0012 the column does not exist, and naming it
-  // unconditionally would fail the whole read and blank the billing page.
-  const columns =
-    "id, name, plan, seat_limit, price_cents, subscription_status, stripe_subscription_id, current_period_end" +
-    (processor === "sola" ? ", sola_schedule_id" : "");
-
   const [org, memberCount, inviteCount] = await Promise.all([
     db
       .from("organizations")
-      .select(columns)
+      .select(
+        "id, name, plan, seat_limit, price_cents, subscription_status, sola_schedule_id, current_period_end",
+      )
       .eq("id", orgId)
       .single(),
     db.from("profiles").select("id", { count: "exact", head: true }).eq("org_id", orgId),
@@ -260,8 +219,7 @@ export async function getBillingSummary(): Promise<BillingSummary> {
     seat_limit: number;
     price_cents: number;
     subscription_status: SubscriptionStatus;
-    stripe_subscription_id: string | null;
-    sola_schedule_id?: string | null;
+    sola_schedule_id: string | null;
     current_period_end: string | null;
   } | null;
 
@@ -270,10 +228,9 @@ export async function getBillingSummary(): Promise<BillingSummary> {
   // webhook delivery at all, so without this a declined renewal would leave the
   // organization reading `active` indefinitely while the gateway had stopped
   // collecting. Best effort — a failed read leaves the stored values in place.
-  const live =
-    processor === "sola" && row?.sola_schedule_id
-      ? await reconcileSchedule(row.id, row.sola_schedule_id)
-      : null;
+  const live = row?.sola_schedule_id
+    ? await reconcileSchedule(row.id, row.sola_schedule_id)
+    : null;
 
   const members = memberCount.count ?? 0;
   const pendingInvites = inviteCount.count ?? 0;
@@ -296,23 +253,15 @@ export async function getBillingSummary(): Promise<BillingSummary> {
     monthlyTotalCents: priceCents,
     status: live?.status ?? row?.subscription_status ?? "none",
     currentPeriodEnd: live?.currentPeriodEnd ?? row?.current_period_end ?? null,
-    // Whichever gateway is live decides what counts as subscribed. Reading both
-    // would show a Sola customer the "change plan" buttons for a Stripe
-    // subscription they no longer have.
-    hasSubscription: Boolean(
-      processor === "sola"
-        ? // A schedule disabled in the Sola portal rather than through the app
-          // is no longer a subscription, whatever our column still says — and
-          // continuing to offer "Cancel subscription" for it would be a button
-          // that could only fail.
-          row?.sola_schedule_id && live?.status !== "canceled"
-        : row?.stripe_subscription_id,
-    ),
+    // A schedule disabled in the Sola portal rather than through the app is no
+    // longer a subscription, whatever our column still says — and continuing to
+    // offer "Cancel subscription" for it would be a button that could only fail.
+    hasSubscription: Boolean(row?.sola_schedule_id && live?.status !== "canceled"),
     isAdmin,
-    canManage: isAdmin && processor !== "none",
+    canManage: isAdmin && isSolaConfigured,
     ...setup(),
     loadError,
-    ...(await offer()),
+    ...offer(),
     salesEmail: SALES_EMAIL,
   };
 }

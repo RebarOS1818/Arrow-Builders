@@ -2,10 +2,7 @@ import { NextResponse } from "next/server";
 import { sola } from "@/lib/sola/client";
 import { isSolaConfigured } from "@/lib/sola/config";
 import { billingCaller } from "@/lib/sola/org";
-// The free allowance is a product rule rather than a Stripe one, and this is
-// where it is currently defined. Imported rather than repeated so cancelling
-// under either processor drops an organization to the same ceiling.
-import { FREE_SEATS } from "@/lib/stripe/config";
+import { FREE_SEATS } from "@/lib/app-config";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 /**

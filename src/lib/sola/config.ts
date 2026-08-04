@@ -51,11 +51,10 @@ export const SOLA_SOFTWARE_VERSION = "1.0";
 /**
  * Everything the charge-and-record loop needs.
  *
- * The webhook PIN and the service-role key are part of readiness for the same
- * reason they are in the Stripe config: without them a card can be charged
- * while the handler that records it answers 503, leaving a paying customer whom
- * the app believes has no plan. Refusing to take the payment is the honest
- * failure.
+ * The webhook PIN and the service-role key are part of readiness, not optional
+ * extras: without them a card can be charged while the handler that records it
+ * answers 503, leaving a paying customer whom the app believes has no plan.
+ * Refusing to take the payment is the honest failure.
  */
 const REQUIRED_ENV = {
   SOLA_API_KEY,

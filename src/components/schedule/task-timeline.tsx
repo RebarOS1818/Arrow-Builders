@@ -1,4 +1,4 @@
-import { TRADE_DOT } from "@/components/ui/badge";
+import { TRADE_BLOCK } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { dayOfMonth, rangeLabel, spanColumns, weekDays, weekdayLabel } from "@/lib/week";
 import type { Milestone, Project, TaskWithProject } from "@/lib/types";
@@ -73,7 +73,7 @@ export function TaskTimeline({
                     <div
                       key={milestone.id}
                       style={{ gridColumnStart: span.start, gridColumnEnd: span.end }}
-                      className="z-10 ml-1 flex items-center gap-2 rounded-md bg-brand-600 px-2 py-1 text-[11px] font-medium text-white"
+                      className="z-10 ml-1 flex items-center gap-2 rounded-full bg-brand-600 px-3 py-1.5 text-[11px] font-medium text-white"
                     >
                       <span className="truncate">{milestone.title}</span>
                       <span className="ml-auto hidden shrink-0 opacity-80 lg:block">
@@ -90,10 +90,12 @@ export function TaskTimeline({
                     <div
                       key={task.id}
                       style={{ gridColumnStart: span.start, gridColumnEnd: span.end }}
-                      className="z-10 ml-1 flex items-center gap-1.5 rounded-md border border-line bg-surface px-2 py-1 text-[11px] shadow-xs"
+                      className={cn(
+                        "z-10 ml-1 flex items-center gap-1.5 rounded-full border-l-[3px] px-2.5 py-1.5 text-[11px]",
+                        TRADE_BLOCK[task.trade],
+                      )}
                     >
-                      <span className={cn("size-1.5 shrink-0 rounded-full", TRADE_DOT[task.trade])} />
-                      <span className="truncate font-medium">{task.title}</span>
+                      <span className="truncate font-semibold">{task.title}</span>
                     </div>
                   );
                 })}

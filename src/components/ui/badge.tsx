@@ -17,6 +17,23 @@ export const TRADE_DOT: Record<Trade, string> = {
   finishes: "bg-trade-finishes",
 };
 
+/**
+ * A timeline bar, blocked in its trade colour.
+ *
+ * A tint with a saturated edge rather than a saturated fill with white text.
+ * The reference fills its bars solid, but it labels them at 14px in green and
+ * purple; these are 11px, and four of the five trade colours fall below 4.5:1
+ * against white — plumbing green is 3.2:1, finishes pink 2.6:1. The tint keeps
+ * the colour blocking and puts dark ink on top, which reads at any size.
+ */
+export const TRADE_BLOCK: Record<Trade, string> = {
+  general: "bg-trade-general/20 border-trade-general",
+  concrete: "bg-trade-concrete/20 border-trade-concrete",
+  electrical: "bg-trade-electrical/15 border-trade-electrical",
+  plumbing: "bg-trade-plumbing/15 border-trade-plumbing",
+  finishes: "bg-trade-finishes/18 border-trade-finishes",
+};
+
 export const TRADE_ACCENT: Record<Trade, string> = {
   general: "border-l-trade-general",
   concrete: "border-l-trade-concrete",
@@ -32,16 +49,34 @@ const STATUS_LABELS: Record<ProjectStatus, string> = {
   complete: "Complete",
 };
 
-const STATUS_TONE: Record<ProjectStatus, string> = {
-  on_schedule: "text-status-ontrack",
-  behind_schedule: "text-status-behind-ink",
-  at_risk: "text-status-risk",
-  complete: "text-ink-muted",
+/**
+ * Status as a filled pill rather than coloured words.
+ *
+ * The fill is the light end of each hue with the saturated version as the dot,
+ * so the colour is doing the signalling while the text stays dark enough to
+ * read — amber type on white is 2.2:1, which is why "behind schedule" can never
+ * simply be amber words.
+ */
+const STATUS_TONE: Record<ProjectStatus, { pill: string; dot: string }> = {
+  on_schedule: { pill: "bg-mint-50 text-status-ontrack", dot: "bg-status-ontrack" },
+  behind_schedule: {
+    pill: "bg-accent-50 text-status-behind-ink",
+    dot: "bg-status-behind",
+  },
+  at_risk: { pill: "bg-rose-50 text-status-risk", dot: "bg-status-risk" },
+  complete: { pill: "bg-canvas text-ink-muted", dot: "bg-ink-subtle" },
 };
 
 export function StatusLabel({ status }: { status: ProjectStatus }) {
+  const tone = STATUS_TONE[status];
   return (
-    <span className={cn("text-sm font-semibold", STATUS_TONE[status])}>
+    <span
+      className={cn(
+        "inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold",
+        tone.pill,
+      )}
+    >
+      <span className={cn("size-1.5 rounded-full", tone.dot)} />
       {STATUS_LABELS[status]}
     </span>
   );
@@ -61,7 +96,9 @@ export function Chip({
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-full border border-line bg-white px-2.5 py-1 text-xs font-medium text-ink-muted",
+        // Flat and tinted, not outlined: a chip is a value you read, and an
+        // outline is the app's signal for something you press.
+        "inline-flex items-center gap-1.5 rounded-full bg-canvas px-3 py-1 text-xs font-medium text-ink-muted",
         className,
       )}
     >

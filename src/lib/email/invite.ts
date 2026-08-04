@@ -2,7 +2,7 @@ import "server-only";
 
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isServiceRoleConfigured } from "@/lib/supabase/server-config";
-import { APP_URL } from "@/lib/stripe/config";
+import { APP_URL } from "@/lib/app-config";
 
 export type InviteEmailResult =
   | { sent: true }

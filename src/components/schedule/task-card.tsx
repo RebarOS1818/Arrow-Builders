@@ -2,7 +2,7 @@
 
 import { Users } from "lucide-react";
 import { AvatarStack } from "@/components/ui/avatar";
-import { TRADE_ACCENT } from "@/components/ui/badge";
+import { TRADE_BLOCK } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import type { TaskWithProject } from "@/lib/types";
 
@@ -25,11 +25,11 @@ export function ScheduleTaskCard({
       draggable
       {...handlers}
       className={cn(
-        // Tile radius, not the full card radius: the trade accent stripe reads as
-        // a straight edge marker rather than a curved sliver at this size.
-        "cursor-grab rounded-tile border-l-[3px] bg-surface p-2.5 shadow-soft transition active:cursor-grabbing",
-        TRADE_ACCENT[task.trade],
-        dragging ? "opacity-40" : "hover:shadow-lift",
+        // Tile radius, not the full card radius: the trade edge reads as a
+        // straight marker rather than a curved sliver at this size.
+        "cursor-grab rounded-tile border-l-[3px] p-2.5 transition active:cursor-grabbing",
+        TRADE_BLOCK[task.trade],
+        dragging ? "opacity-40" : "hover:shadow-soft",
         task.overdue && "ring-1 ring-status-behind/40",
       )}
     >

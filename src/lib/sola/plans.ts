@@ -3,11 +3,11 @@ import "server-only";
 /**
  * The plans on offer, under Sola.
  *
- * Unlike Stripe, Sola has no product catalogue — a recurring schedule is just an
- * amount and an interval, so there is nothing to look a price up from. The
- * figures here *are* the prices: change one and the next subscriber is charged
- * the new amount, while existing schedules keep the amount they were created
- * with until they are updated.
+ * Sola has no product catalogue — a recurring schedule is just an amount and an
+ * interval, so there is nothing to look a price up from. The figures here *are*
+ * the prices: change one and the next subscriber is charged the new amount,
+ * while existing schedules keep the amount they were created with until they
+ * are updated.
  *
  * Because of that, the environment variables are the amounts themselves rather
  * than price identifiers, so a price change is still a dashboard edit in Vercel

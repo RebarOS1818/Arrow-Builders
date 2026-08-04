@@ -129,7 +129,16 @@ export function RecordForm({
           data-record-trigger=""
           onClick={() => setOpen(true)}
           disabled={disabled}
-          className="pressable inline-flex items-center gap-2 rounded-full bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-50"
+          className={cn(
+            "pressable inline-flex items-center gap-2 rounded-full text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-50",
+            // Adding is the primary act on a page and takes the solid navy.
+            // Editing is one row's secondary action, repeated down the whole
+            // table — in navy it becomes a column of identical blobs louder
+            // than the data, and the row itself already opens the record.
+            edit
+              ? "bg-canvas px-3.5 py-2 text-ink-muted hover:bg-line hover:text-ink"
+              : "bg-brand-600 px-4 py-2.5 text-white hover:bg-brand-700",
+          )}
         >
           {edit ? <Pencil className="size-3.5" /> : <Plus className="size-4" />}
           {triggerLabel}
