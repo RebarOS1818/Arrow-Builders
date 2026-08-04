@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { TopNav } from "@/components/layout/top-nav";
+import { NavRail } from "@/components/layout/nav-rail";
 import { Sidebar } from "@/components/layout/sidebar";
 import { prefersReducedMotion, project, spring, type SpringHandle } from "@/lib/spring";
 
@@ -182,10 +183,12 @@ export function AppShell({
 
   return (
     /*
-     * The reference nests everything inside one large rounded panel floating on
-     * a tinted page, rather than running the layout to the window edges.
+     * Two nested frames on a tinted page, rather than a layout run to the window
+     * edges. The outer one holds the navigation and is the quieter surface; the
+     * content panel sits inside it, inset on three sides, so the rail reads as
+     * the thing the page is resting against.
      */
-    <div className="min-h-screen p-2 sm:p-4 lg:p-6">
+    <div className="min-h-screen p-2 sm:p-3 lg:p-4">
       {open && (
         <div
           ref={scrimRef}
@@ -196,7 +199,7 @@ export function AppShell({
         />
       )}
 
-      {/* Navigation is horizontal from lg; below that this drawer takes over. */}
+      {/* The rail is the navigation from lg up; below that this drawer is. */}
       <Sidebar
         ref={drawerRef}
         crew={crew}
@@ -208,14 +211,22 @@ export function AppShell({
         onPointerUp={onPointerUp}
       />
 
-      <div className="min-h-[calc(100vh-3rem)] rounded-[2rem] bg-shell px-4 py-5 shadow-soft ring-1 ring-white/60 sm:px-6 sm:py-6">
-        <TopNav
-          user={user}
-          onMenu={() => setOpen(true)}
-          menuButtonRef={triggerRef}
-          menuOpen={open}
-        />
-        <main className="pb-10">{children}</main>
+      <div className="flex min-h-[calc(100vh-1rem)] gap-3 rounded-frame bg-shell p-2 shadow-soft ring-1 ring-white/60 sm:min-h-[calc(100vh-1.5rem)] lg:min-h-[calc(100vh-2rem)] lg:p-3">
+        {/* Sticky so ten destinations stay reachable while a long table scrolls
+            behind them — the whole point of giving navigation its own column. */}
+        <div className="sticky top-3 hidden h-[calc(100vh-4rem)] lg:flex">
+          <NavRail />
+        </div>
+
+        <div className="min-w-0 flex-1 rounded-[1.75rem] bg-canvas/70 px-3 py-3 sm:px-5 sm:py-4">
+          <TopNav
+            user={user}
+            onMenu={() => setOpen(true)}
+            menuButtonRef={triggerRef}
+            menuOpen={open}
+          />
+          <main className="pb-8">{children}</main>
+        </div>
       </div>
     </div>
   );

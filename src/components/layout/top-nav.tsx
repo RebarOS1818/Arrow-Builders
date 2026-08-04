@@ -1,45 +1,22 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import {
-  Bell,
-  CalendarDays,
-  FileText,
-  Hammer,
-  HardHat,
-  Landmark,
-  LayoutDashboard,
-  ListChecks,
-  Menu,
-  PieChart,
-  Search,
-  Stamp,
-  Users,
-} from "lucide-react";
+import { Bell, HardHat, Menu, Search } from "lucide-react";
 import { ProfileMenu } from "@/components/layout/profile-menu";
-import { cn } from "@/lib/utils";
-
-const NAV = [
-  { href: "/", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/development", label: "Development", icon: Landmark },
-  { href: "/construction", label: "Construction", icon: Hammer },
-  { href: "/projects", label: "Projects", icon: HardHat },
-  { href: "/tasks", label: "Tasks", icon: ListChecks },
-  { href: "/schedule", label: "Schedule", icon: CalendarDays },
-  { href: "/documents", label: "Documents", icon: FileText },
-  { href: "/approvals", label: "Approvals", icon: Stamp },
-  { href: "/reports", label: "Reports", icon: PieChart },
-  { href: "/teams", label: "Teams", icon: Users },
-];
 
 /**
- * Horizontal navigation, as in the reference.
+ * The row above the page.
  *
- * Eight destinations is more than the reference's five, so from `lg` the links
- * scroll horizontally rather than wrapping to a second row or shrinking below a
- * comfortable tap size. Below `lg` this collapses to the menu button and the
- * drawer takes over.
+ * It used to carry the destinations too, scrolling ten of them sideways behind
+ * a fade. The rail owns navigation now, so this is left with the things that
+ * act on wherever you already are — find something, see what needs attention,
+ * be someone. That is a row that can breathe rather than one competing with
+ * itself for width.
+ *
+ * It deliberately does not name the page. Every page already opens with its own
+ * heading, carrying the counts and context a bare route label cannot, and the
+ * rail's active pill says where you are — a third copy would be noise in the
+ * one row that should stay calm.
  */
 export function TopNav({
   user,
@@ -52,12 +29,8 @@ export function TopNav({
   menuOpen?: boolean;
   menuButtonRef?: React.Ref<HTMLButtonElement>;
 }) {
-  const pathname = usePathname();
-  const isActive = (href: string) =>
-    href === "/" ? pathname === "/" : pathname.startsWith(href);
-
   return (
-    <header className="flex items-center gap-3 pb-6">
+    <header className="flex items-center gap-2.5 pb-5">
       <button
         ref={menuButtonRef}
         type="button"
@@ -65,73 +38,45 @@ export function TopNav({
         aria-label="Open navigation"
         aria-controls="app-sidebar"
         aria-expanded={menuOpen}
-        className="pressable grid size-10 shrink-0 place-items-center rounded-full bg-surface text-ink-muted shadow-soft hover:text-ink lg:hidden"
+        className="pressable grid size-11 shrink-0 place-items-center rounded-full bg-surface text-ink-muted shadow-soft hover:text-ink lg:hidden"
       >
         <Menu className="size-4.5" />
       </button>
 
-      <Link href="/" className="flex shrink-0 items-center gap-2.5">
-        <span className="grid size-9 place-items-center rounded-full bg-brand-700 text-white">
-          <HardHat className="size-5" />
+      {/* The wordmark belongs to the rail on desktop; below lg the rail is gone,
+          so it appears here instead rather than leaving the row unbranded. */}
+      <Link href="/" className="flex shrink-0 items-center gap-2.5 lg:hidden">
+        <span className="icon-tile size-9 bg-brand-700 text-white">
+          <HardHat className="size-4.5" />
         </span>
-        <span className="hidden whitespace-nowrap text-lg font-semibold tracking-tight sm:block">
+        <span className="hidden whitespace-nowrap font-semibold tracking-tight sm:block">
           Arrow Builders
         </span>
       </Link>
 
-      {/*
-        The links get the row before the search box does: a half-visible
-        destination reads as broken, whereas a search field appearing only on
-        wide screens reads as a deliberate progressive enhancement. The mask
-        fades the scroll edge so it is clear there is more, rather than looking
-        like a clipped layout.
-      */}
-      <nav
-        className="scroll-hidden hidden min-w-0 flex-1 items-center gap-0.5 overflow-x-auto px-3 lg:flex"
-        style={{
-          maskImage: "linear-gradient(to right, black calc(100% - 24px), transparent)",
-        }}
-      >
-        {NAV.map((item) => (
-          <Link
-            key={item.href}
-            href={item.href}
-            className={cn(
-              "shrink-0 rounded-full px-3 py-2 text-sm transition-colors",
-              isActive(item.href)
-                ? "bg-surface font-semibold text-ink shadow-soft"
-                : "font-medium text-ink-muted hover:text-ink",
-            )}
-          >
-            {item.label}
-          </Link>
-        ))}
-      </nav>
-
-      <label className="relative ml-auto hidden max-w-64 shrink md:block lg:ml-0 lg:hidden 2xl:block">
+      {/* Takes the width the navigation used to occupy rather than being pinned
+          to the right edge with a corridor of nothing beside it. A search field
+          people are meant to use should look like the row's main event. */}
+      <label className="relative hidden min-w-0 max-w-md flex-1 md:block">
         <Search className="pointer-events-none absolute left-4 top-1/2 size-4.5 -translate-y-1/2 text-ink-subtle" />
         <input
           type="search"
           placeholder="Search…"
           aria-label="Search"
-          className="w-full rounded-full bg-surface py-2.5 pl-11 pr-4 text-sm shadow-soft outline-none placeholder:text-ink-subtle focus:ring-2 focus:ring-brand-200"
+          className="w-full rounded-full bg-surface py-3 pl-11 pr-4 text-sm shadow-soft outline-none placeholder:text-ink-subtle focus:ring-2 focus:ring-brand-200"
         />
       </label>
 
-      <div className="ml-auto flex shrink-0 items-center gap-2 md:ml-0">
+      <div className="ml-auto flex shrink-0 items-center gap-2">
         <Link
           href="/approvals"
           aria-label="Notifications"
-          className="pressable relative grid size-10 place-items-center rounded-full bg-surface text-ink-muted shadow-soft hover:text-ink"
+          className="pressable relative grid size-11 place-items-center rounded-full bg-surface text-ink-muted shadow-soft hover:text-ink"
         >
           <Bell className="size-4.5" />
-          <span className="absolute right-2.5 top-2.5 size-2 rounded-full bg-mint-500 ring-2 ring-surface" />
+          <span className="absolute right-3 top-3 size-2 rounded-full bg-accent-500 ring-2 ring-surface" />
         </Link>
-        <ProfileMenu
-          name={user.full_name}
-          initials={user.initials}
-          role={user.role}
-        />
+        <ProfileMenu name={user.full_name} initials={user.initials} role={user.role} />
       </div>
     </header>
   );
