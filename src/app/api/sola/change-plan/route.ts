@@ -42,18 +42,23 @@ export async function POST(request: Request) {
   const db = createAdminClient();
   if (!db) return NextResponse.json({ error: "Billing is not configured." }, { status: 503 });
 
-  // UpdateSchedule is optimistic-concurrency controlled: it requires the
-  // revision it is editing, and refuses if the schedule moved on in between.
-  // That means reading it first — the revision is not something we can cache.
-  const current = await sola<{ Revision?: string | number }>("GetSchedule", {
-    ScheduleId: scheduleId,
-  });
+  // The schedule has to be read first, for two reasons. UpdateSchedule is
+  // optimistic-concurrency controlled — it wants the revision it is editing and
+  // refuses if the schedule moved on in between — and it also requires StartDate
+  // and CalendarCulture on every call, even when neither is changing. Those are
+  // echoed back exactly as they came, so a plan change cannot quietly reset when
+  // the customer is billed or which calendar the interval follows.
+  const current = await sola<{
+    Revision?: string | number;
+    StartDate?: string;
+    CalendarCulture?: string;
+  }>("GetSchedule", { ScheduleId: scheduleId });
   if (!current.ok) return NextResponse.json({ error: current.error }, { status: 502 });
 
-  const revision = current.data.Revision;
-  if (revision === undefined || revision === null) {
+  const { Revision: revision, StartDate: startDate, CalendarCulture: calendar } = current.data;
+  if (revision === undefined || revision === null || !startDate) {
     return NextResponse.json(
-      { error: "Sola did not report the schedule's revision, so it cannot be changed safely." },
+      { error: "Sola did not report the schedule fully, so it cannot be changed safely." },
       { status: 502 },
     );
   }
@@ -61,6 +66,8 @@ export async function POST(request: Request) {
   const updated = await sola("UpdateSchedule", {
     ScheduleId: scheduleId,
     Revision: revision,
+    StartDate: startDate,
+    CalendarCulture: calendar ?? "Gregorian",
     Amount: solaAmount(plan.listPriceCents),
     ScheduleName: `${plan.name} — ${caller.org.name}`,
   });
