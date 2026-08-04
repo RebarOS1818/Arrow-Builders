@@ -3,7 +3,8 @@ import { AlertTriangle, ArrowUpRight, Columns3, LayoutGrid, MapPin } from "lucid
 import { StatusPill } from "@/components/phases/badges";
 import { NewPropertyForm } from "@/components/phases/forms";
 import { PropertyBoard } from "@/components/phases/property-board";
-import { getConstraints, getProFormas, getProperties, getStudies } from "@/lib/data";
+import { getConstraints, getPropertiesSourced, getProFormas, getStudies } from "@/lib/data";
+import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { formatCompactCurrency, formatDate } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -21,12 +22,13 @@ export default async function DevelopmentPage({
   // Grid stays reachable: it carries study counts, margin and blockers, which
   // the board deliberately leaves out to keep a column scannable.
   const view = (await searchParams).view === "grid" ? "grid" : "board";
-  const [properties, studies, constraints, proFormas] = await Promise.all([
-    getProperties(),
+  const [source, studies, constraints, proFormas] = await Promise.all([
+    getPropertiesSourced(),
     getStudies(),
     getConstraints(),
     getProFormas(),
   ]);
+  const properties = source.rows;
 
   const live = properties.filter((p) => p.status !== "passed");
   const pipelineValue = live.reduce((sum, p) => sum + (p.asking_price ?? 0), 0);
@@ -71,6 +73,24 @@ export default async function DevelopmentPage({
           <NewPropertyForm />
         </div>
       </div>
+
+      {/* Sample data pretending to be real is how a board "stops saving": the
+          rows on screen do not exist in the database, so every write matches
+          nothing. Said loudly, with the database's own reason. In plain demo
+          mode (no Supabase at all) the app already says so elsewhere. */}
+      {source.demo && isSupabaseConfigured && (
+        <div className="rounded-tile bg-rose-50 p-4 text-sm text-status-risk" role="alert">
+          <p className="font-semibold">
+            These are sample parcels — your database could not be read.
+          </p>
+          <p className="mt-1">
+            It answered: &ldquo;{source.reason}&rdquo;. Changes made here will not
+            save. If the properties table is missing, run{" "}
+            <code className="font-mono text-xs">0008_development_phase.sql</code>{" "}
+            in the Supabase SQL editor.
+          </p>
+        </div>
+      )}
 
       {view === "board" && <PropertyBoard properties={properties} />}
 
