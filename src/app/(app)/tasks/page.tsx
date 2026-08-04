@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import { AlertTriangle } from "lucide-react";
+import { ClickableRow } from "@/components/phases/clickable-row";
 import { EditTaskForm } from "@/components/phases/edit-forms";
 import { NewTaskForm } from "@/components/tasks/new-task-form";
 import { FilterSelect } from "@/components/ui/filter-select";
@@ -105,7 +106,7 @@ export default async function TasksPage({
           </thead>
           <tbody className="divide-y divide-line">
             {visible.map((task) => (
-              <tr key={task.id} className="hover:bg-canvas/60">
+              <ClickableRow key={task.id} className="cursor-pointer hover:bg-canvas/60">
                 <td className="px-4 py-3 font-medium">
                   <span className="flex items-center gap-2">
                     {task.title}
@@ -148,7 +149,7 @@ export default async function TasksPage({
                     projects={projects.map((p) => ({ id: p.id, name: p.name }))}
                   />
                 </td>
-              </tr>
+              </ClickableRow>
             ))}
             {visible.length === 0 && (
               <tr>

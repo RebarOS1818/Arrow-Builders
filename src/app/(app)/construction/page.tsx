@@ -1,5 +1,7 @@
 import { AlertTriangle, Star } from "lucide-react";
 import { Pill, StatusPill, humanise } from "@/components/phases/badges";
+import { ClickableRow } from "@/components/phases/clickable-row";
+import { OpenOnClick } from "@/components/phases/open-on-click";
 import {
   EditBidPackageForm,
   EditChangeOrderForm,
@@ -157,7 +159,7 @@ export default async function ConstructionPage() {
               {contracts.map((c) => {
                 const changes = c.totals?.approved_changes ?? 0;
                 return (
-                  <tr key={c.id}>
+                  <ClickableRow key={c.id} className="cursor-pointer hover:bg-canvas/60">
                     <td className="px-5 py-3">
                       <p className="font-medium">{c.title}</p>
                       <p className="text-xs text-ink-subtle">{c.contract_number}</p>
@@ -187,7 +189,7 @@ export default async function ConstructionPage() {
                         <EditContractForm contract={c} />
                       </span>
                     </td>
-                  </tr>
+                  </ClickableRow>
                 );
               })}
             </tbody>
@@ -209,7 +211,8 @@ export default async function ConstructionPage() {
             <li className="p-5 text-sm text-ink-muted">No change orders.</li>
           )}
           {changeOrders.map((co) => (
-            <li key={co.id} className="flex flex-wrap items-start gap-3 p-4">
+            <li key={co.id}>
+              <OpenOnClick className="flex cursor-pointer flex-wrap items-start gap-3 p-4 transition-colors hover:bg-canvas/60">
               <div className="min-w-48 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
                   <p className="font-medium">
@@ -235,6 +238,7 @@ export default async function ConstructionPage() {
                 {formatCurrency(co.amount)}
               </p>
               <EditChangeOrderForm changeOrder={co} />
+              </OpenOnClick>
             </li>
           ))}
         </ul>
@@ -255,7 +259,7 @@ export default async function ConstructionPage() {
             const low = sorted[0];
 
             return (
-              <article key={pkg.id} className="card p-5">
+              <OpenOnClick key={pkg.id} className="card cursor-pointer p-5 transition-shadow hover:shadow-lift">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-2">
@@ -322,7 +326,7 @@ export default async function ConstructionPage() {
                     })}
                   </ul>
                 )}
-              </article>
+              </OpenOnClick>
             );
           })}
         </div>
@@ -342,7 +346,7 @@ export default async function ConstructionPage() {
               : null;
 
             return (
-              <article key={sub.id} className="card p-4">
+              <OpenOnClick key={sub.id} className="card cursor-pointer p-4 transition-shadow hover:shadow-lift">
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
                     <p className="truncate font-semibold">{sub.company_name}</p>
@@ -379,7 +383,7 @@ export default async function ConstructionPage() {
                     {sub.contact_name} · {sub.phone}
                   </p>
                 )}
-              </article>
+              </OpenOnClick>
             );
           })}
         </div>
