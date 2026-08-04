@@ -158,8 +158,8 @@ export async function POST(request: Request) {
       seat_limit: plan.includedSeats,
       price_cents: plan.listPriceCents,
       // Access starts now. The schedule exists and will be charged; a failed
-      // card arrives later as a webhook and moves this to past_due, which is the
-      // same grace the Stripe path gives.
+      // card later moves this to past_due rather than cutting access off, which
+      // is deliberate — dunning should not stop a crew working.
       subscription_status: "active",
       current_period_end: nextMonth().toISOString(),
     })

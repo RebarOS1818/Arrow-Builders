@@ -117,7 +117,6 @@ export default async function BillingPage({
           <BillingActions
             hasSubscription={billing.hasSubscription}
             canManage={billing.canManage}
-            processor={billing.processor}
           />
         </div>
       </section>
@@ -136,7 +135,6 @@ export default async function BillingPage({
               currentPlan={billing.plan}
               hasSubscription={billing.hasSubscription}
               canManage={billing.canManage}
-              processor={billing.processor}
               sola={billing.sola}
             />
           </div>

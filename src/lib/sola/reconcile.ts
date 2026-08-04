@@ -55,9 +55,8 @@ export async function reconcileSchedule(
 
   // A disabled schedule is a cancelled subscription, however it was disabled —
   // including from the Sola portal, which this app would otherwise never learn
-  // about. `past_due` rather than a lockout on a failed payment, matching the
-  // Stripe path: a bad card is a dunning problem, not a reason to stop a crew
-  // working mid-job.
+  // about. A failed payment is `past_due` rather than a lockout: a bad card is a
+  // dunning problem, not a reason to stop a crew working mid-job.
   const status: SubscriptionStatus = !s.IsActive ? "canceled" : failed ? "past_due" : "active";
 
   const amountCents =

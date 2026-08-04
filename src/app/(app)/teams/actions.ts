@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import { APP_URL } from "@/lib/stripe/config";
+import { APP_URL } from "@/lib/app-config";
 import { isInviteEmailConfigured, sendInviteEmail } from "@/lib/email/invite";
 
 /** Why the invite email did not go out, when it did not. */

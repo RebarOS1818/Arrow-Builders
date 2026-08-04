@@ -12,7 +12,7 @@ type TierCard = {
   includedSeats: number;
   listPriceCents: number | null;
   highlights: string[];
-  /** Why the tier cannot be bought, when Stripe could not price it. */
+  /** Why the tier cannot be bought, if it cannot. */
   unavailable?: string;
 };
 
@@ -34,10 +34,10 @@ export type SolaConfig = {
 /**
  * The three plans, with the organization's current one marked.
  *
- * Subscribing and changing plan are separate operations under either processor —
- * a second checkout for an existing subscriber would leave them paying twice —
- * but they differ in where they happen. Stripe sends the customer away to a
- * hosted page; Sola has none, so the card form opens here instead.
+ * Subscribing and changing plan are separate operations — a second checkout for
+ * an existing subscriber would leave them paying twice. Sola has no hosted
+ * payment page to send anyone to, so a first subscription opens the card form
+ * here rather than navigating away.
  */
 export function PlanCards({
   tiers,
@@ -46,7 +46,6 @@ export function PlanCards({
   currentPlan,
   hasSubscription,
   canManage,
-  processor,
   sola,
 }: {
   tiers: TierCard[];
@@ -55,7 +54,6 @@ export function PlanCards({
   currentPlan: string;
   hasSubscription: boolean;
   canManage: boolean;
-  processor: "sola" | "stripe" | "none";
   sola: SolaConfig | null;
 }) {
   const [pending, setPending] = useState<string | null>(null);
@@ -64,9 +62,9 @@ export function PlanCards({
   const [subscribing, setSubscribing] = useState<TierCard | null>(null);
 
   async function choose(tier: TierCard) {
-    // Sola takes the card here rather than on a hosted page, so a first
-    // subscription opens the form instead of calling anything.
-    if (processor === "sola" && !hasSubscription && sola) {
+    // A first subscription needs a card, so it opens the form rather than
+    // calling anything. Changing plan reuses the card already on file.
+    if (!hasSubscription && sola) {
       setError(null);
       setSubscribing(tier);
       return;
@@ -75,26 +73,16 @@ export function PlanCards({
     setPending(tier.key);
     setError(null);
     try {
-      const endpoint =
-        processor === "sola"
-          ? "/api/sola/change-plan"
-          : `/api/stripe/${hasSubscription ? "change-plan" : "checkout"}`;
-
-      const response = await fetch(endpoint, {
+      const response = await fetch("/api/sola/change-plan", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        // Stripe's routes read `tier`, Sola's read `plan`. Both are sent rather
-        // than branching, so neither route can be reached with the field it
-        // does not look for.
-        body: JSON.stringify({ tier: tier.key, plan: tier.key }),
+        body: JSON.stringify({ plan: tier.key }),
       });
-      const body = (await response.json()) as { url?: string; ok?: boolean; error?: string };
+      const body = (await response.json()) as { ok?: boolean; error?: string };
       if (!response.ok) throw new Error(body.error ?? "Something went wrong.");
 
-      // Stripe checkout hands back a URL; everything else completes server-side
-      // and only needs the page to re-read the organization.
-      if (body.url) window.location.assign(body.url);
-      else window.location.reload();
+      // Completes server-side; the page only needs to re-read the organization.
+      window.location.reload();
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Something went wrong.");
       setPending(null);
@@ -125,7 +113,7 @@ export function PlanCards({
           // that as current would replace Starter's buy button with "Your
           // current plan" — leaving no way to actually subscribe to it.
           const isCurrent = hasSubscription && tier.key === currentPlan;
-          // A tier Stripe could not price must not offer a button: the click
+          // A tier with no usable price must not offer a button: the click
           // would fail at checkout, after raising the customer's expectations.
           const buyable = selfServe[tier.key] && !tier.unavailable;
 
@@ -215,9 +203,9 @@ export function PlanCards({
 
       {hasSubscription && (
         <p className="mt-3 text-xs text-ink-muted">
-          {processor === "sola"
-            ? "Changing plan changes what the next monthly payment collects. The month already paid for is not prorated either way, so an upgrade takes full effect from the next payment date."
-            : "Changing plan takes effect immediately. Stripe prorates the difference — an upgrade charges the remainder of this month, a downgrade credits it."}
+          Changing plan changes what the next monthly payment collects. The month
+          already paid for is not prorated either way, so an upgrade takes full
+          effect from the next payment date.
         </p>
       )}
     </div>

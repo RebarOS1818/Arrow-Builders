@@ -91,8 +91,8 @@ export async function POST(request: NextRequest) {
         .select("id");
       updated = data?.length ?? 0;
     } else if (result === "declined" || result === "error") {
-      // Matching the Stripe path: a failed card is a dunning problem, not a
-      // reason to lock a crew out mid-job. Access continues while Sola retries.
+      // A failed card is a dunning problem, not a reason to lock a crew out
+      // mid-job. Access continues while Sola retries.
       const { data } = await db
         .from("organizations")
         .update({ subscription_status: "past_due" })

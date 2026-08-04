@@ -1,15 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { ExternalLink, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 
 /**
  * Managing an existing subscription.
  *
- * Stripe has a hosted portal for card, invoices and cancellation, so this is a
- * link out. Sola has none — there is nowhere to send anyone — so cancelling has
- * to happen here, behind a confirmation, because a stray click would end
- * someone's billing with no undo.
+ * Sola has no customer portal to send anyone to, so cancelling has to happen
+ * here — behind a confirmation, because a stray click would end someone's
+ * billing with no undo.
  *
  * Starting a subscription lives in PlanCards instead, because it needs a plan.
  * A second, plan-less subscribe button here would quietly enrol everyone on
@@ -18,29 +17,13 @@ import { ExternalLink, Loader2 } from "lucide-react";
 export function BillingActions({
   hasSubscription,
   canManage,
-  processor,
 }: {
   hasSubscription: boolean;
   canManage: boolean;
-  processor: "sola" | "stripe" | "none";
 }) {
   const [pending, setPending] = useState(false);
   const [confirming, setConfirming] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  async function openPortal() {
-    setPending(true);
-    setError(null);
-    try {
-      const response = await fetch("/api/stripe/portal", { method: "POST" });
-      const body = (await response.json()) as { url?: string; error?: string };
-      if (!response.ok || !body.url) throw new Error(body.error ?? "Something went wrong.");
-      window.location.assign(body.url);
-    } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Something went wrong.");
-      setPending(false);
-    }
-  }
 
   async function cancel() {
     setPending(true);
@@ -64,9 +47,8 @@ export function BillingActions({
   // the way in.
   if (!hasSubscription) return null;
 
-  if (processor === "sola") {
-    return (
-      <div>
+  return (
+    <div>
         {confirming ? (
           <div className="rounded-tile bg-orange-50 p-4">
             <p className="text-sm text-orange-900">
@@ -103,23 +85,6 @@ export function BillingActions({
             Cancel subscription
           </button>
         )}
-
-        {error && <p className="mt-3 text-sm text-status-risk">{error}</p>}
-      </div>
-    );
-  }
-
-  return (
-    <div>
-      <button
-        type="button"
-        onClick={openPortal}
-        disabled={pending}
-        className="pressable inline-flex items-center gap-2 rounded-full bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-700 disabled:opacity-60"
-      >
-        {pending ? <Loader2 className="size-4 animate-spin" /> : <ExternalLink className="size-4" />}
-        Manage billing
-      </button>
 
       {error && <p className="mt-3 text-sm text-status-risk">{error}</p>}
     </div>

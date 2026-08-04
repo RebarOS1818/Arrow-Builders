@@ -6,7 +6,7 @@ import { SUPABASE_SERVICE_ROLE_KEY } from "./server-config";
 
 /**
  * Service-role client. Bypasses RLS, so it is only for trusted server paths with
- * no user session: the Stripe webhook writing billing state, and sending invite
+ * no user session: the Sola webhook writing billing state, and sending invite
  * emails through Supabase Auth's admin API. Never import this into anything
  * that renders.
  */

@@ -4,7 +4,7 @@ import { SUPABASE_ANON_KEY, SUPABASE_URL, isSupabaseConfigured } from "./config"
 
 /**
  * `/api` is exempt from the redirect gate on purpose: route handlers authenticate
- * themselves and answer with JSON, and the Stripe webhook carries no session at
+ * themselves and answer with JSON, and the Sola webhook carries no session at
  * all — a 307 to /login would break it.
  */
 const PUBLIC_PATHS = ["/login", "/auth", "/api", "/invite"];

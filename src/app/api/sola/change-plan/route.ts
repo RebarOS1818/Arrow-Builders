@@ -11,9 +11,8 @@ import { createAdminClient } from "@/lib/supabase/admin";
  * browser.
  *
  * Sola does not prorate. Changing the amount changes what the *next* run
- * charges; the month already paid for is not adjusted either way. That is a
- * real behavioural difference from the Stripe path and the billing page says so
- * rather than leaving the customer to discover it on their statement.
+ * charges; the month already paid for is not adjusted either way. The billing
+ * page says so rather than leaving the customer to discover it on a statement.
  */
 export async function POST(request: Request) {
   if (!isSolaConfigured) {
