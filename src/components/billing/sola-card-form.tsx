@@ -61,10 +61,18 @@ export function SolaCardForm({
 
   const base = `https://cdn.cardknox.com/ifields/${ifieldsVersion}`;
 
+  // Names the version, because the overwhelmingly likely cause is that it does
+  // not exist at the CDN — and without it named, the only symptom is a form
+  // that never becomes usable.
+  const loadFailure =
+    `The card form could not load. Check that iFields version ${ifieldsVersion} ` +
+    `is listed at cdn.cardknox.com/ifields/versions.htm, and set ` +
+    `NEXT_PUBLIC_SOLA_IFIELDS_VERSION to a current one if it is not.`;
+
   const configure = useCallback(() => {
     const w = window as IFieldsWindow;
     if (!w.setAccount) {
-      setError("The card form could not load. Check your connection and try again.");
+      setError(loadFailure);
       return;
     }
     w.setAccount(ifieldsKey, softwareName, softwareVersion);
@@ -75,7 +83,7 @@ export function SolaCardForm({
     w.setIfieldStyle?.("cvv", FIELD_STYLE);
     w.enableAutoFormatting?.(" ");
     setReady(true);
-  }, [ifieldsKey, softwareName, softwareVersion]);
+  }, [ifieldsKey, softwareName, softwareVersion, loadFailure]);
 
   // The script may already be present — React can remount this component while
   // next/script keeps the tag, in which case onLoad never fires again.
@@ -88,6 +96,24 @@ export function SolaCardForm({
     const timer = setTimeout(configure, 0);
     return () => clearTimeout(timer);
   }, [configure]);
+
+  /**
+   * Say something when the library never arrives.
+   *
+   * A wrong version number 404s at the CDN, and the failure is completely
+   * silent: onError does not fire for every way a script can fail to run, the
+   * iframes render as empty boxes, and the button sits on "Loading card form…"
+   * for as long as anyone is willing to wait. That is indistinguishable from a
+   * slow connection, which is exactly the wrong thing for it to look like —
+   * someone trying to pay has no way to tell you what went wrong.
+   */
+  useEffect(() => {
+    if (ready) return;
+    const timer = setTimeout(() => {
+      if (!(window as IFieldsWindow).setAccount) setError(loadFailure);
+    }, 8000);
+    return () => clearTimeout(timer);
+  }, [ready, loadFailure]);
 
   function tokenValue(id: string) {
     return (
@@ -151,7 +177,12 @@ export function SolaCardForm({
 
   return (
     <div className="card p-6">
-      <Script src={`${base}/ifields.min.js`} strategy="afterInteractive" onLoad={configure} />
+      <Script
+        src={`${base}/ifields.min.js`}
+        strategy="afterInteractive"
+        onLoad={configure}
+        onError={() => setError(loadFailure)}
+      />
 
       <h3 className="font-semibold tracking-tight">
         Subscribe to {planName} — {priceLabel} / month
@@ -181,7 +212,7 @@ export function SolaCardForm({
               title="Card number"
               data-ifields-id="card-number"
               data-ifields-placeholder="0000 0000 0000 0000"
-              src={`${base}/ifield.htm`}
+              src={`${base}/ifield.html`}
               className="h-full w-full border-0"
             />
           </div>
@@ -208,7 +239,7 @@ export function SolaCardForm({
                 title="CVV"
                 data-ifields-id="cvv"
                 data-ifields-placeholder="123"
-                src={`${base}/ifield.htm`}
+                src={`${base}/ifield.html`}
                 className="h-full w-full border-0"
               />
             </div>

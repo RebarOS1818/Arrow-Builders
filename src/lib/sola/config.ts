@@ -30,10 +30,15 @@ export const SOLA_WEBHOOK_PIN = process.env.SOLA_WEBHOOK_PIN?.trim() ?? "";
  * iFields is versioned by URL path, not by a query string, so the version is
  * part of both the script and the iframe `src`. Pinned rather than "latest":
  * an unannounced change to the tokenizer would break the only way to take a
- * payment. Current versions: https://cdn.cardknox.com/ifields/versions.htm
+ * payment.
+ *
+ * A wrong version is not a soft failure — the CDN 404s and there is no card
+ * form at all — so this must be a real, current entry from
+ * https://cdn.cardknox.com/ifields/versions.htm, checked rather than assumed.
+ * Overridable so a bad pin can be corrected from Vercel without a deploy.
  */
 export const SOLA_IFIELDS_VERSION =
-  process.env.NEXT_PUBLIC_SOLA_IFIELDS_VERSION?.trim() || "2.16.2312.0601";
+  process.env.NEXT_PUBLIC_SOLA_IFIELDS_VERSION?.trim() || "3.5.2607.1401";
 
 /**
  * Cardknox requires both on every request and rejects the call outright if
