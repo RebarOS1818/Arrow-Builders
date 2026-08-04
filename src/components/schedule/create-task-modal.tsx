@@ -88,7 +88,7 @@ export function CreateTaskModal({
               onChange={(e) => setTitle(e.target.value)}
               required
               placeholder="e.g. Drywall – Level 3"
-              className="mt-1 w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100"
+              className="mt-1 w-full rounded-tile bg-canvas px-3.5 py-2.5 text-sm outline-none placeholder:text-ink-subtle focus:ring-2 focus:ring-brand-200"
             />
           </label>
 
@@ -97,7 +97,7 @@ export function CreateTaskModal({
             <select
               value={projectId}
               onChange={(e) => setProjectId(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100"
+              className="mt-1 w-full rounded-tile bg-canvas px-3.5 py-2.5 text-sm outline-none placeholder:text-ink-subtle focus:ring-2 focus:ring-brand-200"
             >
               {projects.map((project) => (
                 <option key={project.id} value={project.id}>
@@ -113,7 +113,7 @@ export function CreateTaskModal({
               <select
                 value={trade}
                 onChange={(e) => setTrade(e.target.value as Trade)}
-                className="mt-1 w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100"
+                className="mt-1 w-full rounded-tile bg-canvas px-3.5 py-2.5 text-sm outline-none placeholder:text-ink-subtle focus:ring-2 focus:ring-brand-200"
               >
                 {(Object.keys(TRADE_LABELS) as Trade[]).map((t) => (
                   <option key={t} value={t}>
@@ -131,7 +131,7 @@ export function CreateTaskModal({
                 max={20}
                 value={crewSize}
                 onChange={(e) => setCrewSize(Number(e.target.value))}
-                className="mt-1 w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100"
+                className="mt-1 w-full rounded-tile bg-canvas px-3.5 py-2.5 text-sm outline-none placeholder:text-ink-subtle focus:ring-2 focus:ring-brand-200"
               />
             </label>
           </div>
@@ -144,7 +144,7 @@ export function CreateTaskModal({
               type="date"
               value={date}
               onChange={(e) => setDate(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100"
+              className="mt-1 w-full rounded-tile bg-canvas px-3.5 py-2.5 text-sm outline-none placeholder:text-ink-subtle focus:ring-2 focus:ring-brand-200"
             />
           </label>
         </div>
@@ -157,7 +157,7 @@ export function CreateTaskModal({
           <button
             type="button"
             onClick={onClose}
-            className="rounded-lg border border-line px-3.5 py-2 text-sm font-medium text-ink-muted hover:text-ink"
+            className="pressable rounded-full px-4 py-2.5 text-sm font-medium text-ink-muted hover:bg-canvas hover:text-ink"
           >
             Cancel
           </button>

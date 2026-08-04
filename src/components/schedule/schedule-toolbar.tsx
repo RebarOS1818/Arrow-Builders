@@ -49,7 +49,7 @@ export function ScheduleToolbar({
 
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <div className="flex items-center rounded-lg border border-line bg-surface p-0.5">
+      <div className="flex items-center gap-0.5 rounded-full bg-surface p-1 shadow-soft">
         {VIEWS.map((item) => (
           <button
             key={item.id}
@@ -57,10 +57,10 @@ export function ScheduleToolbar({
             onClick={() => setParams({ view: item.id === "calendar" ? null : item.id })}
             aria-pressed={view === item.id}
             className={cn(
-              "flex items-center gap-1.5 rounded-[6px] px-2.5 py-1.5 text-sm font-medium transition-colors",
+              "flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm font-medium transition-colors",
               view === item.id
-                ? "bg-canvas text-ink shadow-xs"
-                : "text-ink-muted hover:text-ink",
+                ? "bg-brand-700 text-white"
+                : "text-ink-muted hover:bg-canvas hover:text-ink",
             )}
           >
             <item.icon className="size-4" />
@@ -74,7 +74,7 @@ export function ScheduleToolbar({
           type="button"
           aria-label="Previous week"
           onClick={() => setParams({ week: addDays(weekStart, -7) })}
-          className="grid size-8 place-items-center rounded-lg border border-line bg-surface text-ink-muted hover:text-ink"
+          className="pressable grid size-9 place-items-center rounded-full bg-surface text-ink-muted shadow-soft hover:text-ink"
         >
           <ChevronLeft className="size-4" />
         </button>
@@ -85,10 +85,10 @@ export function ScheduleToolbar({
           // rather than inert, which is indistinguishable from broken.
           disabled={weekStart === todayWeekStart}
           className={cn(
-            "rounded-lg border border-line bg-surface px-3 py-1.5 text-sm font-medium",
+            "rounded-full bg-surface px-4 py-2 text-sm font-medium shadow-soft",
             weekStart === todayWeekStart
               ? "cursor-not-allowed text-ink-subtle"
-              : "text-ink-muted hover:text-ink",
+              : "pressable text-ink-muted hover:text-ink",
           )}
         >
           Today
@@ -97,11 +97,11 @@ export function ScheduleToolbar({
           type="button"
           aria-label="Next week"
           onClick={() => setParams({ week: addDays(weekStart, 7) })}
-          className="grid size-8 place-items-center rounded-lg border border-line bg-surface text-ink-muted hover:text-ink"
+          className="pressable grid size-9 place-items-center rounded-full bg-surface text-ink-muted shadow-soft hover:text-ink"
         >
           <ChevronRight className="size-4" />
         </button>
-        <span className="grid size-8 place-items-center rounded-lg border border-line bg-surface text-ink-muted">
+        <span className="grid size-9 place-items-center rounded-full bg-surface text-ink-muted shadow-soft">
           <CalendarRange className="size-4" />
         </span>
       </div>
@@ -122,7 +122,7 @@ export function ScheduleToolbar({
         <button
           type="button"
           onClick={() => setParams({ create: "1", view: null })}
-          className="flex items-center gap-1.5 rounded-lg bg-brand-700 px-3.5 py-2 text-sm font-semibold text-white hover:bg-brand-800"
+          className="pressable flex items-center gap-1.5 rounded-full bg-brand-700 px-5 py-2.5 text-sm font-semibold text-white hover:bg-brand-800"
         >
           Create Task
         </button>
@@ -148,7 +148,7 @@ function Select({
         aria-label={ariaLabel}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="appearance-none rounded-lg border border-line bg-surface py-2 pl-3 pr-8 text-sm font-medium text-ink-muted outline-none hover:text-ink focus:border-brand-500 focus:ring-2 focus:ring-brand-100"
+        className="cursor-pointer appearance-none rounded-full bg-surface py-2.5 pl-4 pr-9 text-sm font-medium text-ink-muted shadow-soft outline-none transition-shadow hover:text-ink hover:shadow-lift focus:ring-2 focus:ring-brand-200"
       >
         {options.map((option) => (
           <option key={option.value} value={option.value}>
@@ -156,7 +156,7 @@ function Select({
           </option>
         ))}
       </select>
-      <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 size-4 -translate-y-1/2 text-ink-subtle" />
+      <ChevronDown className="pointer-events-none absolute right-3.5 top-1/2 size-4 -translate-y-1/2 text-ink-subtle" />
     </div>
   );
 }

@@ -36,7 +36,10 @@ export function FilterSelect({
         aria-label={ariaLabel}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full appearance-none rounded-lg border border-line bg-surface py-2 pl-3 pr-8 text-sm font-medium text-ink shadow-xs outline-none hover:border-line-strong focus:border-brand-500 focus:ring-2 focus:ring-brand-100"
+        // A pill, like every other control: the shape is what tells you it can
+        // be pressed. A bordered rectangle among pills reads as a disabled
+        // field rather than a filter.
+        className="w-full cursor-pointer appearance-none rounded-full bg-surface py-2.5 pl-4 pr-9 text-sm font-medium text-ink shadow-soft outline-none transition-shadow hover:shadow-lift focus:ring-2 focus:ring-brand-200"
       >
         {options.map((option) => (
           <option key={option.value} value={option.value}>
@@ -44,7 +47,7 @@ export function FilterSelect({
           </option>
         ))}
       </select>
-      <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 size-4 -translate-y-1/2 text-ink-subtle" />
+      <ChevronDown className="pointer-events-none absolute right-3.5 top-1/2 size-4 -translate-y-1/2 text-ink-subtle" />
     </div>
   );
 }
