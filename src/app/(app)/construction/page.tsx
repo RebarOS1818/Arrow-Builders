@@ -1,6 +1,13 @@
 import { AlertTriangle, Star } from "lucide-react";
 import { Pill, StatusPill, humanise } from "@/components/phases/badges";
 import {
+  EditBidPackageForm,
+  EditChangeOrderForm,
+  EditContractForm,
+  EditQuoteForm,
+  EditSubcontractorForm,
+} from "@/components/phases/edit-forms";
+import {
   NewBidPackageForm,
   NewChangeOrderForm,
   NewContractForm,
@@ -175,7 +182,10 @@ export default async function ConstructionPage() {
                       {formatCurrency(c.totals?.current_amount ?? c.original_amount)}
                     </td>
                     <td className="px-5 py-3">
-                      <StatusPill kind="contract" value={c.status} />
+                      <span className="flex items-center gap-2">
+                        <StatusPill kind="contract" value={c.status} />
+                        <EditContractForm contract={c} />
+                      </span>
                     </td>
                   </tr>
                 );
@@ -224,6 +234,7 @@ export default async function ConstructionPage() {
                 {co.amount > 0 ? "+" : ""}
                 {formatCurrency(co.amount)}
               </p>
+              <EditChangeOrderForm changeOrder={co} />
             </li>
           ))}
         </ul>
@@ -257,11 +268,14 @@ export default async function ConstructionPage() {
                       {pkg.due_at && ` · due ${formatDate(pkg.due_at)}`}
                     </p>
                   </div>
-                  <div className="text-right">
-                    <p className="text-xs text-ink-subtle">Budget</p>
-                    <p className="font-semibold">
-                      {pkg.budget ? formatCurrency(pkg.budget) : "—"}
-                    </p>
+                  <div className="flex items-start gap-3">
+                    <div className="text-right">
+                      <p className="text-xs text-ink-subtle">Budget</p>
+                      <p className="font-semibold">
+                        {pkg.budget ? formatCurrency(pkg.budget) : "—"}
+                      </p>
+                    </div>
+                    <EditBidPackageForm bidPackage={pkg} />
                   </div>
                 </div>
 
@@ -295,6 +309,7 @@ export default async function ConstructionPage() {
                               {quote.duration_days} days
                             </p>
                           )}
+                          <EditQuoteForm quote={quote} />
                           <p
                             className={`w-28 shrink-0 text-right font-semibold ${
                               overBudget ? "text-status-behind-ink" : ""
@@ -333,6 +348,7 @@ export default async function ConstructionPage() {
                     <p className="truncate font-semibold">{sub.company_name}</p>
                     <p className="text-sm text-ink-muted">{humanise(sub.trade)}</p>
                   </div>
+                  <EditSubcontractorForm subcontractor={sub} />
                   {sub.rating !== null && (
                     <span className="flex shrink-0 items-center gap-1 text-sm font-medium">
                       <Star className="size-3.5 fill-current text-status-behind-ink" />

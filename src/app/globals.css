@@ -23,6 +23,24 @@
   --color-brand-900: #1e2533;
 
   /*
+   * Arrow's second brand colour, the amber the website uses on its contact and
+   * social icons. accent-500 is that hex exactly.
+   *
+   * It is a fill, never type: #f6b037 on white is 1.9:1, far below readable,
+   * while dark ink on top of it is 9.5:1. Every use below puts something dark
+   * on the amber rather than making the amber the thing you read.
+   */
+  --color-accent-50: #fef7eb;
+  --color-accent-100: #fdecce;
+  --color-accent-200: #fad89e;
+  --color-accent-300: #f8c56d;
+  --color-accent-400: #f7b84b;
+  --color-accent-500: #f6b037;
+  --color-accent-600: #dd910e;
+  --color-accent-700: #aa710e;
+  --color-accent-800: #82570d;
+
+  /*
    * Green for positive figures and healthy status. Not a brand colour — it means
    * "good", which is why it survives a rebrand unchanged.
    */
@@ -55,7 +73,12 @@
    * amber would have made "behind schedule" indistinguishable from decoration.
    */
   --color-status-ontrack: #22a06e;
-  --color-status-behind: #e8a33d;
+  /*
+   * Nudged from #e8a33d toward orange now that the brand owns amber. At two
+   * degrees apart the two were the same colour to any eye, and a status has to
+   * be distinguishable from decoration.
+   */
+  --color-status-behind: #e08a2e;
   --color-status-risk: #e5615c;
   --color-status-done: #22a06e;
   /*

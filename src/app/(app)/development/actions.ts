@@ -1,7 +1,15 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { bool, callerOrg, num, readableError, str, type ActionResult } from "@/lib/forms";
+import {
+  bool,
+  callerOrg,
+  num,
+  readableError,
+  str,
+  updateOwned,
+  type ActionResult,
+} from "@/lib/forms";
 
 /**
  * Writes for the development phase.
@@ -230,4 +238,159 @@ export async function moveProperty(id: string, status: string): Promise<ActionRe
 
   revalidateProperty(id);
   return { ok: true };
+}
+
+/* ------------------------------------------------------------------ */
+/* Edits                                                               */
+/* ------------------------------------------------------------------ */
+
+/*
+ * Every update below goes through updateOwned, which filters on org_id as well
+ * as the id the form supplied. The columns each one touches are the same ones
+ * its create counterpart writes, minus the ones that record who did something
+ * and when — assessed_by, prepared_by, submitted_by and property_id stay as
+ * first written, because an edit changes what a record says, not whose it is or
+ * what it belongs to.
+ */
+
+export async function updateProperty(data: FormData): Promise<ActionResult> {
+  const name = str(data, "name");
+  if (!name) return { ok: false, error: "Give the property a name." };
+
+  const id = str(data, "id");
+  const result = await updateOwned(
+    "properties",
+    id,
+    {
+      name,
+      address: str(data, "address") ?? "",
+      city: str(data, "city") ?? "",
+      state: str(data, "state") ?? "",
+      parcel_number: str(data, "parcel_number"),
+      lot_size_acres: num(data, "lot_size_acres"),
+      zoning_code: str(data, "zoning_code"),
+      asking_price: num(data, "asking_price"),
+      status: str(data, "status") ?? "prospect",
+      notes: str(data, "notes") ?? "",
+      // Only overwritten when the edit picked a suggestion; a hand-typed address
+      // keeps whatever was already known rather than blanking it.
+      ...(num(data, "address_latitude") !== null
+        ? { latitude: num(data, "address_latitude"), longitude: num(data, "address_longitude") }
+        : {}),
+    },
+    ["/development", `/development/${id}`],
+  );
+  return result;
+}
+
+export async function updateStudy(data: FormData): Promise<ActionResult> {
+  const status = str(data, "status") ?? "not_started";
+  const verdict = str(data, "verdict");
+  // The same rule the database enforces, said in advance.
+  if (verdict && status !== "complete") {
+    return { ok: false, error: "A verdict can only be recorded once the study is complete." };
+  }
+
+  const propertyId = str(data, "property_id");
+  return updateOwned(
+    "feasibility_studies",
+    str(data, "id"),
+    {
+      kind: str(data, "kind") ?? "zoning",
+      status,
+      verdict,
+      findings: str(data, "findings") ?? "",
+      consultant: str(data, "consultant") ?? "",
+      cost: num(data, "cost"),
+      completed_at:
+        status === "complete"
+          ? (str(data, "completed_at") ?? new Date().toISOString().slice(0, 10))
+          : null,
+    },
+    ["/development", `/development/${propertyId}`],
+  );
+}
+
+export async function updateConstraint(data: FormData): Promise<ActionResult> {
+  const propertyId = str(data, "property_id");
+  return updateOwned(
+    "site_constraints",
+    str(data, "id"),
+    {
+      kind: str(data, "kind") ?? "",
+      severity: str(data, "severity") ?? "minor",
+      description: str(data, "description") ?? "",
+      affects_buildable_area: bool(data, "affects_buildable_area"),
+      resolved: bool(data, "resolved"),
+    },
+    ["/development", `/development/${propertyId}`],
+  );
+}
+
+export async function updateProForma(data: FormData): Promise<ActionResult> {
+  const propertyId = str(data, "property_id");
+  return updateOwned(
+    "pro_formas",
+    str(data, "id"),
+    {
+      scenario: str(data, "scenario") ?? "Base case",
+      status: str(data, "status") ?? "draft",
+      planned_units: num(data, "planned_units") ?? 0,
+      planned_sqft: num(data, "planned_sqft") ?? 0,
+      acquisition_cost: num(data, "acquisition_cost") ?? 0,
+      hard_costs: num(data, "hard_costs") ?? 0,
+      soft_costs: num(data, "soft_costs") ?? 0,
+      financing_costs: num(data, "financing_costs") ?? 0,
+      contingency_pct: num(data, "contingency_pct") ?? 0,
+      projected_revenue: num(data, "projected_revenue") ?? 0,
+      target_margin_pct: num(data, "target_margin_pct") ?? 0,
+      notes: str(data, "notes") ?? "",
+    },
+    ["/development", `/development/${propertyId}`],
+  );
+}
+
+export async function updateComparable(data: FormData): Promise<ActionResult> {
+  const address = str(data, "address");
+  if (!address) return { ok: false, error: "Give the comparable an address." };
+
+  const propertyId = str(data, "property_id");
+  return updateOwned(
+    "comparables",
+    str(data, "id"),
+    {
+      address,
+      sale_price: num(data, "sale_price"),
+      sale_date: str(data, "sale_date"),
+      lot_size_acres: num(data, "lot_size_acres"),
+      building_sqft: num(data, "building_sqft"),
+      distance_miles: num(data, "distance_miles"),
+      source: str(data, "source") ?? "",
+      ...(num(data, "address_latitude") !== null
+        ? { latitude: num(data, "address_latitude"), longitude: num(data, "address_longitude") }
+        : {}),
+    },
+    ["/development", `/development/${propertyId}`],
+  );
+}
+
+export async function updateOffer(data: FormData): Promise<ActionResult> {
+  const amount = num(data, "amount");
+  if (amount === null) return { ok: false, error: "An offer needs an amount." };
+
+  const propertyId = str(data, "property_id");
+  return updateOwned(
+    "offers",
+    str(data, "id"),
+    {
+      amount,
+      status: str(data, "status") ?? "draft",
+      offered_at: str(data, "offered_at") ?? new Date().toISOString().slice(0, 10),
+      expires_at: str(data, "expires_at"),
+      earnest_money: num(data, "earnest_money"),
+      due_diligence_days: num(data, "due_diligence_days"),
+      notes: str(data, "notes") ?? "",
+    },
+    ["/development", `/development/${propertyId}`],
+  );
 }

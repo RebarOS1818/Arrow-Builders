@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { callerOrg, num, readableError, str, type ActionResult } from "@/lib/forms";
+import { callerOrg, num, readableError, str, updateOwned, type ActionResult } from "@/lib/forms";
 
 export async function createTask(data: FormData): Promise<ActionResult> {
   const caller = await callerOrg();
@@ -39,4 +39,32 @@ export async function createTask(data: FormData): Promise<ActionResult> {
   revalidatePath("/tasks");
   revalidatePath("/schedule");
   return { ok: true };
+}
+
+export async function updateTask(data: FormData): Promise<ActionResult> {
+  const title = str(data, "title");
+  if (!title) return { ok: false, error: "Give the task a title." };
+
+  const startsAt = str(data, "starts_at");
+  const endsAt = str(data, "ends_at");
+  if (startsAt && endsAt && endsAt < startsAt) {
+    return { ok: false, error: "The end date is before the start date." };
+  }
+
+  return updateOwned(
+    "tasks",
+    str(data, "id"),
+    {
+      title,
+      // A task can be moved to another project: unlike a quote's bid package,
+      // this is a normal correction rather than a change of meaning.
+      ...(str(data, "project_id") ? { project_id: str(data, "project_id") } : {}),
+      trade: str(data, "trade") ?? "general",
+      status: str(data, "status") ?? (startsAt ? "scheduled" : "unscheduled"),
+      starts_at: startsAt,
+      ends_at: endsAt,
+      crew_size: Math.max(0, Math.round(num(data, "crew_size") ?? 0)),
+    },
+    ["/tasks", "/schedule", "/"],
+  );
 }

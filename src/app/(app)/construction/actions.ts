@@ -1,7 +1,15 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { bool, callerOrg, num, readableError, str, type ActionResult } from "@/lib/forms";
+import {
+  bool,
+  callerOrg,
+  num,
+  readableError,
+  str,
+  updateOwned,
+  type ActionResult,
+} from "@/lib/forms";
 
 /** Writes for the construction phase. org_id always comes from the profile. */
 
@@ -212,4 +220,128 @@ export async function createChangeOrder(data: FormData): Promise<ActionResult> {
 
   revalidateConstruction();
   return { ok: true };
+}
+
+/* ------------------------------------------------------------------ */
+/* Edits                                                               */
+/* ------------------------------------------------------------------ */
+
+/*
+ * As on the development side, an edit changes what a record says, not what it
+ * belongs to: project_id, bid_package_id, subcontractor_id and contract_id are
+ * left alone. Re-parenting a quote to a different package is a different
+ * operation with different consequences, and doing it silently through an edit
+ * form would be a good way to lose a bid.
+ */
+
+export async function updateSubcontractor(data: FormData): Promise<ActionResult> {
+  const companyName = str(data, "company_name");
+  if (!companyName) return { ok: false, error: "Enter the company name." };
+
+  return updateOwned(
+    "subcontractors",
+    str(data, "id"),
+    {
+      company_name: companyName,
+      trade: str(data, "trade") ?? "general",
+      contact_name: str(data, "contact_name") ?? "",
+      email: str(data, "email") ?? "",
+      phone: str(data, "phone") ?? "",
+      license_number: str(data, "license_number"),
+      insurance_expires_at: str(data, "insurance_expires_at"),
+      is_approved: bool(data, "is_approved"),
+      notes: str(data, "notes") ?? "",
+    },
+    ["/construction"],
+  );
+}
+
+export async function updateBidPackage(data: FormData): Promise<ActionResult> {
+  const name = str(data, "name");
+  if (!name) return { ok: false, error: "Name the package." };
+
+  return updateOwned(
+    "bid_packages",
+    str(data, "id"),
+    {
+      name,
+      trade: str(data, "trade") ?? "general",
+      scope_description: str(data, "scope_description") ?? "",
+      budget: num(data, "budget"),
+      status: str(data, "status") ?? "draft",
+      due_at: str(data, "due_at"),
+    },
+    ["/construction"],
+  );
+}
+
+export async function updateQuote(data: FormData): Promise<ActionResult> {
+  const amount = num(data, "amount");
+  if (amount === null || amount < 0) return { ok: false, error: "Enter the quoted amount." };
+
+  return updateOwned(
+    "quotes",
+    str(data, "id"),
+    {
+      amount,
+      status: str(data, "status") ?? "received",
+      duration_days: num(data, "duration_days"),
+      inclusions: str(data, "inclusions") ?? "",
+      exclusions: str(data, "exclusions") ?? "",
+      valid_until: str(data, "valid_until"),
+    },
+    ["/construction"],
+  );
+}
+
+export async function updateContract(data: FormData): Promise<ActionResult> {
+  const amount = num(data, "original_amount");
+  if (amount === null || amount < 0) return { ok: false, error: "Enter the contract amount." };
+
+  return updateOwned(
+    "contracts",
+    str(data, "id"),
+    {
+      original_amount: amount,
+      trade: str(data, "trade") ?? "general",
+      status: str(data, "status") ?? "draft",
+      starts_on: str(data, "starts_on"),
+      ends_on: str(data, "ends_on"),
+      notes: str(data, "notes") ?? "",
+    },
+    ["/construction"],
+  );
+}
+
+export async function updateChangeOrder(data: FormData): Promise<ActionResult> {
+  const description = str(data, "description");
+  if (!description) return { ok: false, error: "Describe the change." };
+
+  const amount = num(data, "amount");
+  if (amount === null) {
+    return { ok: false, error: "Enter the amount, or 0 for no cost impact." };
+  }
+
+  const status = str(data, "status") ?? "draft";
+  const decidedAt = str(data, "decided_at");
+  // The database enforces this too; saying it here gives a sentence instead of
+  // a constraint name.
+  if ((status === "approved" || status === "rejected") && !decidedAt) {
+    return { ok: false, error: "Approving or rejecting a change order needs a decision date." };
+  }
+
+  return updateOwned(
+    "change_orders",
+    str(data, "id"),
+    {
+      description,
+      amount,
+      reason: str(data, "reason") ?? "owner_request",
+      days_impact: num(data, "days_impact") ?? 0,
+      status,
+      decided_at: decidedAt,
+      notes: str(data, "notes") ?? "",
+    },
+    ["/construction"],
+  );
 }

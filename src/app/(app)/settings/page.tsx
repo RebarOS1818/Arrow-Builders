@@ -39,7 +39,6 @@ export default async function SettingsPage() {
         </div>
         <dl className="mt-3 space-y-2 text-sm">
           <Row label="Name" value={org.name} />
-          <Row label="Slug" value={org.slug} />
         </dl>
       </section>
 

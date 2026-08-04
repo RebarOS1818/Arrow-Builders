@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import { AlertTriangle } from "lucide-react";
+import { EditTaskForm } from "@/components/phases/edit-forms";
 import { NewTaskForm } from "@/components/tasks/new-task-form";
 import { FilterSelect } from "@/components/ui/filter-select";
 import { TRADE_LABELS, TradeDot } from "@/components/ui/badge";
@@ -99,6 +100,7 @@ export default async function TasksPage({
               <th className="px-4 py-3">Status</th>
               <th className="px-4 py-3">Crew</th>
               <th className="px-4 py-3 text-right">Scheduled</th>
+              <th className="px-4 py-3 text-right">Edit</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-line">
@@ -140,11 +142,17 @@ export default async function TasksPage({
                 <td className="px-4 py-3 text-right text-ink-muted">
                   {task.starts_at ? formatShortDate(task.starts_at) : "—"}
                 </td>
+                <td className="px-4 py-3 text-right">
+                  <EditTaskForm
+                    task={task}
+                    projects={projects.map((p) => ({ id: p.id, name: p.name }))}
+                  />
+                </td>
               </tr>
             ))}
             {visible.length === 0 && (
               <tr>
-                <td colSpan={6} className="px-4 py-10 text-center text-ink-muted">
+                <td colSpan={7} className="px-4 py-10 text-center text-ink-muted">
                   No tasks match these filters.
                 </td>
               </tr>
