@@ -26,6 +26,15 @@ export async function POST(request: Request) {
     );
   }
 
+  // Who is asking comes first, before anything in the body is looked at. An
+  // anonymous caller should learn nothing about what this route accepts — not
+  // even which field it validates first.
+  const caller = await billingCaller();
+  if (!caller.ok) {
+    return NextResponse.json({ error: caller.error }, { status: caller.status });
+  }
+  const { org } = caller;
+
   const body = (await request.json().catch(() => ({}))) as {
     plan?: string;
     token?: string;
@@ -56,12 +65,6 @@ export async function POST(request: Request) {
   if (!cardholder) {
     return NextResponse.json({ error: "Enter the name on the card." }, { status: 400 });
   }
-
-  const caller = await billingCaller();
-  if (!caller.ok) {
-    return NextResponse.json({ error: caller.error }, { status: caller.status });
-  }
-  const { org } = caller;
 
   if (org.sola_schedule_id) {
     return NextResponse.json({ error: "Already subscribed." }, { status: 409 });
