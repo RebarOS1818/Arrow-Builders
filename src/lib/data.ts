@@ -302,13 +302,34 @@ export async function getToday(): Promise<string> {
 /* ------------------------------------------------------------------ */
 
 export async function getProperties(): Promise<Property[]> {
-  return withFallback(
-    async (db) => {
-      const { data } = await db.from("properties").select("*").order("identified_at", { ascending: false });
-      return data as Property[] | null;
-    },
-    () => demoProperties,
-  );
+  return (await getPropertiesSourced()).rows;
+}
+
+export type PropertySource =
+  | { rows: Property[]; demo: false }
+  | { rows: Property[]; demo: true; reason: string };
+
+/**
+ * Properties, and the truth about where they came from.
+ *
+ * withFallback discards the error, so a failing query silently serves the
+ * bundled sample parcels — which look exactly like data. Someone then drags
+ * "Cedar Hollow Tract" to a new column, the update matches no row in their
+ * actual database, and the board appears broken when the real problem is that
+ * the properties table could not be read at all. This variant keeps the reason
+ * so the page can say it.
+ */
+export async function getPropertiesSourced(): Promise<PropertySource> {
+  const db = await createClient();
+  if (!db) {
+    return { rows: demoProperties, demo: true, reason: "Supabase is not configured." };
+  }
+  const { data, error } = await db
+    .from("properties")
+    .select("*")
+    .order("identified_at", { ascending: false });
+  if (error) return { rows: demoProperties, demo: true, reason: error.message };
+  return { rows: (data ?? []) as Property[], demo: false };
 }
 
 export async function getProperty(id: string): Promise<Property | null> {
