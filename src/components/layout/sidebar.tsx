@@ -70,10 +70,18 @@ export function Sidebar({
       onPointerCancel={onPointerUp}
       /* Position is written straight to style by the spring, so no transition
          here — a transition would fight the frame-by-frame updates and make the
-         drawer impossible to grab mid-flight. `touch-none` stops the browser
-         claiming the horizontal drag for its own scroll gesture. */
+         drawer impossible to grab mid-flight.
+
+         `touch-pan-y`, not `touch-none`: none stops the browser claiming the
+         horizontal drag, but it also stops it scrolling, so on a phone the
+         items below the fold — Billing, Settings, Sign out — could not be
+         reached at all. pan-y keeps vertical scrolling and still leaves the
+         horizontal gesture to the drawer.
+
+         The bottom padding clears the home indicator and the browser's own
+         toolbar, which overlap a fixed element pinned to inset-y-0. */
       className={cn(
-        "sidebar-surface fixed inset-y-0 left-0 z-50 flex w-60 shrink-0 touch-none flex-col overflow-y-auto px-4 py-5 lg:hidden",
+        "sidebar-surface fixed inset-y-0 left-0 z-50 flex w-60 shrink-0 touch-pan-y flex-col overflow-y-auto overscroll-contain px-4 pt-5 pb-[max(2rem,env(safe-area-inset-bottom))] lg:hidden",
         open ? "visible shadow-material" : "invisible",
         dragging && "select-none",
       )}
