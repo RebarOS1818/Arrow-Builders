@@ -117,6 +117,7 @@ export default async function BillingPage({
           <BillingActions
             hasSubscription={billing.hasSubscription}
             canManage={billing.canManage}
+            processor={billing.processor}
           />
         </div>
       </section>
@@ -135,6 +136,8 @@ export default async function BillingPage({
               currentPlan={billing.plan}
               hasSubscription={billing.hasSubscription}
               canManage={billing.canManage}
+              processor={billing.processor}
+              sola={billing.sola}
             />
           </div>
         </section>
@@ -165,7 +168,13 @@ export default async function BillingPage({
         </Link>
       </section>
 
-      {!billing.stripeReady && (
+      {billing.configWarnings.map((warning) => (
+        <Banner key={warning} tone="warn" icon={AlertTriangle}>
+          {warning}
+        </Banner>
+      ))}
+
+      {!billing.billingReady && (
         <Banner tone="info" icon={Info}>
           Billing is inactive, so these figures are illustrative. Checkout stays
           disabled until every variable is set — otherwise a customer could be charged
