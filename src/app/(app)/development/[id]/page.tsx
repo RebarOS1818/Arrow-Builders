@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { Pill, StatusPill, humanise } from "@/components/phases/badges";
+import { OpenOnClick } from "@/components/phases/open-on-click";
 import { MapLink, coordQuery, mapsQuery, mapsUrl } from "@/components/phases/map-link";
 import {
   EditComparableForm,
@@ -110,7 +111,10 @@ export default async function PropertyPage({
             <p className="p-5 text-sm text-ink-muted">No studies ordered yet.</p>
           )}
           {studies.map((study) => (
-            <div key={study.id} className="flex flex-wrap items-start gap-3 p-4">
+            <OpenOnClick
+              key={study.id}
+              className="flex cursor-pointer flex-wrap items-start gap-3 p-4 transition-colors hover:bg-canvas/60"
+            >
               <div className="min-w-40 flex-1">
                 <p className="font-medium">{humanise(study.kind)}</p>
                 {study.consultant && (
@@ -131,7 +135,7 @@ export default async function PropertyPage({
               <p className="w-24 shrink-0 text-right text-sm text-ink-muted">
                 {study.cost ? formatCurrency(study.cost) : "—"}
               </p>
-            </div>
+            </OpenOnClick>
           ))}
         </div>
       </section>
@@ -144,7 +148,8 @@ export default async function PropertyPage({
           </div>
           <ul className="card mt-3 divide-y divide-line">
             {constraints.map((c) => (
-              <li key={c.id} className="flex flex-wrap items-start gap-3 p-4">
+              <li key={c.id}>
+                <OpenOnClick className="flex cursor-pointer flex-wrap items-start gap-3 p-4 transition-colors hover:bg-canvas/60">
                 <div className="min-w-40 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
                     <p className="font-medium">{c.kind}</p>
@@ -157,6 +162,7 @@ export default async function PropertyPage({
                   <Pill tone="warn">Reduces buildable area</Pill>
                 )}
                 <EditConstraintForm constraint={c} propertyId={property.id} />
+                </OpenOnClick>
               </li>
             ))}
           </ul>
@@ -183,7 +189,7 @@ export default async function PropertyPage({
             const belowTarget = margin < pf.target_margin_pct;
 
             return (
-              <article key={pf.id} className="card p-5">
+              <OpenOnClick key={pf.id} className="card cursor-pointer p-5 transition-shadow hover:shadow-lift">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <h3 className="font-semibold tracking-tight">{pf.scenario}</h3>
                   <span className="flex items-center gap-2">
@@ -229,7 +235,7 @@ export default async function PropertyPage({
                     </p>
                   </div>
                 </div>
-              </article>
+              </OpenOnClick>
             );
           })}
         </div>
@@ -316,7 +322,8 @@ export default async function PropertyPage({
           </div>
           <ul className="card mt-3 divide-y divide-line">
             {offers.map((offer) => (
-              <li key={offer.id} className="flex flex-wrap items-start gap-3 p-4">
+              <li key={offer.id}>
+                <OpenOnClick className="flex cursor-pointer flex-wrap items-start gap-3 p-4 transition-colors hover:bg-canvas/60">
                 <div className="min-w-40 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
                     <p className="font-semibold">{formatCurrency(offer.amount)}</p>
@@ -330,6 +337,7 @@ export default async function PropertyPage({
                   {offer.notes && <p className="mt-1 text-sm text-ink-muted">{offer.notes}</p>}
                 </div>
                 <EditOfferForm offer={offer} propertyId={property.id} />
+                </OpenOnClick>
               </li>
             ))}
           </ul>

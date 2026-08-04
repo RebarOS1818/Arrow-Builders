@@ -134,6 +134,21 @@ export function PropertyBoard({ properties }: { properties: Property[] }) {
     if (wasDrag && target) void commit(drag.id, target);
   }
 
+  /**
+   * A tap that never became a drag opens the parcel.
+   *
+   * The whole card is the target, not just the title, but a click that landed
+   * on the Edit button or the title link belongs to those — and a click at the
+   * end of a drag is not a click at all.
+   */
+  function onCardClick(event: React.MouseEvent<HTMLElement>, property: Property) {
+    if (drag?.moved) return;
+    const el = event.target as HTMLElement;
+    if (el.closest("a, button, [role=dialog]")) return;
+    if (window.getSelection()?.toString()) return;
+    router.push(`/development/${property.id}`);
+  }
+
   function onKeyDown(event: React.KeyboardEvent, property: Property) {
     const order = COLUMNS.map((c) => c.status);
     const at = order.indexOf(property.status);
@@ -208,11 +223,12 @@ export function PropertyBoard({ properties }: { properties: Property[] }) {
                       tabIndex={0}
                       aria-grabbed={isHeld || isDragging || undefined}
                       onKeyDown={(e) => onKeyDown(e, property)}
+                      onClick={(e) => onCardClick(e, property)}
                       onPointerDown={(e) => onPointerDown(e, property)}
                       onPointerMove={onPointerMove}
                       onPointerUp={onPointerUp}
                       onPointerCancel={onPointerUp}
-                      className={`card touch-none select-none p-3 transition-shadow focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 ${
+                      className={`card cursor-pointer touch-none select-none p-3 transition-shadow focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 ${
                         isDragging ? "opacity-40" : "hover:shadow-lift"
                       } ${isHeld ? "ring-2 ring-brand-500" : ""}`}
                     >

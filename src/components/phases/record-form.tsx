@@ -124,6 +124,9 @@ export function RecordForm({
         <button
           ref={triggerRef}
           type="button"
+          // Marked so an enclosing row can open this form without the row
+          // itself having to be a control. See OpenOnClick.
+          data-record-trigger=""
           onClick={() => setOpen(true)}
           disabled={disabled}
           className="pressable inline-flex items-center gap-2 rounded-full bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-50"

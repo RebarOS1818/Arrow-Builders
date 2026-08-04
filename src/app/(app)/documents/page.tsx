@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import { DocumentLink } from "@/components/documents/document-link";
+import { ClickableRow } from "@/components/phases/clickable-row";
 import { EditDocumentForm } from "@/components/phases/edit-forms";
 import { UploadDocument } from "@/components/documents/upload-document";
 import { FilterSelect } from "@/components/ui/filter-select";
@@ -80,7 +81,7 @@ export default async function DocumentsPage({
           </thead>
           <tbody className="divide-y divide-line">
             {visible.map((document) => (
-              <tr key={document.id} className="hover:bg-canvas/60">
+              <ClickableRow key={document.id} className="cursor-pointer hover:bg-canvas/60">
                 <td className="px-4 py-3">
                   <DocumentLink
                     id={document.id}
@@ -105,7 +106,7 @@ export default async function DocumentsPage({
                     projects={projects.map((p) => ({ id: p.id, name: p.name }))}
                   />
                 </td>
-              </tr>
+              </ClickableRow>
             ))}
             {visible.length === 0 && (
               <tr>
