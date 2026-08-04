@@ -15,6 +15,7 @@ import {
   solaKeysLookSwapped,
 } from "./sola/config";
 import { SOLA_PLANS, isSelfServe as isSolaSelfServe } from "./sola/plans";
+import { reconcileSchedule } from "./sola/reconcile";
 
 /**
  * Which gateway takes the money.
@@ -264,17 +265,27 @@ export async function getBillingSummary(): Promise<BillingSummary> {
     current_period_end: string | null;
   } | null;
 
+  // Ask Sola what the schedule actually says, rather than trusting what was
+  // written when it was created. Sola's first live subscription produced no
+  // webhook delivery at all, so without this a declined renewal would leave the
+  // organization reading `active` indefinitely while the gateway had stopped
+  // collecting. Best effort — a failed read leaves the stored values in place.
+  const live =
+    processor === "sola" && row?.sola_schedule_id
+      ? await reconcileSchedule(row.id, row.sola_schedule_id)
+      : null;
+
   const members = memberCount.count ?? 0;
   const pendingInvites = inviteCount.count ?? 0;
   const seatsUsed = members + pendingInvites;
-  const seatLimit = row?.seat_limit ?? 0;
-  // 0 means the webhook has not recorded a price yet — shown as unknown, not free.
-  const priceCents = row?.price_cents ?? 0;
+  const seatLimit = live?.seatLimit ?? row?.seat_limit ?? 0;
+  // 0 means no price has been recorded yet — shown as unknown, not free.
+  const priceCents = live?.priceCents ?? row?.price_cents ?? 0;
 
   return {
     orgId: row?.id ?? orgId,
     orgName: row?.name ?? "Your organization",
-    plan: row?.plan ?? "starter",
+    plan: live?.plan ?? row?.plan ?? "starter",
     seatLimit,
     seatsUsed,
     seatsAvailable: Math.max(0, seatLimit - seatsUsed),
@@ -283,13 +294,19 @@ export async function getBillingSummary(): Promise<BillingSummary> {
     priceCents,
     // Flat fee: the bill does not move with head count, only with the plan.
     monthlyTotalCents: priceCents,
-    status: row?.subscription_status ?? "none",
-    currentPeriodEnd: row?.current_period_end ?? null,
+    status: live?.status ?? row?.subscription_status ?? "none",
+    currentPeriodEnd: live?.currentPeriodEnd ?? row?.current_period_end ?? null,
     // Whichever gateway is live decides what counts as subscribed. Reading both
     // would show a Sola customer the "change plan" buttons for a Stripe
     // subscription they no longer have.
     hasSubscription: Boolean(
-      processor === "sola" ? row?.sola_schedule_id : row?.stripe_subscription_id,
+      processor === "sola"
+        ? // A schedule disabled in the Sola portal rather than through the app
+          // is no longer a subscription, whatever our column still says — and
+          // continuing to offer "Cancel subscription" for it would be a button
+          // that could only fail.
+          row?.sola_schedule_id && live?.status !== "canceled"
+        : row?.stripe_subscription_id,
     ),
     isAdmin,
     canManage: isAdmin && processor !== "none",
