@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { callerOrg, readableError, type ActionResult } from "@/lib/forms";
+import { callerOrg, readableError, str, updateOwned, type ActionResult } from "@/lib/forms";
 
 const BUCKET = "documents";
 
@@ -135,4 +135,28 @@ export async function documentDownloadUrl(
 
   if (error || !data) return { ok: false, error: error?.message ?? "Could not open that file." };
   return { ok: true, url: data.signedUrl };
+}
+
+/**
+ * Renaming or re-filing a document.
+ *
+ * The stored file is untouched — only what the row says about it changes. The
+ * storage path is deliberately not editable: it is where the bytes actually
+ * are, and letting a form rewrite it would point the row at a file that may not
+ * exist.
+ */
+export async function updateDocument(data: FormData): Promise<ActionResult> {
+  const name = str(data, "name");
+  if (!name) return { ok: false, error: "Give the document a name." };
+
+  return updateOwned(
+    "documents",
+    str(data, "id"),
+    {
+      name,
+      category: str(data, "category") ?? "General",
+      ...(str(data, "project_id") ? { project_id: str(data, "project_id") } : {}),
+    },
+    ["/documents"],
+  );
 }

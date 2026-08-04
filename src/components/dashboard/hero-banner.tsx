@@ -1,7 +1,13 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 
-/** Violet promo panel that opens the dashboard, per the reference design. */
+/**
+ * The navy banner, with the brand's amber on its call to action.
+ *
+ * Amber is a fill and never type here: #f6b037 on white would be 1.9:1, but the
+ * app's ink on top of it is 9.5:1. It also sits well away from any status pill,
+ * which matters because the status amber is only a few degrees off it.
+ */
 export function HeroBanner({
   eyebrow,
   title,
@@ -48,10 +54,10 @@ export function HeroBanner({
         </h2>
         <Link
           href={href}
-          className="mt-5 inline-flex items-center gap-2 rounded-full bg-ink py-2 pl-5 pr-1.5 text-sm font-semibold text-white transition-transform hover:scale-[1.02]"
+          className="mt-5 inline-flex items-center gap-2 rounded-full bg-accent-500 py-2 pl-5 pr-1.5 text-sm font-semibold text-ink transition-transform hover:scale-[1.02] hover:bg-accent-400"
         >
           {cta}
-          <span className="grid size-7 place-items-center rounded-full bg-white/15">
+          <span className="grid size-7 place-items-center rounded-full bg-ink/15">
             <ArrowRight className="size-3.5" />
           </span>
         </Link>

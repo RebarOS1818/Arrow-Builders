@@ -4,6 +4,14 @@ import { ArrowLeft } from "lucide-react";
 import { Pill, StatusPill, humanise } from "@/components/phases/badges";
 import { MapLink, coordQuery, mapsQuery, mapsUrl } from "@/components/phases/map-link";
 import {
+  EditComparableForm,
+  EditConstraintForm,
+  EditOfferForm,
+  EditProFormaForm,
+  EditPropertyForm,
+  EditStudyForm,
+} from "@/components/phases/edit-forms";
+import {
   NewComparableForm,
   NewConstraintForm,
   NewOfferForm,
@@ -62,6 +70,7 @@ export default async function PropertyPage({
           <div className="flex flex-wrap items-center gap-2">
             <h1 className="text-3xl font-bold tracking-tight">{property.name}</h1>
             <StatusPill kind="property" value={property.status} />
+            <EditPropertyForm property={property} />
           </div>
           <MapLink
             className="mt-1 flex flex-wrap items-center gap-1.5 text-sm text-ink-muted"
@@ -112,6 +121,7 @@ export default async function PropertyPage({
                 )}
               </div>
               <div className="flex shrink-0 items-center gap-2">
+                <EditStudyForm study={study} propertyId={property.id} />
                 <StatusPill kind="study" value={study.status} />
                 {/* A verdict only exists once the study is finished — the
                     database refuses the combination, so the gap here is real
@@ -146,6 +156,7 @@ export default async function PropertyPage({
                 {c.affects_buildable_area && !c.resolved && (
                   <Pill tone="warn">Reduces buildable area</Pill>
                 )}
+                <EditConstraintForm constraint={c} propertyId={property.id} />
               </li>
             ))}
           </ul>
@@ -175,7 +186,10 @@ export default async function PropertyPage({
               <article key={pf.id} className="card p-5">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <h3 className="font-semibold tracking-tight">{pf.scenario}</h3>
-                  <StatusPill kind="offer" value={pf.status} />
+                  <span className="flex items-center gap-2">
+                    <StatusPill kind="offer" value={pf.status} />
+                    <EditProFormaForm proForma={pf} propertyId={property.id} />
+                  </span>
                 </div>
                 <p className="mt-1 text-sm text-ink-muted">
                   {pf.planned_units} units · {pf.planned_sqft.toLocaleString()} sqft
@@ -237,6 +251,7 @@ export default async function PropertyPage({
                   <th className="px-5 py-3 text-right font-semibold">Acres</th>
                   <th className="px-5 py-3 text-right font-semibold">Per acre</th>
                   <th className="px-5 py-3 text-right font-semibold">Distance</th>
+                  <th className="px-5 py-3 text-right font-semibold">Edit</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-line">
@@ -283,6 +298,9 @@ export default async function PropertyPage({
                     <td className="px-5 py-3 text-right text-ink-muted">
                       {c.distance_miles ? `${c.distance_miles} mi` : "—"}
                     </td>
+                    <td className="px-5 py-3 text-right">
+                      <EditComparableForm comparable={c} propertyId={property.id} />
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -311,6 +329,7 @@ export default async function PropertyPage({
                   </p>
                   {offer.notes && <p className="mt-1 text-sm text-ink-muted">{offer.notes}</p>}
                 </div>
+                <EditOfferForm offer={offer} propertyId={property.id} />
               </li>
             ))}
           </ul>

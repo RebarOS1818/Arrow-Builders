@@ -1,5 +1,7 @@
 import "server-only";
 
+import { revalidatePath } from "next/cache";
+
 import { createClient } from "./supabase/server";
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
@@ -91,4 +93,39 @@ export function readableError(error: { code?: string; message: string }): string
     return "You do not have permission to save that.";
   }
   return error.message;
+}
+
+/**
+ * Updates a row the caller's organization owns.
+ *
+ * Every editable record in this app is org-scoped, so the same three guarantees
+ * apply to all of them and are worth having in one place rather than thirteen:
+ * the id arrives from a form and is therefore filtered by org_id as well, so an
+ * id belonging to another tenant matches nothing instead of being edited; an
+ * empty result is reported as a missing record rather than as success; and the
+ * error is translated before it reaches a person.
+ */
+export async function updateOwned(
+  table: string,
+  id: string | null,
+  patch: Record<string, unknown>,
+  revalidate: string[] = [],
+): Promise<ActionResult> {
+  if (!id) return { ok: false, error: "Which record?" };
+
+  const caller = await callerOrg();
+  if (!caller.ok) return caller;
+
+  const { data, error } = await caller.db
+    .from(table)
+    .update(patch)
+    .eq("id", id)
+    .eq("org_id", caller.orgId)
+    .select("id");
+
+  if (error) return { ok: false, error: readableError(error) };
+  if (!data || data.length === 0) return { ok: false, error: "That record no longer exists." };
+
+  for (const path of revalidate) revalidatePath(path);
+  return { ok: true };
 }

@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { GripVertical, MapPin } from "lucide-react";
+import { EditPropertyForm } from "@/components/phases/edit-forms";
 import { moveProperty } from "@/app/(app)/development/actions";
 import { formatCompactCurrency } from "@/lib/utils";
 import type { Property, PropertyStatus } from "@/lib/types";
@@ -248,6 +249,15 @@ export function PropertyBoard({ properties }: { properties: Property[] }) {
                           {property.lot_size_acres} acres
                         </p>
                       )}
+
+                      <div
+                        // Kept out of the drag: a pointerdown here should open
+                        // the form, not start moving the card.
+                        onPointerDown={(e) => e.stopPropagation()}
+                        className="mt-2.5"
+                      >
+                        <EditPropertyForm property={property} />
+                      </div>
 
                       {isHeld && (
                         <p className="mt-2 text-xs font-medium text-brand-700">

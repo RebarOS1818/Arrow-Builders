@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import { DocumentLink } from "@/components/documents/document-link";
+import { EditDocumentForm } from "@/components/phases/edit-forms";
 import { UploadDocument } from "@/components/documents/upload-document";
 import { FilterSelect } from "@/components/ui/filter-select";
 import { getDocuments, getProjects } from "@/lib/data";
@@ -74,6 +75,7 @@ export default async function DocumentsPage({
               <th className="px-4 py-3">Uploaded by</th>
               <th className="px-4 py-3">Date</th>
               <th className="px-4 py-3 text-right">Size</th>
+              <th className="px-4 py-3 text-right">Edit</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-line">
@@ -97,11 +99,17 @@ export default async function DocumentsPage({
                 <td className="px-4 py-3 text-right text-ink-muted">
                   {formatSize(document.size_kb)}
                 </td>
+                <td className="px-4 py-3 text-right">
+                  <EditDocumentForm
+                    document={document}
+                    projects={projects.map((p) => ({ id: p.id, name: p.name }))}
+                  />
+                </td>
               </tr>
             ))}
             {visible.length === 0 && (
               <tr>
-                <td colSpan={6} className="px-4 py-10 text-center text-ink-muted">
+                <td colSpan={7} className="px-4 py-10 text-center text-ink-muted">
                   No documents match these filters.
                 </td>
               </tr>
