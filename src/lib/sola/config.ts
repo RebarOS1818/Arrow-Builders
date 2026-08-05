@@ -45,7 +45,14 @@ export const SOLA_IFIELDS_VERSION =
  * either is missing — `{"Error":"Missing: SoftwareName","Result":"E"}`. They are
  * how the gateway attributes traffic, so they identify this app, not the client.
  */
-export const SOLA_SOFTWARE_NAME = "Arrow Builders";
+/**
+ * Sent to Cardknox on every request and recorded against each transaction, so
+ * this is how the account's history attributes what charged the card. Renaming
+ * it means transactions from here on read differently from the ones already
+ * taken under "Arrow Builders" — a reporting seam, not a functional break, and
+ * worth knowing about before reconciling a statement across the changeover.
+ */
+export const SOLA_SOFTWARE_NAME = "Arrow Upscale Builders";
 export const SOLA_SOFTWARE_VERSION = "1.0";
 
 /**

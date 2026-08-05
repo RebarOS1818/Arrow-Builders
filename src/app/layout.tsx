@@ -17,7 +17,7 @@ const display = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Arrow Builders",
+  title: "Arrow Upscale Builders",
   description: "Project, schedule and cost control for construction developers.",
 };
 

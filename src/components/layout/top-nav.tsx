@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Bell, Menu, Search } from "lucide-react";
 import { ArrowMark } from "@/components/brand/arrow-mark";
+import { Wordmark } from "@/components/brand/wordmark";
 import { ProfileMenu } from "@/components/layout/profile-menu";
 
 /**
@@ -50,9 +51,7 @@ export function TopNav({
         <span className="icon-tile size-9 bg-brand-700 text-accent-500">
           <ArrowMark className="w-4.5" />
         </span>
-        <span className="hidden whitespace-nowrap font-semibold tracking-tight sm:block">
-          Arrow Builders
-        </span>
+        <Wordmark className="hidden sm:flex" />
       </Link>
 
       {/* Takes the width the navigation used to occupy rather than being pinned
