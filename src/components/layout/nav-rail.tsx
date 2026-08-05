@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ArrowMark } from "@/components/brand/arrow-mark";
+import { Wordmark } from "@/components/brand/wordmark";
 import { NavLink } from "@/components/layout/nav-link";
 import { ACCOUNT, WORK, isActiveHref } from "@/components/layout/nav-items";
 
@@ -35,9 +36,7 @@ export function NavRail() {
         <span className="icon-tile size-10 bg-brand-700 text-accent-500">
           <ArrowMark className="w-5" />
         </span>
-        <span className="text-[0.9375rem] font-semibold tracking-tight">
-          Arrow Builders
-        </span>
+        <Wordmark className="text-[0.9375rem]" />
       </Link>
 
       {/* Scrolls only if the viewport is genuinely too short, and vertically —

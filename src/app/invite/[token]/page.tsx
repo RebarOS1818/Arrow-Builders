@@ -38,7 +38,7 @@ export default async function InvitePage({
           <span className="grid size-9 place-items-center rounded-xl bg-brand-600 text-white">
             <HardHat className="size-5" />
           </span>
-          <span className="text-lg font-semibold tracking-tight">Arrow Builders</span>
+          <span className="text-lg font-semibold tracking-tight">Arrow Upscale Builders</span>
         </div>
 
         <div className="card p-6">

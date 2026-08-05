@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { LogOut, X } from "lucide-react";
 import { Avatar } from "@/components/ui/avatar";
 import { ArrowMark } from "@/components/brand/arrow-mark";
+import { Wordmark } from "@/components/brand/wordmark";
 import { NavLink } from "@/components/layout/nav-link";
 import { ACCOUNT, WORK, isActiveHref } from "@/components/layout/nav-items";
 import { cn } from "@/lib/utils";
@@ -72,9 +73,7 @@ export function Sidebar({
           <span className="icon-tile size-10 bg-brand-700 text-accent-500">
             <ArrowMark className="w-5" />
           </span>
-          <span className="whitespace-nowrap font-semibold tracking-tight">
-            Arrow Builders
-          </span>
+          <Wordmark />
         </Link>
         <button
           type="button"

@@ -189,7 +189,7 @@ export function SolaCardForm({
       </h3>
       <p className="mt-1 flex items-center gap-1.5 text-xs text-ink-subtle">
         <Lock className="size-3.5" />
-        Card details go straight to Sola. They are never sent to Arrow Builders.
+        Card details go straight to Sola. They are never sent to Arrow Upscale Builders.
       </p>
 
       <form ref={formRef} onSubmit={onSubmit} className="mt-5 space-y-4">

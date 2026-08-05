@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Check, Loader2, Mail } from "lucide-react";
+import { PlanChangeConfirm } from "@/components/billing/plan-change-confirm";
 import { SolaCardForm } from "@/components/billing/sola-card-form";
 import { cn } from "@/lib/utils";
 
@@ -44,6 +45,10 @@ export function PlanCards({
   selfServe,
   salesEmail,
   currentPlan,
+  currentPriceCents,
+  currentSeatLimit,
+  seatsUsed,
+  renewsOn,
   hasSubscription,
   canManage,
   sola,
@@ -52,6 +57,11 @@ export function PlanCards({
   selfServe: Record<string, boolean>;
   salesEmail: string;
   currentPlan: string;
+  /** What the schedule collects today, so the change can be stated as a delta. */
+  currentPriceCents: number;
+  currentSeatLimit: number;
+  seatsUsed: number;
+  renewsOn: string | null;
   hasSubscription: boolean;
   canManage: boolean;
   sola: SolaConfig | null;
@@ -60,16 +70,23 @@ export function PlanCards({
   const [error, setError] = useState<string | null>(null);
   /** The plan whose card form is open, under Sola. */
   const [subscribing, setSubscribing] = useState<TierCard | null>(null);
+  /** The plan a subscriber has asked to switch to, pending confirmation. */
+  const [switching, setSwitching] = useState<TierCard | null>(null);
 
-  async function choose(tier: TierCard) {
+  function choose(tier: TierCard) {
     // A first subscription needs a card, so it opens the form rather than
-    // calling anything. Changing plan reuses the card already on file.
+    // calling anything. Changing plan reuses the card already on file, and is
+    // confirmed first: pressing "Switch to Premium" reads as "charge me now",
+    // and what actually happens is that the next payment changes amount.
+    setError(null);
     if (!hasSubscription && sola) {
-      setError(null);
       setSubscribing(tier);
       return;
     }
+    setSwitching(tier);
+  }
 
+  async function commitSwitch(tier: TierCard) {
     setPending(tier.key);
     setError(null);
     try {
@@ -87,6 +104,36 @@ export function PlanCards({
       setError(cause instanceof Error ? cause.message : "Something went wrong.");
       setPending(null);
     }
+  }
+
+  if (switching && switching.listPriceCents !== null) {
+    const from = tiers.find((t) => t.key === currentPlan);
+    return (
+      <PlanChangeConfirm
+        from={{
+          name: from?.name ?? "Current plan",
+          // The stored price, not the tier's list price: an organization on a
+          // negotiated amount would otherwise be shown a difference it is not
+          // actually paying.
+          priceCents: currentPriceCents,
+          includedSeats: currentSeatLimit,
+        }}
+        to={{
+          name: switching.name,
+          priceCents: switching.listPriceCents,
+          includedSeats: switching.includedSeats,
+        }}
+        renewsOn={renewsOn}
+        seatsUsed={seatsUsed}
+        pending={pending !== null}
+        error={error}
+        onConfirm={() => void commitSwitch(switching)}
+        onCancel={() => {
+          setSwitching(null);
+          setError(null);
+        }}
+      />
+    );
   }
 
   if (subscribing && sola && subscribing.listPriceCents !== null) {

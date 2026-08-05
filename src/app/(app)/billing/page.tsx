@@ -133,6 +133,10 @@ export default async function BillingPage({
               selfServe={billing.selfServe}
               salesEmail={billing.salesEmail}
               currentPlan={billing.plan}
+              currentPriceCents={billing.priceCents}
+              currentSeatLimit={billing.seatLimit}
+              seatsUsed={billing.seatsUsed}
+              renewsOn={billing.currentPeriodEnd}
               hasSubscription={billing.hasSubscription}
               canManage={billing.canManage}
               sola={billing.sola}
