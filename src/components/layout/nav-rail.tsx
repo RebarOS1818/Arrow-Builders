@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { HardHat } from "lucide-react";
+import { ArrowMark } from "@/components/brand/arrow-mark";
 import { NavLink } from "@/components/layout/nav-link";
 import { ACCOUNT, WORK, isActiveHref } from "@/components/layout/nav-items";
 
@@ -32,8 +32,8 @@ export function NavRail() {
         href="/"
         className="flex items-center gap-2.5 rounded-full px-1.5 py-1 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
       >
-        <span className="icon-tile size-10 bg-brand-700 text-white">
-          <HardHat className="size-5" />
+        <span className="icon-tile size-10 bg-brand-700 text-accent-500">
+          <ArrowMark className="w-5" />
         </span>
         <span className="text-[0.9375rem] font-semibold tracking-tight">
           Arrow Builders

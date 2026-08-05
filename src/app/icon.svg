@@ -1,4 +1,18 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!--
+    The brand mark on the brand navy. Drawn at this size rather than resampled
+    down from the 1600px artwork: a tab icon is 16 device pixels across on most
+    screens, and the centre gap between the two roof planes is the first thing
+    to disappear when a bitmap is scaled that far.
+
+    The mark is 202x136 in its own units. Scaled by 0.099 that is 20x13.5, which
+    leaves 6px of clear space either side and sits fractionally above the true
+    centre — a shape carrying all its weight along the bottom edge reads as
+    having slipped downward when it is centred exactly.
+  -->
   <rect width="32" height="32" rx="7" fill="#344058" />
-  <path d="M16 6 L25 26 H19.5 L16 17 L12.5 26 H7 Z" fill="#ffffff" />
+  <g transform="translate(6 9.25) scale(0.099)" fill="#f6b037">
+    <path d="M90 0 L0 67 L0 136 L90 136 Z" />
+    <path d="M112 0 L202 67 L202 136 L112 136 Z" />
+  </g>
 </svg>

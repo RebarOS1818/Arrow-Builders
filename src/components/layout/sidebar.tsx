@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { HardHat, LogOut, X } from "lucide-react";
+import { LogOut, X } from "lucide-react";
 import { Avatar } from "@/components/ui/avatar";
+import { ArrowMark } from "@/components/brand/arrow-mark";
 import { NavLink } from "@/components/layout/nav-link";
 import { ACCOUNT, WORK, isActiveHref } from "@/components/layout/nav-items";
 import { cn } from "@/lib/utils";
@@ -68,8 +69,8 @@ export function Sidebar({
     >
       <div className="mb-6 flex items-center justify-between gap-2 pl-1.5">
         <Link href="/" onClick={onClose} className="flex items-center gap-2.5">
-          <span className="icon-tile size-10 bg-brand-700 text-white">
-            <HardHat className="size-5" />
+          <span className="icon-tile size-10 bg-brand-700 text-accent-500">
+            <ArrowMark className="w-5" />
           </span>
           <span className="whitespace-nowrap font-semibold tracking-tight">
             Arrow Builders

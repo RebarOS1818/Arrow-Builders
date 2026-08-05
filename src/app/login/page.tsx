@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { HardHat } from "lucide-react";
+import Image from "next/image";
 import { LoginForm } from "@/components/auth/login-form";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 
@@ -9,11 +9,30 @@ export default function LoginPage() {
   return (
     <main className="grid min-h-screen place-items-center px-4 py-10">
       <div className="w-full max-w-sm">
-        <div className="mb-6 flex items-center gap-2">
-          <span className="grid size-9 place-items-center rounded-xl bg-brand-700 text-white">
-            <HardHat className="size-5" />
+        {/* The full lockup, not the mark: this is the one screen with room for
+            it, and the only one where someone may not yet know whose app they
+            are signing into.
+
+            On a plate rather than bare. The supplied artwork is a JPEG with an
+            opaque white background — JPEG has no transparency — so against the
+            tinted page it reads as a hard white rectangle around the logo.
+            Giving it a rounded white card with real padding turns that
+            background into something deliberate instead of a mistake.
+
+            The file is cropped to the bounds its own clip path declares — the
+            original is a 720x720 square with the lockup floating in the middle,
+            which would make the plate several times taller than the logo. */}
+        <div className="mb-6 flex justify-center">
+          <span className="inline-flex rounded-card bg-white px-7 py-5 shadow-soft">
+            <Image
+              src="/logo-light.svg"
+              alt="Arrow Upscale Builders"
+              width={506}
+              height={318}
+              priority
+              className="h-auto w-40"
+            />
           </span>
-          <span className="text-lg font-semibold tracking-tight">Arrow Builders</span>
         </div>
 
         <div className="card p-6">
