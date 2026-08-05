@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { Bell, HardHat, Menu, Search } from "lucide-react";
+import { Bell, Menu, Search } from "lucide-react";
+import { ArrowMark } from "@/components/brand/arrow-mark";
 import { ProfileMenu } from "@/components/layout/profile-menu";
 
 /**
@@ -46,8 +47,8 @@ export function TopNav({
       {/* The wordmark belongs to the rail on desktop; below lg the rail is gone,
           so it appears here instead rather than leaving the row unbranded. */}
       <Link href="/" className="flex shrink-0 items-center gap-2.5 lg:hidden">
-        <span className="icon-tile size-9 bg-brand-700 text-white">
-          <HardHat className="size-4.5" />
+        <span className="icon-tile size-9 bg-brand-700 text-accent-500">
+          <ArrowMark className="w-4.5" />
         </span>
         <span className="hidden whitespace-nowrap font-semibold tracking-tight sm:block">
           Arrow Builders
