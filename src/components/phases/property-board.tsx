@@ -4,7 +4,6 @@ import { useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { GripVertical, MapPin } from "lucide-react";
-import { EditPropertyForm } from "@/components/phases/edit-forms";
 import { moveProperty } from "@/app/(app)/development/actions";
 import { formatCompactCurrency } from "@/lib/utils";
 import type { Property, PropertyStatus } from "@/lib/types";
@@ -137,9 +136,9 @@ export function PropertyBoard({ properties }: { properties: Property[] }) {
   /**
    * A tap that never became a drag opens the parcel.
    *
-   * The whole card is the target, not just the title, but a click that landed
-   * on the Edit button or the title link belongs to those — and a click at the
-   * end of a drag is not a click at all.
+   * The whole card is the target, not just the title. A click that landed on
+   * the title link belongs to the link, and a click at the end of a drag is not
+   * a click at all.
    */
   function onCardClick(event: React.MouseEvent<HTMLElement>, property: Property) {
     if (drag?.moved) return;
@@ -265,15 +264,6 @@ export function PropertyBoard({ properties }: { properties: Property[] }) {
                           {property.lot_size_acres} acres
                         </p>
                       )}
-
-                      <div
-                        // Kept out of the drag: a pointerdown here should open
-                        // the form, not start moving the card.
-                        onPointerDown={(e) => e.stopPropagation()}
-                        className="mt-2.5"
-                      >
-                        <EditPropertyForm property={property} />
-                      </div>
 
                       {isHeld && (
                         <p className="mt-2 text-xs font-medium text-brand-700">
