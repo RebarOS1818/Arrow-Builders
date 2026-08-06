@@ -30,32 +30,36 @@ export default async function ApprovalsPage() {
       </div>
 
       <div className="card scroll-thin overflow-x-auto">
-        <table className="w-full min-w-[720px] text-sm">
-          <thead>
-            <tr className="border-b border-line text-left text-xs font-semibold text-ink-muted">
-              <th className="px-4 py-3">Reference</th>
-              <th className="px-4 py-3">Type</th>
-              <th className="px-4 py-3">Project</th>
-              <th className="px-4 py-3">Submitted</th>
-              <th className="px-4 py-3 text-right">Amount</th>
-              <th className="px-4 py-3 text-right">Action</th>
+        <table role="table" className="stacked-table w-full min-w-[720px] text-sm">
+          <thead role="rowgroup">
+            <tr role="row" className="border-b border-line text-left text-xs font-semibold text-ink-muted">
+              <th role="columnheader" className="px-4 py-3">Reference</th>
+              <th role="columnheader" className="px-4 py-3">Type</th>
+              <th role="columnheader" className="px-4 py-3">Project</th>
+              <th role="columnheader" className="px-4 py-3">Submitted</th>
+              <th role="columnheader" className="px-4 py-3 text-right">Amount</th>
+              <th role="columnheader" className="px-4 py-3 text-right">Action</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-line">
+          <tbody role="rowgroup" className="divide-y divide-line">
             {approvals.map((approval) => (
-              <tr key={approval.id} className="hover:bg-canvas/60">
-                <td className="px-4 py-3 font-medium">{approval.reference}</td>
-                <td className="px-4 py-3 text-ink-muted">{KIND_LABELS[approval.kind]}</td>
-                <td className="px-4 py-3 text-ink-muted">
+              <tr role="row" key={approval.id} className="hover:bg-canvas/60">
+                <td role="cell" className="px-4 py-3 font-medium">{approval.reference}</td>
+                <td role="cell" data-label="Type" className="px-4 py-3 text-ink-muted">
+                  {KIND_LABELS[approval.kind]}
+                </td>
+                <td role="cell" data-label="Project" className="px-4 py-3 text-ink-muted">
                   <Link href={`/projects/${approval.project_id}`} className="hover:text-brand-700">
                     {approval.project.name}
                   </Link>
                 </td>
-                <td className="px-4 py-3 text-ink-muted">{formatDate(approval.submitted_at)}</td>
-                <td className="px-4 py-3 text-right font-medium">
+                <td role="cell" data-label="Submitted" className="px-4 py-3 text-ink-muted">
+                  {formatDate(approval.submitted_at)}
+                </td>
+                <td role="cell" data-label="Amount" className="px-4 py-3 text-right font-medium">
                   {approval.amount != null ? formatCurrency(approval.amount) : "—"}
                 </td>
-                <td className="px-4 py-3 text-right">
+                <td role="cell" data-cell="action" className="px-4 py-3 text-right">
                   <ApprovalActions id={approval.id} reference={approval.reference} />
                 </td>
               </tr>

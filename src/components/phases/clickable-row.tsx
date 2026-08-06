@@ -24,7 +24,9 @@ export function ClickableRow({
   }
 
   return (
-    <tr onClick={onClick} className={className}>
+    // The role is explicit because these rows stack into cards on a phone, and
+    // `display: block` drops a table's implicit semantics.
+    <tr role="row" onClick={onClick} className={className}>
       {children}
     </tr>
   );
