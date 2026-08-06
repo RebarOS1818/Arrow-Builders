@@ -55,27 +55,55 @@ import type {
 } from "./types";
 
 /**
- * Reads go through Supabase when it is configured, and fall back to the demo
- * dataset otherwise. Fallback also covers query errors so a half-migrated
- * database degrades to a readable page instead of a crash.
+ * Reads go through Supabase when it is configured, and show the demo dataset
+ * when it is not.
  *
- * An empty result is NOT a fallback trigger: for a configured project, zero
- * rows is a legitimate state (a new organization, a project with no documents
- * yet), and substituting demo rows there would show fabricated data in
- * production.
+ * The demo data is only ever for the unconfigured case. It used to cover query
+ * failures too, on the theory that a half-migrated database should degrade to a
+ * readable page rather than crash — and that was badly wrong. A real account
+ * with one column missing got a Documents page listing five files that do not
+ * exist, with plausible names, sizes and dates, indistinguishable from its own.
+ * The failure that is easy to recover from is the one you can see.
+ *
+ * So a configured project that errors gets nothing rather than something
+ * invented: lists come back empty and the page shows its empty state. That is
+ * still not the truth, but it is far closer to it than fabricated rows, and the
+ * error reaches the server log with the reader named, so the cause is findable
+ * instead of silent.
+ *
+ * An empty result was never a fallback trigger and still is not — zero rows is
+ * a legitimate state for a new organization.
  */
 async function withFallback<T>(
+  /** The reader's own name, so a failure in the log says which one. */
+  label: string,
   query: (db: NonNullable<Awaited<ReturnType<typeof createClient>>>) => Promise<T | null>,
-  fallback: () => T,
+  demo: () => T,
 ): Promise<T> {
   const db = await createClient();
-  if (!db) return fallback();
+  if (!db) return demo();
+
   try {
     const result = await query(db);
-    return result ?? fallback();
-  } catch {
-    return fallback();
+    if (result !== null && result !== undefined) return result;
+    console.error(`[data] ${label} returned no result`);
+    return blank(demo());
+  } catch (error) {
+    console.error(`[data] ${label} failed:`, error);
+    return blank(demo());
   }
+}
+
+/**
+ * The demo value emptied out.
+ *
+ * Collections become empty, which is what almost every reader here returns and
+ * the only shape where inventing content does real damage. Anything else — the
+ * organization, the metrics object — has no meaningful empty form, so the demo
+ * value stands rather than the page failing on a missing field.
+ */
+function blank<T>(demoValue: T): T {
+  return (Array.isArray(demoValue) ? [] : demoValue) as T;
 }
 
 const projectRef = (id: string) => {
@@ -85,6 +113,7 @@ const projectRef = (id: string) => {
 
 export async function getOrganization() {
   return withFallback(
+    "getOrganization",
     async (db) => {
       const { data } = await db.from("organizations").select("id, name, slug").limit(1).single();
       return data;
@@ -95,6 +124,7 @@ export async function getOrganization() {
 
 export async function getProjects(): Promise<Project[]> {
   return withFallback(
+    "getProjects",
     async (db) => {
       const { data } = await db.from("projects").select("*").order("created_at");
       return data as Project[] | null;
@@ -105,6 +135,7 @@ export async function getProjects(): Promise<Project[]> {
 
 export async function getTasks(): Promise<TaskWithProject[]> {
   return withFallback(
+    "getTasks",
     async (db) => {
       const { data } = await db
         .from("tasks")
@@ -118,6 +149,7 @@ export async function getTasks(): Promise<TaskWithProject[]> {
 
 export async function getMilestones(): Promise<(Milestone & { project: { id: string; name: string } })[]> {
   return withFallback(
+    "getMilestones",
     async (db) => {
       const { data } = await db
         .from("milestones")
@@ -131,6 +163,7 @@ export async function getMilestones(): Promise<(Milestone & { project: { id: str
 
 export async function getTodayEvents(): Promise<EventWithProject[]> {
   return withFallback(
+    "getTodayEvents",
     async (db) => {
       const start = new Date();
       start.setHours(0, 0, 0, 0);
@@ -167,6 +200,7 @@ export async function getTodayEvents(): Promise<EventWithProject[]> {
 
 export async function getApprovals(): Promise<ApprovalWithProject[]> {
   return withFallback(
+    "getApprovals",
     async (db) => {
       const { data } = await db
         .from("approvals")
@@ -181,6 +215,7 @@ export async function getApprovals(): Promise<ApprovalWithProject[]> {
 
 export async function getCashFlow(): Promise<CashFlowPoint[]> {
   return withFallback(
+    "getCashFlow",
     async (db) => {
       const { data } = await db.from("cash_flow").select("*").order("period");
       return data as CashFlowPoint[] | null;
@@ -191,6 +226,7 @@ export async function getCashFlow(): Promise<CashFlowPoint[]> {
 
 export async function getTeam(): Promise<Profile[]> {
   return withFallback(
+    "getTeam",
     async (db) => {
       const { data } = await db.from("profiles").select("*").order("full_name");
       return data as Profile[] | null;
@@ -210,6 +246,7 @@ export async function getTeam(): Promise<Profile[]> {
  */
 export async function getDocuments(): Promise<DocumentWithOwner[]> {
   return withFallback(
+    "getDocuments",
     async (db) => {
       const { data } = await db
         .from("documents")
@@ -265,6 +302,7 @@ function documentOwner(row: DocumentJoined): DocumentWithOwner {
 /** Documents filed against a parcel, newest first. */
 export async function getPropertyDocuments(propertyId: string): Promise<DocumentRecord[]> {
   return withFallback(
+    "getPropertyDocuments",
     async (db) => {
       const { data } = await db
         .from("documents")
@@ -286,6 +324,7 @@ export async function getPropertyDocuments(propertyId: string): Promise<Document
  */
 export async function getPropertyOutcome(propertyId: string): Promise<PropertyOutcome | null> {
   return withFallback(
+    "getPropertyOutcome",
     async (db) => {
       const { data: project } = await db
         .from("projects")
@@ -454,6 +493,7 @@ export async function getPropertiesSourced(): Promise<PropertySource> {
 
 export async function getProperty(id: string): Promise<Property | null> {
   return withFallback(
+    "getProperty",
     async (db) => {
       const { data } = await db.from("properties").select("*").eq("id", id).single();
       return data as Property | null;
@@ -464,6 +504,7 @@ export async function getProperty(id: string): Promise<Property | null> {
 
 export async function getStudies(propertyId?: string): Promise<FeasibilityStudy[]> {
   return withFallback(
+    "getStudies",
     async (db) => {
       let query = db.from("feasibility_studies").select("*").order("kind");
       if (propertyId) query = query.eq("property_id", propertyId);
@@ -476,6 +517,7 @@ export async function getStudies(propertyId?: string): Promise<FeasibilityStudy[
 
 export async function getConstraints(propertyId?: string): Promise<SiteConstraint[]> {
   return withFallback(
+    "getConstraints",
     async (db) => {
       let query = db.from("site_constraints").select("*").order("severity", { ascending: false });
       if (propertyId) query = query.eq("property_id", propertyId);
@@ -489,6 +531,7 @@ export async function getConstraints(propertyId?: string): Promise<SiteConstrain
 
 export async function getProFormas(propertyId?: string): Promise<ProForma[]> {
   return withFallback(
+    "getProFormas",
     async (db) => {
       let query = db.from("pro_formas").select("*").order("created_at");
       if (propertyId) query = query.eq("property_id", propertyId);
@@ -501,6 +544,7 @@ export async function getProFormas(propertyId?: string): Promise<ProForma[]> {
 
 export async function getComparables(propertyId: string): Promise<Comparable[]> {
   return withFallback(
+    "getComparables",
     async (db) => {
       const { data } = await db
         .from("comparables")
@@ -515,6 +559,7 @@ export async function getComparables(propertyId: string): Promise<Comparable[]> 
 
 export async function getOffers(propertyId?: string): Promise<Offer[]> {
   return withFallback(
+    "getOffers",
     async (db) => {
       let query = db.from("offers").select("*").order("offered_at", { ascending: false });
       if (propertyId) query = query.eq("property_id", propertyId);
@@ -531,6 +576,7 @@ export async function getOffers(propertyId?: string): Promise<Offer[]> {
 
 export async function getSubcontractors(): Promise<Subcontractor[]> {
   return withFallback(
+    "getSubcontractors",
     async (db) => {
       const { data } = await db.from("subcontractors").select("*").order("company_name");
       return data as Subcontractor[] | null;
@@ -541,6 +587,7 @@ export async function getSubcontractors(): Promise<Subcontractor[]> {
 
 export async function getBidPackages(): Promise<BidPackageWithQuotes[]> {
   return withFallback(
+    "getBidPackages",
     async (db) => {
       const { data } = await db
         .from("bid_packages")
@@ -571,6 +618,7 @@ export async function getBidPackages(): Promise<BidPackageWithQuotes[]> {
 
 export async function getContracts(): Promise<ContractWithParties[]> {
   return withFallback(
+    "getContracts",
     async (db) => {
       const { data } = await db
         .from("contracts")
@@ -607,6 +655,7 @@ export async function getContracts(): Promise<ContractWithParties[]> {
 
 export async function getChangeOrders(): Promise<ChangeOrderWithContract[]> {
   return withFallback(
+    "getChangeOrders",
     async (db) => {
       const { data } = await db
         .from("change_orders")

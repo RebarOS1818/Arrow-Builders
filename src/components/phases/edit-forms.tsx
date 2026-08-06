@@ -19,8 +19,10 @@ import {
 } from "@/app/(app)/construction/actions";
 import { updateTask } from "@/app/(app)/tasks/actions";
 import { updateDocument } from "@/app/(app)/documents/actions";
+import { updateApproval } from "@/app/(app)/approvals/actions";
 import { DOCUMENT_CATEGORIES, PARCEL_CATEGORIES } from "@/lib/uploads";
 import type {
+  Approval,
   BidPackage,
   ChangeOrder,
   Comparable,
@@ -616,6 +618,67 @@ export function EditDocumentForm({
             value: c,
             label: c,
           })),
+        },
+      ]}
+    />
+  );
+}
+
+const APPROVAL_KINDS = [
+  { value: "change_order", label: "Change Order" },
+  { value: "payment_application", label: "Payment Application" },
+  { value: "submittal", label: "Submittal" },
+  { value: "rfq", label: "RFQ" },
+  { value: "rfi", label: "RFI" },
+];
+
+/**
+ * Correcting an item awaiting sign-off.
+ *
+ * Status is absent on purpose. Approving is a decision with a decider behind
+ * it, made by the two buttons on the row; an edit form that could also set it
+ * would put a sign-off in the record that nobody made.
+ */
+export function EditApprovalForm({
+  approval,
+  projects,
+}: {
+  approval: Approval;
+  projects: { id: string; name: string }[];
+}) {
+  return (
+    <RecordForm
+      edit
+      triggerLabel="Edit"
+      title="Edit item"
+      description="Changes the item itself. Approving and rejecting stay on the row."
+      submitLabel="Save"
+      action={updateApproval}
+      fields={[
+        id(approval.id),
+        { name: "reference", label: "Reference", required: true, defaultValue: approval.reference, wide: true },
+        {
+          name: "kind",
+          label: "Type",
+          type: "select",
+          required: true,
+          defaultValue: approval.kind,
+          options: APPROVAL_KINDS,
+        },
+        {
+          name: "project_id",
+          label: "Project",
+          type: "select",
+          required: true,
+          defaultValue: approval.project_id,
+          options: projects.map((p) => ({ value: p.id, label: p.name })),
+        },
+        {
+          name: "amount",
+          label: "Amount",
+          type: "money",
+          defaultValue: n(approval.amount),
+          hint: "Blank for items that carry no cost, like an RFI.",
         },
       ]}
     />

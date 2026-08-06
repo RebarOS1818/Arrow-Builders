@@ -2,7 +2,9 @@ import { CheckCircle2 } from "lucide-react";
 import { EmptyState } from "@/components/ui/empty-state";
 import Link from "next/link";
 import { ApprovalActions } from "@/components/approvals/approval-actions";
-import { getApprovals } from "@/lib/data";
+import { ClickableRow } from "@/components/phases/clickable-row";
+import { EditApprovalForm } from "@/components/phases/edit-forms";
+import { getApprovals, getProjects } from "@/lib/data";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import type { ApprovalKind } from "@/lib/types";
 
@@ -17,7 +19,7 @@ const KIND_LABELS: Record<ApprovalKind, string> = {
 };
 
 export default async function ApprovalsPage() {
-  const approvals = await getApprovals();
+  const [approvals, projects] = await Promise.all([getApprovals(), getProjects()]);
   const totalValue = approvals.reduce((sum, a) => sum + Number(a.amount ?? 0), 0);
 
   return (
@@ -43,7 +45,7 @@ export default async function ApprovalsPage() {
           </thead>
           <tbody role="rowgroup" className="divide-y divide-line">
             {approvals.map((approval) => (
-              <tr role="row" key={approval.id} className="hover:bg-canvas/60">
+              <ClickableRow key={approval.id} className="cursor-pointer hover:bg-canvas/60">
                 <td role="cell" className="px-4 py-3 font-medium">{approval.reference}</td>
                 <td role="cell" data-label="Type" className="px-4 py-3 text-ink-muted">
                   {KIND_LABELS[approval.kind]}
@@ -60,9 +62,15 @@ export default async function ApprovalsPage() {
                   {approval.amount != null ? formatCurrency(approval.amount) : "—"}
                 </td>
                 <td role="cell" data-cell="action" className="px-4 py-3 text-right">
-                  <ApprovalActions id={approval.id} reference={approval.reference} />
+                  <span className="flex items-center justify-end gap-2">
+                    <ApprovalActions id={approval.id} reference={approval.reference} />
+                    <EditApprovalForm
+                      approval={approval}
+                      projects={projects.map((p) => ({ id: p.id, name: p.name }))}
+                    />
+                  </span>
                 </td>
-              </tr>
+              </ClickableRow>
             ))}
             {approvals.length === 0 && (
               <tr>
