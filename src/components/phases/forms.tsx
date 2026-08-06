@@ -56,8 +56,9 @@ export function NewPropertyForm() {
       fields={[
         // Pre-Planning holds what is knowable while a parcel is still a
         // candidate; Planning holds what only exists once it is being bought.
-        { name: "name", label: "Property name", required: true, placeholder: "9-11 Northbrook", wide: true, tab: "Pre-Planning" },
-        { name: "address", label: "Address", type: "address", placeholder: "4545 Kings Highway", wide: true, tab: "Pre-Planning" },
+        // The address is the parcel's name. There is no separate title field:
+        // one of the two always ends up stale, and it is never the address.
+        { name: "address", label: "Address", type: "address", required: true, placeholder: "4545 Kings Highway", wide: true, tab: "Pre-Planning" },
         { name: "city", label: "City", tab: "Pre-Planning" },
         { name: "state", label: "State", placeholder: "VA", tab: "Pre-Planning" },
         { name: "parcel_number", label: "APN", hint: "Assessor's parcel number.", placeholder: "85698574", tab: "Pre-Planning" },

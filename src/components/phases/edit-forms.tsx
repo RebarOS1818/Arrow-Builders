@@ -91,8 +91,7 @@ export function EditPropertyForm({ property }: { property: Property }) {
       action={updateProperty}
       fields={[
         id(property.id),
-        { name: "name", label: "Name", required: true, defaultValue: property.name, wide: true },
-        { name: "address", label: "Address", type: "address", defaultValue: property.address },
+        { name: "address", label: "Address", type: "address", required: true, defaultValue: property.address, wide: true, tab: "Pre-Planning" },
         { name: "parcel_number", label: "APN", hint: "Assessor's parcel number.", defaultValue: property.parcel_number ?? "", tab: "Pre-Planning" },
         { name: "city", label: "City", defaultValue: property.city, tab: "Pre-Planning" },
         { name: "state", label: "State", defaultValue: property.state, tab: "Pre-Planning" },

@@ -69,12 +69,18 @@ export default async function PropertyPage({
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <div className="flex flex-wrap items-center gap-2">
-            <h1 className="text-3xl font-bold tracking-tight">{property.name}</h1>
+            {/* The address is the name now, so the heading is the street line
+                and the row beneath carries the parts that place it — city,
+                state, APN — rather than repeating it. */}
+            <h1 className="text-3xl font-bold tracking-tight">
+              {property.address || property.name}
+            </h1>
             <StatusPill kind="property" value={property.status} />
             <EditPropertyForm property={property} />
           </div>
           <MapLink
             className="mt-1 flex flex-wrap items-center gap-1.5 text-sm text-ink-muted"
+            display={[property.city, property.state].filter(Boolean).join(", ")}
             address={property.address}
             city={property.city}
             state={property.state}
