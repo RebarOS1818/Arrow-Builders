@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, CalendarDays, FileText } from "lucide-react";
 import { MapLink } from "@/components/phases/map-link";
+import { OpenOnClick } from "@/components/phases/open-on-click";
 import { EditProjectForm } from "@/components/projects/new-project-form";
 import { ProjectCover } from "@/components/projects/project-cover";
 import { ProgressRing } from "@/components/ui/progress-ring";
@@ -63,7 +64,9 @@ export default async function ProjectDetailPage({
 
         <div className="flex flex-wrap items-start justify-between gap-6 p-5">
           <div>
-            <div className="flex flex-wrap items-center gap-3">
+            {/* No row to click on a detail page, so the title block is the
+                record's container. */}
+            <OpenOnClick className="flex cursor-pointer flex-wrap items-center gap-3">
               <h1 className="text-2xl font-bold tracking-tight">{project.name}</h1>
               <EditProjectForm
                 project={project}
@@ -72,7 +75,7 @@ export default async function ProjectDetailPage({
                   name: p.address || p.name,
                 }))}
               />
-            </div>
+            </OpenOnClick>
             <MapLink
               className="mt-1 flex flex-wrap items-center gap-1.5 text-sm text-ink-muted"
               city={project.city}

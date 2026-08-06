@@ -143,19 +143,28 @@ export function RecordForm({
           data-record-trigger=""
           onClick={() => setOpen(true)}
           disabled={disabled}
+          // The label is on the button rather than in it, because in edit mode
+          // there is no text — and "Edit" with nothing naming what would be no
+          // better for a screen reader than the pencil alone.
+          aria-label={edit ? title : undefined}
           className={cn(
-            "pressable inline-flex items-center gap-2 rounded-full text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-50",
-            // Adding is the primary act on a page and takes the solid navy.
-            // Editing is one row's secondary action, repeated down the whole
-            // table — in navy it becomes a column of identical blobs louder
-            // than the data, and the row itself already opens the record.
+            "pressable inline-flex items-center gap-2 rounded-full font-semibold transition disabled:cursor-not-allowed disabled:opacity-50",
             edit
-              ? "bg-canvas px-3.5 py-2 text-ink-muted hover:bg-line hover:text-ink"
-              : "bg-brand-600 px-4 py-2.5 text-white hover:bg-brand-700",
+              ? // A pencil, no word, and invisible until the container it sits
+                // in is hovered. Repeated down forty rows the word "Edit" is
+                // forty copies of the same instruction competing with the data
+                // beside it, and the row was already the thing people clicked.
+                // It stays in the DOM and reachable by tab: the container is
+                // deliberately not focusable, so this is the keyboard path, and
+                // focus makes it appear.
+                "size-8 justify-center bg-canvas text-ink-muted opacity-0 group-hover:opacity-100 hover:bg-line hover:text-ink focus-visible:opacity-100 aria-expanded:opacity-100"
+              : // Adding is the primary act on a page and keeps the solid navy.
+                "bg-brand-600 px-4 py-2.5 text-sm text-white hover:bg-brand-700",
           )}
+          aria-expanded={edit ? open : undefined}
         >
           {edit ? <Pencil className="size-3.5" /> : <Plus className="size-4" />}
-          {triggerLabel}
+          {!edit && triggerLabel}
         </button>
         {/* Written out rather than left to a `title`: a disabled button swallows
             the events a tooltip needs, so the explanation would never appear

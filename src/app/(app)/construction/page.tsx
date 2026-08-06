@@ -1,4 +1,6 @@
-import { AlertTriangle, Star } from "lucide-react";
+import { AlertTriangle, FileSignature, Layers, Star, Users } from "lucide-react";
+import { ConstructionSetup } from "@/components/construction/setup";
+import { EmptyState } from "@/components/ui/empty-state";
 import { Pill, StatusPill, humanise } from "@/components/phases/badges";
 import { ClickableRow } from "@/components/phases/clickable-row";
 import { OpenOnClick } from "@/components/phases/open-on-click";
@@ -77,14 +79,30 @@ export default async function ConstructionPage() {
     return days !== null && days >= 0 && days < INSURANCE_WARNING_DAYS;
   });
 
+  // Nothing has been committed anywhere. The four sections below would each be
+  // an empty panel with a disabled button, so none of them render — the ordered
+  // path replaces the whole page until there is something to show.
+  const untouched =
+    subs.length === 0 && packages.length === 0 && contracts.length === 0;
+
+  if (untouched) {
+    return (
+      <div className="space-y-6">
+        <Header />
+        <ConstructionSetup
+          hasProjects={projects.length > 0}
+          hasSubs={subs.length > 0}
+          hasPackages={packages.length > 0}
+          projects={projectOptions}
+          subcontractors={subOptions}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Construction</h1>
-        <p className="mt-1 text-sm text-ink-muted">
-          Subcontractors, bids, contracts and change orders.
-        </p>
-      </div>
+      <Header />
 
       <section className="card grid grid-cols-2 gap-4 p-5 sm:grid-cols-4">
         <Stat label="Committed" value={formatCompactCurrency(committed)} />
@@ -143,31 +161,39 @@ export default async function ConstructionPage() {
           <NewContractForm projects={projectOptions} subcontractors={subOptions} />
         </div>
         <div className="card mt-3 overflow-x-auto">
-          <table className="w-full min-w-3xl text-sm">
-            <thead>
-              <tr className="text-left text-xs uppercase tracking-wider text-ink-subtle">
-                <th className="px-5 py-3 font-semibold">Contract</th>
-                <th className="px-5 py-3 font-semibold">Subcontractor</th>
-                <th className="px-5 py-3 font-semibold">Project</th>
-                <th className="px-5 py-3 text-right font-semibold">Original</th>
-                <th className="px-5 py-3 text-right font-semibold">Changes</th>
-                <th className="px-5 py-3 text-right font-semibold">Current</th>
-                <th className="px-5 py-3 font-semibold">Status</th>
+          <table role="table" className="stacked-table w-full min-w-3xl text-sm">
+            <thead role="rowgroup">
+              <tr role="row" className="text-left text-xs uppercase tracking-wider text-ink-subtle">
+                <th role="columnheader" className="px-5 py-3 font-semibold">Contract</th>
+                <th role="columnheader" className="px-5 py-3 font-semibold">Subcontractor</th>
+                <th role="columnheader" className="px-5 py-3 font-semibold">Project</th>
+                <th role="columnheader" className="px-5 py-3 text-right font-semibold">Original</th>
+                <th role="columnheader" className="px-5 py-3 text-right font-semibold">Changes</th>
+                <th role="columnheader" className="px-5 py-3 text-right font-semibold">Current</th>
+                <th role="columnheader" className="px-5 py-3 font-semibold">Status</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-line">
+            <tbody role="rowgroup" className="divide-y divide-line">
               {contracts.map((c) => {
                 const changes = c.totals?.approved_changes ?? 0;
                 return (
                   <ClickableRow key={c.id} className="cursor-pointer hover:bg-canvas/60">
-                    <td className="px-5 py-3">
+                    <td role="cell" className="px-5 py-3">
                       <p className="font-medium">{c.title}</p>
                       <p className="text-xs text-ink-subtle">{c.contract_number}</p>
                     </td>
-                    <td className="px-5 py-3 text-ink-muted">{c.subcontractor.company_name}</td>
-                    <td className="px-5 py-3 text-ink-muted">{c.project.name}</td>
-                    <td className="px-5 py-3 text-right">{formatCurrency(c.original_amount)}</td>
+                    <td role="cell" data-label="Subcontractor" className="px-5 py-3 text-ink-muted">
+                      {c.subcontractor.company_name}
+                    </td>
+                    <td role="cell" data-label="Project" className="px-5 py-3 text-ink-muted">
+                      {c.project.name}
+                    </td>
+                    <td role="cell" data-label="Original" className="px-5 py-3 text-right">
+                      {formatCurrency(c.original_amount)}
+                    </td>
                     <td
+                      role="cell"
+                      data-label="Changes"
                       className={`px-5 py-3 text-right ${
                         changes > 0
                           ? "text-status-behind-ink"
@@ -180,10 +206,10 @@ export default async function ConstructionPage() {
                         ? "—"
                         : `${changes > 0 ? "+" : ""}${formatCurrency(changes)}`}
                     </td>
-                    <td className="px-5 py-3 text-right font-semibold">
+                    <td role="cell" data-label="Current" className="px-5 py-3 text-right font-semibold">
                       {formatCurrency(c.totals?.current_amount ?? c.original_amount)}
                     </td>
-                    <td className="px-5 py-3">
+                    <td role="cell" data-label="Status" className="px-5 py-3">
                       <span className="flex items-center gap-2">
                         <StatusPill kind="contract" value={c.status} />
                         <EditContractForm contract={c} />
@@ -195,7 +221,13 @@ export default async function ConstructionPage() {
             </tbody>
           </table>
           {contracts.length === 0 && (
-            <p className="p-8 text-center text-sm text-ink-muted">No contracts yet.</p>
+            <EmptyState
+              variant="clear"
+              icon={FileSignature}
+              title="No contracts awarded yet"
+            >
+              A contract is the committed figure for one company on one job.
+            </EmptyState>
           )}
         </div>
       </section>
@@ -208,7 +240,13 @@ export default async function ConstructionPage() {
         </div>
         <ul className="card mt-3 divide-y divide-line">
           {changeOrders.length === 0 && (
-            <li className="p-5 text-sm text-ink-muted">No change orders.</li>
+            <li>
+              <EmptyState variant="clear" title="No change orders">
+                {contracts.length === 0
+                  ? "A change order adjusts a contract, so there is nothing to adjust yet."
+                  : "Nothing has moved the committed figure since the contracts were signed."}
+              </EmptyState>
+            </li>
           )}
           {changeOrders.map((co) => (
             <li key={co.id}>
@@ -254,6 +292,14 @@ export default async function ConstructionPage() {
           </div>
         </div>
         <div className="mt-3 space-y-3">
+          {packages.length === 0 && (
+            <div className="card">
+              <EmptyState variant="clear" icon={Layers} title="No bid packages out">
+                A package is a scope you want priced. Quotes come back against it
+                and are compared side by side, low bid marked.
+              </EmptyState>
+            </div>
+          )}
           {packages.map((pkg) => {
             const sorted = [...pkg.quotes].sort((a, b) => a.amount - b.amount);
             const low = sorted[0];
@@ -288,10 +334,10 @@ export default async function ConstructionPage() {
                     {sorted.map((quote) => {
                       const overBudget = pkg.budget !== null && quote.amount > pkg.budget;
                       return (
-                        <li
-                          key={quote.id}
-                          className="flex flex-wrap items-center gap-3 py-2.5"
-                        >
+                        <li key={quote.id}>
+                          {/* Its own scope, so clicking a quote opens the quote
+                              rather than the package it sits inside. */}
+                          <OpenOnClick className="flex cursor-pointer flex-wrap items-center gap-3 py-2.5">
                           <div className="min-w-40 flex-1">
                             <div className="flex flex-wrap items-center gap-2">
                               <p className="text-sm font-medium">
@@ -321,6 +367,7 @@ export default async function ConstructionPage() {
                           >
                             {formatCurrency(quote.amount)}
                           </p>
+                          </OpenOnClick>
                         </li>
                       );
                     })}
@@ -338,6 +385,14 @@ export default async function ConstructionPage() {
           <h2 className="text-lg font-semibold tracking-tight">Subcontractors</h2>
           <NewSubcontractorForm />
         </div>
+        {subs.length === 0 && (
+          <div className="card mt-3">
+            <EmptyState variant="clear" icon={Users} title="No subcontractors yet">
+              The companies you award work to. Insurance expiry is tracked here
+              and warned about before it lapses.
+            </EmptyState>
+          </div>
+        )}
         <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
           {subs.map((sub) => {
             const expires = sub.insurance_expires_at ? new Date(sub.insurance_expires_at) : null;
@@ -388,6 +443,17 @@ export default async function ConstructionPage() {
           })}
         </div>
       </section>
+    </div>
+  );
+}
+
+function Header() {
+  return (
+    <div>
+      <h1 className="text-3xl font-bold tracking-tight">Construction</h1>
+      <p className="mt-1 text-sm text-ink-muted">
+        What has been committed to other companies, across every job.
+      </p>
     </div>
   );
 }

@@ -80,9 +80,14 @@ export function PlanChangeConfirm({
       </div>
 
       <dl className="mt-5 space-y-3 border-t border-line pt-5 text-sm">
+        {/* Without a date this has to read as a sentence rather than a heading
+            with its value missing. Sola does not always report the next
+            billing date — after a cancellation it reports none at all — and
+            "Next payment" sitting alone looks like the date failed to load
+            rather than like something nobody has told us. */}
         <Row
           icon={CalendarDays}
-          term={renewsOn ? `Next payment, ${formatDate(renewsOn)}` : "Next payment"}
+          term={renewsOn ? `Next payment, ${formatDate(renewsOn)}` : "From your next payment"}
         >
           <span className="font-semibold tabular-nums">{money(to.priceCents)}</span>
           <span className="text-ink-subtle"> instead of {money(from.priceCents)}</span>
@@ -103,7 +108,12 @@ export function PlanChangeConfirm({
 
       <p className="mt-4 text-xs text-ink-subtle">
         {isUpgrade
-          ? `Your monthly bill goes up by ${money(difference)}. The change takes effect on your next payment date — Sola does not prorate, so the month you have already paid for is unaffected.`
+          ? `Your monthly bill goes up by ${money(difference)}. The change takes effect on your next payment${
+              // Only promised as a knowable date when there is one. Pointing at
+              // "your next payment date" while the row above cannot name it is
+              // the app claiming to know something it does not.
+              renewsOn ? ` date, ${formatDate(renewsOn)}` : ""
+            } — Sola does not prorate, so the month you have already paid for is unaffected.`
           : `Your monthly bill goes down by ${money(-difference)}. The month you have already paid for is not refunded or prorated.`}
       </p>
 

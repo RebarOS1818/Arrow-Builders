@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { Pill, StatusPill, humanise } from "@/components/phases/badges";
 import { PROPERTY_TYPE_OPTIONS } from "@/lib/pipeline";
+import { ClickableRow } from "@/components/phases/clickable-row";
 import { OpenOnClick } from "@/components/phases/open-on-click";
 import { MapLink, coordQuery, mapsQuery, mapsUrl } from "@/components/phases/map-link";
 import {
@@ -108,7 +109,9 @@ export default async function PropertyPage({
 
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <div className="flex flex-wrap items-center gap-2">
+          {/* The heading is the record's own container: there is no row to
+              click on a detail page, so the title block is what opens it. */}
+          <OpenOnClick className="flex cursor-pointer flex-wrap items-center gap-2">
             {/* The address is the name now, so the heading is the street line
                 and the row beneath carries the parts that place it — city,
                 state, APN — rather than repeating it. */}
@@ -117,7 +120,7 @@ export default async function PropertyPage({
             </h1>
             <StatusPill kind="property" value={property.status} />
             <EditPropertyForm property={property} />
-          </div>
+          </OpenOnClick>
           <MapLink
             className="mt-1 flex flex-wrap items-center gap-1.5 text-sm text-ink-muted"
             display={[property.city, property.state].filter(Boolean).join(", ")}
@@ -336,7 +339,7 @@ export default async function PropertyPage({
                   <th role="columnheader" className="px-5 py-3 text-right font-semibold">Acres</th>
                   <th role="columnheader" className="px-5 py-3 text-right font-semibold">Per acre</th>
                   <th role="columnheader" className="px-5 py-3 text-right font-semibold">Distance</th>
-                  <th role="columnheader" className="px-5 py-3 text-right font-semibold">Edit</th>
+                  <th role="columnheader" className="px-5 py-3 text-right font-semibold"><span className="sr-only">Edit</span></th>
                 </tr>
               </thead>
               <tbody role="rowgroup" className="divide-y divide-line">
@@ -349,7 +352,7 @@ export default async function PropertyPage({
                   </tr>
                 )}
                 {comparables.map((c) => (
-                  <tr role="row" key={c.id}>
+                  <ClickableRow key={c.id} className="cursor-pointer hover:bg-canvas/60">
                     <td role="cell" className="px-5 py-3 font-medium">
                       {/* A comp is near the parcel by definition, so its own
                           city fills the gap when the row only carries a street. */}
@@ -394,7 +397,7 @@ export default async function PropertyPage({
                     <td role="cell" data-cell="action" className="px-5 py-3 text-right">
                       <EditComparableForm comparable={c} propertyId={property.id} />
                     </td>
-                  </tr>
+                  </ClickableRow>
                 ))}
               </tbody>
             </table>

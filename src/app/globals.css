@@ -392,8 +392,18 @@ small,
     text-align: left;
   }
 
-  /* Actions get the full width rather than a sliver at the end of a row. */
+  /*
+   * Actions get the full width rather than a sliver at the end of a row —
+   * except when the only action is the hover pencil, which a touch screen has
+   * no way to reveal and does not need: the card itself is the tap target.
+   * Left in, it is a blank strip under every card.
+   */
   .stacked-table td[data-cell="action"] {
+    display: none;
+  }
+
+  .stacked-table td[data-cell="action"]:has(> *:not([data-record-trigger])) {
+    display: flex;
     justify-content: flex-end;
     padding-top: 0.625rem;
   }
