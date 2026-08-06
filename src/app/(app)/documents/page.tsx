@@ -1,8 +1,11 @@
+import { FileText } from "lucide-react";
 import { Suspense } from "react";
 import { DocumentLink } from "@/components/documents/document-link";
 import { ClickableRow } from "@/components/phases/clickable-row";
 import { EditDocumentForm } from "@/components/phases/edit-forms";
 import { UploadDocument } from "@/components/documents/upload-document";
+import { ClearFilters } from "@/components/ui/clear-filters";
+import { EmptyState } from "@/components/ui/empty-state";
 import { FilterSelect } from "@/components/ui/filter-select";
 import { getDocuments, getProjects } from "@/lib/data";
 import { formatDate } from "@/lib/utils";
@@ -110,8 +113,16 @@ export default async function DocumentsPage({
             ))}
             {visible.length === 0 && (
               <tr>
-                <td colSpan={7} className="px-4 py-10 text-center text-ink-muted">
-                  No documents match these filters.
+                <td colSpan={7} className="px-2 py-2">
+                  <EmptyState
+                    variant="filtered"
+                    icon={FileText}
+                    title="Nothing matches these filters"
+                    action={<ClearFilters params={["project", "category"]} />}
+                  >
+                    There are documents here — none of them fit what you have
+                    selected.
+                  </EmptyState>
                 </td>
               </tr>
             )}
