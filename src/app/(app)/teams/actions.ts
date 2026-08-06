@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { APP_URL } from "@/lib/app-config";
 import { isInviteEmailConfigured, sendInviteEmail } from "@/lib/email/invite";
+import { callerOrg, readableError, str, type ActionResult } from "@/lib/forms";
 
 /** Why the invite email did not go out, when it did not. */
 export type InviteDelivery =
@@ -147,3 +148,59 @@ export async function acceptInvite(
   return { ok: true, org: result.org ?? "your organization" };
 }
 
+
+/**
+ * Correcting a teammate's details.
+ *
+ * Everything that decides what someone may do is refused elsewhere and stays
+ * refused: `is_admin` by the trigger in 0004 and by not being granted, `org_id`
+ * by the trigger in 0002. What is left is what a person is called and what they
+ * do — a name misspelled at sign-up, a blank trade, a job title that changed —
+ * which had no way to be fixed except the SQL editor.
+ *
+ * Who may call it is decided by row level security rather than here: an admin
+ * may update anyone in their organization, anyone else only themselves. A
+ * caller without the right matches no row and is told so.
+ */
+export async function updateMember(data: FormData): Promise<ActionResult> {
+  const id = str(data, "id");
+  if (!id) return { ok: false, error: "Which person?" };
+
+  const fullName = str(data, "full_name");
+  if (!fullName) return { ok: false, error: "A person needs a name." };
+
+  const caller = await callerOrg();
+  if (!caller.ok) return caller;
+
+  const { data: updated, error } = await caller.db
+    .from("profiles")
+    .update({
+      full_name: fullName,
+      // Kept in step with the name rather than typed separately: initials that
+      // disagree with the name they abbreviate are worse than no initials.
+      initials: (str(data, "initials") || initialsFrom(fullName)).slice(0, 3).toUpperCase(),
+      role: str(data, "role") ?? "Crew",
+      trade: str(data, "trade") || null,
+      on_site_today: data.get("on_site_today") === "on",
+    })
+    .eq("id", id)
+    .eq("org_id", caller.orgId)
+    .select("id");
+
+  if (error) return { ok: false, error: readableError(error) };
+  if (!updated || updated.length === 0) {
+    return {
+      ok: false,
+      error: "Only an admin can change someone else's details.",
+    };
+  }
+
+  revalidatePath("/teams");
+  revalidatePath("/");
+  return { ok: true };
+}
+
+function initialsFrom(name: string) {
+  const parts = name.trim().split(/\s+/);
+  return ((parts[0]?.[0] ?? "") + (parts.length > 1 ? (parts.at(-1)?.[0] ?? "") : "")) || "?";
+}
