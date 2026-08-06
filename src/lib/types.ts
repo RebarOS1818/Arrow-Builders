@@ -128,12 +128,26 @@ export type DashboardMetrics = {
 /* Development phase                                                   */
 /* ------------------------------------------------------------------ */
 
+/**
+ * The acquisition pipeline, in order. The order is the process, and the board
+ * renders columns straight from it — a stage in the wrong place here is a
+ * pipeline that reads wrong on screen.
+ */
 export type PropertyStatus =
-  | "prospect"
-  | "under_review"
+  | "prospecting"
+  | "pre_planning"
+  | "planning"
   | "under_contract"
-  | "acquired"
+  | "owned_predevelopment"
+  | "in_development"
+  | "units_listed"
+  | "partially_sold"
+  | "sold_out"
   | "passed";
+
+/** Single-family or multi-family. Free text in the database so a third kind
+ *  does not need a migration to exist. */
+export type PropertyType = "single_family_lot" | "multi_family_lot";
 
 export type StudyKind =
   | "zoning"
@@ -165,10 +179,21 @@ export type Property = {
   address: string;
   city: string;
   state: string;
+  /** APN — the assessor's parcel number. */
   parcel_number: string | null;
   lot_size_acres: number | null;
+  /** As quoted. Not derived from acres, and neither derives the other. */
+  lot_size_sqft: number | null;
   zoning_code: string | null;
   asking_price: number | null;
+  property_type: string | null;
+  total_units_planned: number | null;
+  acquisition_date: string | null;
+  /** Budgeted construction cost, as against asking_price for acquisition. */
+  hard_cost_budget: number | null;
+  broker: string | null;
+  owner_name: string | null;
+  architect: string | null;
   status: PropertyStatus;
   notes: string;
   identified_at: string;

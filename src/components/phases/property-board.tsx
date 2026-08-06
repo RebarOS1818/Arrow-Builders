@@ -5,16 +5,12 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { GripVertical, MapPin } from "lucide-react";
 import { moveProperty } from "@/app/(app)/development/actions";
+import { PIPELINE } from "@/lib/pipeline";
 import { formatCompactCurrency } from "@/lib/utils";
 import type { Property, PropertyStatus } from "@/lib/types";
 
-const COLUMNS: { status: PropertyStatus; label: string; hint: string }[] = [
-  { status: "prospect", label: "Prospect", hint: "Identified, not yet assessed" },
-  { status: "under_review", label: "Under review", hint: "Studies in progress" },
-  { status: "under_contract", label: "Under contract", hint: "Offer accepted" },
-  { status: "acquired", label: "Acquired", hint: "Closed" },
-  { status: "passed", label: "Passed", hint: "Walked away" },
-];
+/** The pipeline is the board. Columns are never declared here. */
+const COLUMNS = PIPELINE;
 
 type Drag = {
   id: string;
@@ -200,16 +196,21 @@ export function PropertyBoard({ properties }: { properties: Property[] }) {
               }}
               aria-label={`${column.label}, ${inColumn.length} ${inColumn.length === 1 ? "parcel" : "parcels"}`}
               className={`flex w-72 shrink-0 flex-col rounded-card p-2.5 transition-colors ${
-                isTarget ? "bg-brand-100 ring-2 ring-brand-300" : "bg-shell"
-              }`}
+                isTarget ? "ring-2 ring-brand-400" : ""
+              } ${column.tint}`}
             >
-              <header className="flex items-baseline justify-between gap-2 px-1.5 pb-2">
-                <h3 className="text-sm font-semibold tracking-tight">{column.label}</h3>
-                <span className="text-xs font-medium text-ink-subtle tabular-nums">
+              {/* The stage's own colour, carried as a filled header rather than
+                  a dot: at nine columns the eye needs to find a stage without
+                  reading every label. */}
+              <header
+                className={`flex items-center justify-between gap-2 rounded-full px-3 py-1.5 ${column.fill}`}
+              >
+                <h3 className="truncate text-sm font-semibold tracking-tight">{column.label}</h3>
+                <span className="text-xs font-semibold tabular-nums opacity-80">
                   {inColumn.length}
                 </span>
               </header>
-              <p className="px-1.5 pb-2 text-xs text-ink-subtle">{column.hint}</p>
+              <p className="px-1.5 pb-2 pt-2 text-xs text-ink-subtle">{column.hint}</p>
 
               <div className="flex flex-col gap-2">
                 {inColumn.map((property) => {

@@ -32,6 +32,15 @@ export type Field = {
   step?: string;
   /** For "address": which sibling inputs a chosen suggestion should fill. */
   fills?: { city?: string; state?: string; postalCode?: string };
+  /**
+   * Which tab the field belongs to. Fields with no tab always show.
+   *
+   * Tabs group a long form by when its parts get filled in, not by what they
+   * are about — the acquisition form has fields you know on day one and fields
+   * you cannot know until much later, and putting them in one column makes the
+   * form read as mostly blank no matter how far along a parcel is.
+   */
+  tab?: string;
 };
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
@@ -68,6 +77,10 @@ export function RecordForm({
 }) {
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Declaration order, deduplicated — the first tab named is the one that opens.
+  const tabs = [...new Set(fields.map((f) => f.tab).filter(Boolean))] as string[];
+  const [tab, setTab] = useState<string | null>(null);
+  const activeTab = tab ?? tabs[0] ?? null;
   const [pending, startTransition] = useTransition();
   const router = useRouter();
   const dialogRef = useRef<HTMLDivElement>(null);
@@ -184,10 +197,38 @@ export function RecordForm({
               </button>
             </div>
 
+            {tabs.length > 1 && (
+              <div className="mt-4 flex gap-1 rounded-full bg-canvas p-1">
+                {tabs.map((name) => (
+                  <button
+                    key={name}
+                    type="button"
+                    onClick={() => setTab(name)}
+                    aria-pressed={name === activeTab}
+                    className={cn(
+                      "flex-1 rounded-full px-3 py-2 text-sm font-medium transition-colors",
+                      name === activeTab
+                        ? "bg-surface text-ink shadow-soft"
+                        : "text-ink-muted hover:text-ink",
+                    )}
+                  >
+                    {name}
+                  </button>
+                ))}
+              </div>
+            )}
+
             <form onSubmit={onSubmit} className="mt-5">
+              {/* Hidden rather than unmounted: an input removed from the DOM is
+                  an input missing from FormData, so switching tabs would
+                  silently drop whatever the other tab had collected. */}
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 {fields.map((field) => (
-                  <FieldInput key={field.name} field={field} />
+                  <FieldInput
+                    key={field.name}
+                    field={field}
+                    hidden={Boolean(field.tab) && field.tab !== activeTab}
+                  />
                 ))}
               </div>
 
@@ -225,7 +266,7 @@ export function RecordForm({
 const inputClass =
   "mt-1.5 w-full rounded-tile bg-canvas px-3.5 py-2.5 text-sm outline-none placeholder:text-ink-subtle focus:ring-2 focus:ring-brand-200";
 
-function FieldInput({ field }: { field: Field }) {
+function FieldInput({ field, hidden }: { field: Field; hidden?: boolean }) {
   const { name, label, type = "text", required, placeholder, options, hint, defaultValue } = field;
 
   // Carried through the form without occupying a grid cell — a labelless text
@@ -243,14 +284,14 @@ function FieldInput({ field }: { field: Field }) {
         placeholder={placeholder}
         defaultValue={defaultValue}
         fills={field.fills}
-        className={cn("block", field.wide && "sm:col-span-2")}
+        className={cn("block", field.wide && "sm:col-span-2", hidden && "hidden")}
       />
     );
   }
 
   if (type === "checkbox") {
     return (
-      <label className={cn("flex items-center gap-2.5 text-sm", field.wide && "sm:col-span-2")}>
+      <label className={cn("flex items-center gap-2.5 text-sm", field.wide && "sm:col-span-2", hidden && "hidden")}>
         <input
           type="checkbox"
           name={name}
@@ -263,7 +304,7 @@ function FieldInput({ field }: { field: Field }) {
   }
 
   return (
-    <label className={cn("block", (field.wide || type === "textarea") && "sm:col-span-2")}>
+    <label className={cn("block", (field.wide || type === "textarea") && "sm:col-span-2", hidden && "hidden")}>
       <span className="text-sm font-medium">
         {label}
         {required && <span className="text-status-risk"> *</span>}

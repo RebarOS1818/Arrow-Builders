@@ -45,10 +45,17 @@ export const humanise = (value: string) =>
   value.replace(/_/g, " ").replace(/^./, (c) => c.toUpperCase());
 
 const PROPERTY_TONES: Record<string, Tone> = {
-  prospect: "neutral",
-  under_review: "info",
+  prospecting: "info",
+  pre_planning: "info",
+  planning: "neutral",
   under_contract: "warn",
-  acquired: "good",
+  owned_predevelopment: "neutral",
+  in_development: "warn",
+  units_listed: "info",
+  partially_sold: "warn",
+  sold_out: "good",
+  // Not a failure, but the one stage that means no further work will happen —
+  // the only one worth setting apart from the rest of the pipeline at a glance.
   passed: "bad",
 };
 
