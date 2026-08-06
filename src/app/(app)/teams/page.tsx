@@ -28,9 +28,13 @@ export default async function TeamsPage() {
             {team.length} people · {onSite.length} on site today
           </p>
         </div>
+        {/* A pill rather than an inline link: it is the only control in this
+            header, and as bare text it was a 20px-tall target on a phone. The
+            app's rule is that a control is a white lifted pill, which gives it
+            a thumb-sized target as a consequence rather than as a patch. */}
         <Link
           href="/billing"
-          className="text-sm font-medium text-brand-700 hover:underline"
+          className="pill pressable font-medium text-brand-700 hover:shadow-lift"
         >
           Seats &amp; billing
         </Link>

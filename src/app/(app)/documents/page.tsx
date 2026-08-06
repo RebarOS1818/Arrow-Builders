@@ -70,40 +70,46 @@ export default async function DocumentsPage({
       </div>
 
       <div className="card scroll-thin overflow-x-auto">
-        <table className="w-full min-w-[720px] text-sm">
-          <thead>
-            <tr className="border-b border-line text-left text-xs font-semibold text-ink-muted">
-              <th className="px-4 py-3">Name</th>
-              <th className="px-4 py-3">Project</th>
-              <th className="px-4 py-3">Category</th>
-              <th className="px-4 py-3">Uploaded by</th>
-              <th className="px-4 py-3">Date</th>
-              <th className="px-4 py-3 text-right">Size</th>
-              <th className="px-4 py-3 text-right">Edit</th>
+        <table role="table" className="stacked-table w-full min-w-[720px] text-sm">
+          <thead role="rowgroup">
+            <tr role="row" className="border-b border-line text-left text-xs font-semibold text-ink-muted">
+              <th role="columnheader" className="px-4 py-3">Name</th>
+              <th role="columnheader" className="px-4 py-3">Project</th>
+              <th role="columnheader" className="px-4 py-3">Category</th>
+              <th role="columnheader" className="px-4 py-3">Uploaded by</th>
+              <th role="columnheader" className="px-4 py-3">Date</th>
+              <th role="columnheader" className="px-4 py-3 text-right">Size</th>
+              <th role="columnheader" className="px-4 py-3 text-right">Edit</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-line">
+          <tbody role="rowgroup" className="divide-y divide-line">
             {visible.map((document) => (
               <ClickableRow key={document.id} className="cursor-pointer hover:bg-canvas/60">
-                <td className="px-4 py-3">
+                <td role="cell" className="px-4 py-3">
                   <DocumentLink
                     id={document.id}
                     name={document.name}
                     hasFile={Boolean(document.storage_path)}
                   />
                 </td>
-                <td className="px-4 py-3 text-ink-muted">{document.project.name}</td>
-                <td className="px-4 py-3">
+                <td role="cell" data-label="Project" className="px-4 py-3 text-ink-muted">
+                  {document.project.name}
+                </td>
+                <td role="cell" data-label="Category" className="px-4 py-3">
                   <span className="rounded-full bg-canvas px-2 py-0.5 text-xs font-medium text-ink-muted">
                     {document.category}
                   </span>
                 </td>
-                <td className="px-4 py-3 text-ink-muted">{document.uploaded_by}</td>
-                <td className="px-4 py-3 text-ink-muted">{formatDate(document.uploaded_at)}</td>
-                <td className="px-4 py-3 text-right text-ink-muted">
+                <td role="cell" data-label="Uploaded by" className="px-4 py-3 text-ink-muted">
+                  {document.uploaded_by}
+                </td>
+                <td role="cell" data-label="Date" className="px-4 py-3 text-ink-muted">
+                  {formatDate(document.uploaded_at)}
+                </td>
+                <td role="cell" data-label="Size" className="px-4 py-3 text-right text-ink-muted">
                   {formatSize(document.size_kb)}
                 </td>
-                <td className="px-4 py-3 text-right">
+                <td role="cell" data-cell="action" className="px-4 py-3 text-right">
                   <EditDocumentForm
                     document={document}
                     projects={projects.map((p) => ({ id: p.id, name: p.name }))}

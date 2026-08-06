@@ -50,7 +50,14 @@
   --color-mint-300: #93cbaf;
   --color-mint-400: #5cb98e;
   --color-mint-500: #34c88a;
-  --color-mint-600: #22a06e;
+  /*
+   * Darkened from #22a06e, which was 3.0:1 on mint-50 and 3.3:1 on white — a
+   * green that reads as green but not as text. Every use of this step is a
+   * word or a figure ("+$240k", "On track"), never a fill, so it has to clear
+   * 4.5:1 on the tints it sits on rather than merely look green next to them.
+   * Now 4.95:1 on mint-50 and 5.4:1 on white.
+   */
+  --color-mint-600: #15794f;
 
   /* Surfaces: a tinted page behind a near-white shell, tinted by the brand hue. */
   --color-canvas: #e4e8f1;
@@ -72,15 +79,22 @@
    * brand's amber is within a few degrees of this one, so letting the brand take
    * amber would have made "behind schedule" indistinguishable from decoration.
    */
-  --color-status-ontrack: #22a06e;
+  --color-status-ontrack: #15794f;
   /*
    * Nudged from #e8a33d toward orange now that the brand owns amber. At two
    * degrees apart the two were the same colour to any eye, and a status has to
    * be distinguishable from decoration.
    */
   --color-status-behind: #e08a2e;
-  --color-status-risk: #e5615c;
-  --color-status-done: #22a06e;
+  /*
+   * Darkened from #e5615c. The old red was 3.1:1 on rose-50 and 3.4:1 on white,
+   * and this token carries the thing you least want missed — validation errors,
+   * "At risk", the cancel-subscription button. It also failed the other way
+   * round: white type on the old red as a button fill was 3.4:1. Now 5.4:1 on
+   * rose-50, 5.9:1 on white, and 5.9:1 white-on-red as a fill.
+   */
+  --color-status-risk: #b93229;
+  --color-status-done: #15794f;
   /*
    * The same amber, dark enough to read as text. #e8a33d is 2.2:1 on white —
    * fine as a fill or a dot, unreadable as a word.
@@ -95,7 +109,7 @@
   --color-trade-general: #546892;
   --color-trade-concrete: #e8a33d;
   --color-trade-electrical: #7c6fe0;
-  --color-trade-plumbing: #22a06e;
+  --color-trade-plumbing: #15794f;
   --color-trade-finishes: #e5799e;
 
   /*
@@ -306,6 +320,89 @@ small,
 @media (prefers-reduced-motion: reduce) {
   .sheet-surface {
     transform: none;
+  }
+}
+
+/*
+ * A data table that becomes a list of cards on a phone.
+ *
+ * Seven columns cannot be shown in 390 pixels, so the alternative was a
+ * horizontal scroller — which puts the amount and the Approve button off the
+ * right edge of an approvals queue, behind a gesture nothing on screen suggests
+ * exists. Approvals are the thing most likely to be done from a phone on a
+ * site, and the page appeared to have no actions at all.
+ *
+ * Stacked, every cell keeps its heading as a label beside the value, so the
+ * column that was implied by position is now stated. The first cell is the
+ * card's title and takes no label — a value under the word "Reference" tells
+ * you nothing the reference itself did not.
+ *
+ * Roles are declared explicitly on the markup because `display: block` drops a
+ * table's implicit semantics; without them a screen reader would meet seven
+ * loose paragraphs.
+ */
+@media (width < 48rem) {
+  .stacked-table {
+    min-width: 0;
+  }
+
+  /* Kept in the DOM: the headings are the source of every cell's label. */
+  .stacked-table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .stacked-table tbody,
+  .stacked-table tr,
+  .stacked-table td {
+    display: block;
+  }
+
+  .stacked-table tbody tr {
+    padding: 0.75rem 0.25rem;
+  }
+
+  .stacked-table td {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.3125rem 1rem;
+    text-align: right;
+  }
+
+  .stacked-table td[data-label]::before {
+    content: attr(data-label);
+    flex: none;
+    color: var(--color-ink-muted);
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-align: left;
+  }
+
+  /* The title of the card, so it reads first and largest. */
+  .stacked-table tbody td:first-child {
+    padding-bottom: 0.5rem;
+    font-size: 1rem;
+    font-weight: 600;
+    text-align: left;
+  }
+
+  /* Actions get the full width rather than a sliver at the end of a row. */
+  .stacked-table td[data-cell="action"] {
+    justify-content: flex-end;
+    padding-top: 0.625rem;
+  }
+
+  /* An empty state is not a row of fields and must not be padded like one. */
+  .stacked-table td[colspan] {
+    display: block;
+    padding: 0;
+    text-align: center;
   }
 }
 

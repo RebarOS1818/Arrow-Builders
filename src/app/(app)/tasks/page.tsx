@@ -94,22 +94,22 @@ export default async function TasksPage({
       </div>
 
       <div className="card scroll-thin overflow-x-auto">
-        <table className="w-full min-w-[720px] text-sm">
-          <thead>
-            <tr className="border-b border-line text-left text-xs font-semibold text-ink-muted">
-              <th className="px-4 py-3">Task</th>
-              <th className="px-4 py-3">Project</th>
-              <th className="px-4 py-3">Trade</th>
-              <th className="px-4 py-3">Status</th>
-              <th className="px-4 py-3">Crew</th>
-              <th className="px-4 py-3 text-right">Scheduled</th>
-              <th className="px-4 py-3 text-right">Edit</th>
+        <table role="table" className="stacked-table w-full min-w-[720px] text-sm">
+          <thead role="rowgroup">
+            <tr role="row" className="border-b border-line text-left text-xs font-semibold text-ink-muted">
+              <th role="columnheader" className="px-4 py-3">Task</th>
+              <th role="columnheader" className="px-4 py-3">Project</th>
+              <th role="columnheader" className="px-4 py-3">Trade</th>
+              <th role="columnheader" className="px-4 py-3">Status</th>
+              <th role="columnheader" className="px-4 py-3">Crew</th>
+              <th role="columnheader" className="px-4 py-3 text-right">Scheduled</th>
+              <th role="columnheader" className="px-4 py-3 text-right">Edit</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-line">
+          <tbody role="rowgroup" className="divide-y divide-line">
             {visible.map((task) => (
               <ClickableRow key={task.id} className="cursor-pointer hover:bg-canvas/60">
-                <td className="px-4 py-3 font-medium">
+                <td role="cell" className="px-4 py-3 font-medium">
                   <span className="flex items-center gap-2">
                     {task.title}
                     {task.overdue && (
@@ -120,18 +120,18 @@ export default async function TasksPage({
                     )}
                   </span>
                 </td>
-                <td className="px-4 py-3 text-ink-muted">
+                <td role="cell" data-label="Project" className="px-4 py-3 text-ink-muted">
                   <Link href={`/projects/${task.project_id}`} className="hover:text-brand-700">
                     {task.project.name}
                   </Link>
                 </td>
-                <td className="px-4 py-3">
+                <td role="cell" data-label="Trade" className="px-4 py-3">
                   <span className="flex items-center gap-1.5 text-ink-muted">
                     <TradeDot trade={task.trade} />
                     {TRADE_LABELS[task.trade]}
                   </span>
                 </td>
-                <td className="px-4 py-3">
+                <td role="cell" data-label="Status" className="px-4 py-3">
                   <span
                     className={cn(
                       "rounded-full px-2 py-0.5 text-xs font-medium",
@@ -141,11 +141,13 @@ export default async function TasksPage({
                     {STATUS_LABELS[task.status]}
                   </span>
                 </td>
-                <td className="px-4 py-3 text-ink-muted">{task.crew_size}</td>
-                <td className="px-4 py-3 text-right text-ink-muted">
+                <td role="cell" data-label="Crew" className="px-4 py-3 text-ink-muted">
+                  {task.crew_size}
+                </td>
+                <td role="cell" data-label="Scheduled" className="px-4 py-3 text-right text-ink-muted">
                   {task.starts_at ? formatShortDate(task.starts_at) : "—"}
                 </td>
-                <td className="px-4 py-3 text-right">
+                <td role="cell" data-cell="action" className="px-4 py-3 text-right">
                   <EditTaskForm
                     task={task}
                     projects={projects.map((p) => ({ id: p.id, name: p.name }))}
