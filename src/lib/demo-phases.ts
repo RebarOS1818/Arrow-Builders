@@ -158,18 +158,18 @@ export const demoOffers: Offer[] = [
 const P = demoProjects;
 
 export const demoBuildings: Building[] = [
-  { id: "bl-1", project_id: P[0]!.id, name: "Building A", building_type: "multifamily", status: "under_construction", floors: 3, gross_sqft: 42000, permit_number: "BP-2025-0412" },
-  { id: "bl-2", project_id: P[0]!.id, name: "Building B", building_type: "multifamily", status: "permitting", floors: 3, gross_sqft: 42000, permit_number: null },
-  { id: "bl-3", project_id: P[1]!.id, name: "Townhome Row 1", building_type: "townhome", status: "under_construction", floors: 2, gross_sqft: 18600, permit_number: "BP-2025-0388" },
+  { id: "bl-1", project_id: P[0]!.id, name: "Building A", building_type: "multifamily", status: "under_construction", floors: 3, gross_sqft: 42000, permit_number: "BP-2025-0412", permit_issued_at: "2025-04-12", completed_at: null },
+  { id: "bl-2", project_id: P[0]!.id, name: "Building B", building_type: "multifamily", status: "permitting", floors: 3, gross_sqft: 42000, permit_number: null, permit_issued_at: null, completed_at: null },
+  { id: "bl-3", project_id: P[1]!.id, name: "Townhome Row 1", building_type: "townhome", status: "under_construction", floors: 2, gross_sqft: 18600, permit_number: "BP-2025-0388", permit_issued_at: "2025-03-28", completed_at: null },
 ];
 
 export const demoUnits: Unit[] = [
-  { id: "u-1", building_id: "bl-1", project_id: P[0]!.id, unit_number: "101", unit_type: "2BR", status: "complete", bedrooms: 2, bathrooms: 2, sqft: 980, list_price: 385_000 },
-  { id: "u-2", building_id: "bl-1", project_id: P[0]!.id, unit_number: "102", unit_type: "2BR", status: "sold", bedrooms: 2, bathrooms: 2, sqft: 980, list_price: 385_000 },
-  { id: "u-3", building_id: "bl-1", project_id: P[0]!.id, unit_number: "201", unit_type: "3BR", status: "under_construction", bedrooms: 3, bathrooms: 2, sqft: 1240, list_price: 452_000 },
-  { id: "u-4", building_id: "bl-2", project_id: P[0]!.id, unit_number: "101", unit_type: "1BR", status: "planned", bedrooms: 1, bathrooms: 1, sqft: 720, list_price: 298_000 },
-  { id: "u-5", building_id: "bl-3", project_id: P[1]!.id, unit_number: "A", unit_type: "3BR TH", status: "under_construction", bedrooms: 3, bathrooms: 2.5, sqft: 1680, list_price: 512_000 },
-  { id: "u-6", building_id: "bl-3", project_id: P[1]!.id, unit_number: "B", unit_type: "3BR TH", status: "reserved", bedrooms: 3, bathrooms: 2.5, sqft: 1680, list_price: 512_000 },
+  { id: "u-1", building_id: "bl-1", project_id: P[0]!.id, unit_number: "101", unit_type: "2BR", status: "complete", floor: 1, bedrooms: 2, bathrooms: 2, sqft: 980, list_price: 385_000, sold_price: null, closed_at: null },
+  { id: "u-2", building_id: "bl-1", project_id: P[0]!.id, unit_number: "102", unit_type: "2BR", status: "sold", floor: 1, bedrooms: 2, bathrooms: 2, sqft: 980, list_price: 385_000, sold_price: 392_000, closed_at: "2025-07-18" },
+  { id: "u-3", building_id: "bl-1", project_id: P[0]!.id, unit_number: "201", unit_type: "3BR", status: "under_construction", floor: 2, bedrooms: 3, bathrooms: 2, sqft: 1240, list_price: 452_000, sold_price: null, closed_at: null },
+  { id: "u-4", building_id: "bl-2", project_id: P[0]!.id, unit_number: "101", unit_type: "1BR", status: "planned", floor: 1, bedrooms: 1, bathrooms: 1, sqft: 720, list_price: 298_000, sold_price: null, closed_at: null },
+  { id: "u-5", building_id: "bl-3", project_id: P[1]!.id, unit_number: "A", unit_type: "3BR TH", status: "under_construction", floor: null, bedrooms: 3, bathrooms: 2.5, sqft: 1680, list_price: 512_000, sold_price: null, closed_at: null },
+  { id: "u-6", building_id: "bl-3", project_id: P[1]!.id, unit_number: "B", unit_type: "3BR TH", status: "reserved", floor: null, bedrooms: 3, bathrooms: 2.5, sqft: 1680, list_price: 512_000, sold_price: null, closed_at: null },
 ];
 
 export const demoSubcontractors: Subcontractor[] = [

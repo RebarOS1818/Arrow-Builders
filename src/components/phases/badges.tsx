@@ -114,6 +114,11 @@ const BID_TONES: Record<string, Tone> = {
   cancelled: "neutral",
 };
 
+/**
+ * Shared by buildings and units: a unit's states are the building's plus the
+ * three a building never reaches. One map because "complete" has to look the
+ * same on both, and two maps drift.
+ */
 const BUILD_TONES: Record<string, Tone> = {
   planned: "neutral",
   permitting: "info",
@@ -135,6 +140,7 @@ const MAPS: Record<string, Record<string, Tone>> = {
   change: CHANGE_TONES,
   bid: BID_TONES,
   build: BUILD_TONES,
+  unit: BUILD_TONES,
 };
 
 export function StatusPill({

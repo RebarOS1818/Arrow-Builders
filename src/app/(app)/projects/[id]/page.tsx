@@ -3,6 +3,8 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, CalendarDays, FileText } from "lucide-react";
 import { MapLink } from "@/components/phases/map-link";
 import { OpenOnClick } from "@/components/phases/open-on-click";
+import { BuildingCard, NoBuildings } from "@/components/construction/building-card";
+import { NewBuildingForm } from "@/components/construction/building-forms";
 import {
   EditApprovalForm,
   EditDocumentForm,
@@ -15,6 +17,7 @@ import { StatusLabel, TRADE_LABELS, TradeDot } from "@/components/ui/badge";
 import {
   getApprovals,
   getDocuments,
+  getBuildings,
   getMilestones,
   getProjects,
   getProperties,
@@ -31,7 +34,7 @@ export default async function ProjectDetailPage({
 }) {
   const { id } = await params;
 
-  const [projects, tasks, milestones, documents, approvals, properties] =
+  const [projects, tasks, milestones, documents, approvals, properties, buildings] =
     await Promise.all([
       getProjects(),
       getTasks(),
@@ -39,6 +42,7 @@ export default async function ProjectDetailPage({
       getDocuments(),
       getApprovals(),
       getProperties(),
+      getBuildings(id),
     ]);
 
   const project = projects.find((p) => p.id === id);
@@ -202,6 +206,31 @@ export default async function ProjectDetailPage({
           </section>
         </div>
       </div>
+
+      {/* Buildings ------------------------------------------------- */}
+      <section>
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h2 className="text-lg font-semibold tracking-tight">Buildings</h2>
+            <p className="mt-1 text-sm text-ink-muted">
+              Units belong to a building, and the sales figures are counted from
+              them — nothing here is typed twice.
+            </p>
+          </div>
+          <NewBuildingForm projectId={project.id} />
+        </div>
+        <div className="mt-3">
+          {buildings.length === 0 ? (
+            <NoBuildings />
+          ) : (
+            <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-2 xl:grid-cols-3">
+              {buildings.map((building) => (
+                <BuildingCard key={building.id} building={building} />
+              ))}
+            </div>
+          )}
+        </div>
+      </section>
     </div>
   );
 }

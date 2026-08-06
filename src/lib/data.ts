@@ -33,6 +33,10 @@ import {
 } from "./demo-phases";
 import type {
   BidPackageWithQuotes,
+  Building,
+  BuildingTotals,
+  BuildingWithTotals,
+  Unit,
   ChangeOrderWithContract,
   Comparable,
   ContractTotal,
@@ -715,5 +719,73 @@ export async function getChangeOrders(): Promise<ChangeOrderWithContract[]> {
           project: projectRef(co.project_id),
         };
       }),
+  );
+}
+
+/**
+ * Buildings on a project, each with its units and its sales arithmetic.
+ *
+ * Units come back nested rather than as a second call the page has to stitch:
+ * a building is only meaningful alongside what is in it, and every screen that
+ * shows one shows both.
+ */
+export async function getBuildings(projectId?: string): Promise<BuildingWithTotals[]> {
+  return withFallback(
+    "getBuildings",
+    async (db) => {
+      let query = db.from("buildings").select("*").order("name");
+      if (projectId) query = query.eq("project_id", projectId);
+      const { data } = await query;
+      if (!data) return null;
+
+      const buildings = data as Building[];
+      const ids = buildings.map((b) => b.id);
+      if (ids.length === 0) return [];
+
+      // The view carries the counting and the money, so no page recomputes what
+      // a building has sold.
+      const [{ data: totals }, { data: units }] = await Promise.all([
+        db.from("building_totals").select("*").in("building_id", ids),
+        db.from("units").select("*").in("building_id", ids).order("unit_number"),
+      ]);
+
+      const totalsById = new Map(
+        ((totals as (BuildingTotals & { building_id: string })[] | null) ?? []).map((t) => [
+          t.building_id,
+          t,
+        ]),
+      );
+      const unitsByBuilding = new Map<string, Unit[]>();
+      for (const unit of (units as Unit[] | null) ?? []) {
+        const list = unitsByBuilding.get(unit.building_id) ?? [];
+        list.push(unit);
+        unitsByBuilding.set(unit.building_id, list);
+      }
+
+      return buildings.map((b) => ({
+        ...b,
+        totals: totalsById.get(b.id) ?? null,
+        units: unitsByBuilding.get(b.id) ?? [],
+      }));
+    },
+    (): BuildingWithTotals[] =>
+      demoBuildings
+        .filter((b) => !projectId || b.project_id === projectId)
+        .map((b) => {
+          const units = demoUnits.filter((u) => u.building_id === b.id);
+          const sold = units.filter((u) => u.status === "sold");
+          return {
+            ...b,
+            units,
+            totals: {
+              unit_count: units.length,
+              units_sold: sold.length,
+              sales_revenue: sold.reduce((sum, u) => sum + (u.sold_price ?? 0), 0),
+              unsold_list_value: units
+                .filter((u) => u.status !== "sold")
+                .reduce((sum, u) => sum + (u.list_price ?? 0), 0),
+            },
+          };
+        }),
   );
 }
