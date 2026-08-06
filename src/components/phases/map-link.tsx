@@ -50,6 +50,7 @@ export function MapLink({
   latitude,
   longitude,
   suffix,
+  display,
   className,
   showIcon = true,
 }: {
@@ -60,11 +61,20 @@ export function MapLink({
   longitude?: number | null;
   /** Trailing text kept outside the link, such as a parcel number. */
   suffix?: string;
+  /**
+   * Overrides the visible text without changing where the link points.
+   *
+   * For places that already show the street line above — repeating it in the
+   * line beneath says nothing, while the map still needs the whole address to
+   * find the parcel.
+   */
+  display?: string;
   className?: string;
   showIcon?: boolean;
 }) {
   const query = coordQuery(latitude, longitude) ?? mapsQuery({ address, city, state });
-  const label = [address, city, state].map((p) => p?.trim()).filter(Boolean).join(", ");
+  const full = [address, city, state].map((p) => p?.trim()).filter(Boolean).join(", ");
+  const label = display?.trim() || full;
 
   if (!query) {
     return (

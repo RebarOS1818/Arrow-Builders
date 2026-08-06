@@ -30,13 +30,17 @@ export async function createProperty(data: FormData): Promise<ActionResult> {
   const caller = await callerOrg();
   if (!caller.ok) return caller;
 
-  const name = str(data, "name");
-  if (!name) return { ok: false, error: "Give the property a name." };
+  // A parcel is known by its address, so the address is what identifies it.
+  // `name` stays in the database — it is not null and half the app reads it as
+  // the display label — but it is derived here rather than asked for, so there
+  // is one field to fill in and no way for the two to disagree.
+  const address = str(data, "address");
+  if (!address) return { ok: false, error: "Give the property an address." };
 
   const { error } = await caller.db.from("properties").insert({
     org_id: caller.orgId,
-    name,
-    address: str(data, "address") ?? "",
+    name: address,
+    address,
     city: str(data, "city") ?? "",
     state: str(data, "state") ?? "",
     parcel_number: str(data, "parcel_number"),
@@ -259,22 +263,32 @@ export async function moveProperty(id: string, status: string): Promise<ActionRe
  */
 
 export async function updateProperty(data: FormData): Promise<ActionResult> {
-  const name = str(data, "name");
-  if (!name) return { ok: false, error: "Give the property a name." };
+  const address = str(data, "address");
+  if (!address) return { ok: false, error: "Give the property an address." };
 
   const id = str(data, "id");
   const result = await updateOwned(
     "properties",
     id,
     {
-      name,
-      address: str(data, "address") ?? "",
+      // Kept in step with the address for the same reason it is derived on
+      // create: two fields that mean the same thing drift apart.
+      name: address,
+      address,
       city: str(data, "city") ?? "",
       state: str(data, "state") ?? "",
       parcel_number: str(data, "parcel_number"),
       lot_size_acres: num(data, "lot_size_acres"),
+      lot_size_sqft: num(data, "lot_size_sqft"),
       zoning_code: str(data, "zoning_code"),
       asking_price: num(data, "asking_price"),
+      property_type: str(data, "property_type"),
+      total_units_planned: num(data, "total_units_planned"),
+      acquisition_date: str(data, "acquisition_date"),
+      hard_cost_budget: num(data, "hard_cost_budget"),
+      broker: str(data, "broker"),
+      owner_name: str(data, "owner_name"),
+      architect: str(data, "architect"),
       status: str(data, "status") ?? "prospecting",
       notes: str(data, "notes") ?? "",
       // Only overwritten when the edit picked a suggestion; a hand-typed address
