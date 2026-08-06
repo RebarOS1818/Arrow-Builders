@@ -2,7 +2,10 @@ import Link from "next/link";
 import { HardHat, MailCheck } from "lucide-react";
 import { Avatar } from "@/components/ui/avatar";
 import { TRADE_LABELS, TradeDot } from "@/components/ui/badge";
+import { EditMemberForm } from "@/components/teams/edit-member";
 import { InviteForm } from "@/components/teams/invite-form";
+import { RevokeInvite } from "@/components/teams/revoke-invite";
+import { OpenOnClick } from "@/components/phases/open-on-click";
 import { SeatMeter } from "@/components/billing/seat-meter";
 import { getPendingInvites, getTeam } from "@/lib/data";
 import { getBillingSummary } from "@/lib/billing";
@@ -69,6 +72,9 @@ export default async function TeamsPage() {
                 <span className="shrink-0 rounded-full bg-canvas px-2.5 py-1 text-xs font-medium text-ink-muted">
                   Holding a seat
                 </span>
+                {/* The way to stop it holding one. An invite sent twice, or to
+                    the wrong address, was costing a seat with no way back. */}
+                {billing.isAdmin && <RevokeInvite id={invite.id} email={invite.email} />}
               </li>
             ))}
           </ul>
@@ -79,10 +85,16 @@ export default async function TeamsPage() {
         <h2 className="text-lg font-semibold tracking-tight">Members</h2>
         <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {team.map((member) => (
-            <article key={member.id} className="card flex items-start gap-3 p-4">
+            <OpenOnClick
+              key={member.id}
+              className="card flex cursor-pointer items-start gap-3 p-4 transition-shadow hover:shadow-lift"
+            >
               <Avatar name={member.full_name} initials={member.initials} size="lg" />
               <div className="min-w-0 flex-1">
-                <p className="truncate font-semibold leading-tight">{member.full_name}</p>
+                <div className="flex items-start justify-between gap-2">
+                  <p className="truncate font-semibold leading-tight">{member.full_name}</p>
+                  <EditMemberForm member={member} />
+                </div>
                 <p className="mt-0.5 text-sm text-ink-muted">{member.role}</p>
 
                 <div className="mt-2 flex flex-wrap items-center gap-2">
@@ -100,7 +112,7 @@ export default async function TeamsPage() {
                   )}
                 </div>
               </div>
-            </article>
+            </OpenOnClick>
           ))}
         </div>
       </section>
