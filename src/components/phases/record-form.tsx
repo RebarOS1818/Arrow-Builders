@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, Pencil, Plus, X } from "lucide-react";
+import { Sheet } from "@/components/ui/sheet";
 import { AddressField } from "./address-field";
 import { cn } from "@/lib/utils";
 
@@ -164,22 +165,8 @@ export function RecordForm({
         )}
       </span>
 
-      {open && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center">
-          <button
-            type="button"
-            aria-label="Close"
-            onClick={() => setOpen(false)}
-            className="absolute inset-0 bg-ink/30 backdrop-blur-[2px]"
-          />
-
-          <div
-            ref={dialogRef}
-            role="dialog"
-            aria-modal="true"
-            aria-label={title}
-            className="relative max-h-[92vh] w-full overflow-y-auto rounded-t-[2rem] bg-surface p-6 shadow-material sm:max-w-2xl sm:rounded-[2rem]"
-          >
+      <Sheet open={open} onClose={() => setOpen(false)} label={title} className="p-6">
+        <div ref={dialogRef}>
             <div className="flex items-start justify-between gap-4">
               <div>
                 <h2 className="text-xl font-semibold tracking-tight">{title}</h2>
@@ -256,9 +243,8 @@ export function RecordForm({
                 </button>
               </div>
             </form>
-          </div>
         </div>
-      )}
+      </Sheet>
     </>
   );
 }
