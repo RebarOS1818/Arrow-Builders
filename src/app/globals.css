@@ -280,6 +280,35 @@ small,
   }
 }
 
+/*
+ * A modal surface, driven by one value the spring writes each frame:
+ * --sheet-progress, 0 presented and 1 dismissed.
+ *
+ * Two presentations from the same number. On a phone it travels its own height,
+ * because a sheet that grows out of nothing has no direction to be dismissed
+ * in. From `sm` it scales from just under full size, which reads as a surface
+ * arriving rather than a card being flown in from an edge it will never return
+ * to. Both leave along the path they entered by.
+ */
+.sheet-surface {
+  --sheet-progress: 1;
+  transform: translate3d(0, calc(var(--sheet-progress) * 100%), 0);
+}
+
+@media (min-width: 40rem) {
+  .sheet-surface {
+    transform: scale(calc(1 - var(--sheet-progress) * 0.04));
+  }
+}
+
+/* No travel when motion is unwelcome — the scrim and opacity still carry the
+   change, which is what makes it comprehensible rather than merely quieter. */
+@media (prefers-reduced-motion: reduce) {
+  .sheet-surface {
+    transform: none;
+  }
+}
+
 /* Heavier material for structural regions — sheets, popovers. */
 @utility material-thick {
   background-color: rgb(255 255 255 / 0.82);
