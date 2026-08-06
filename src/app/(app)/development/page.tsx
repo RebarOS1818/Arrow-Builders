@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { AlertTriangle, ArrowUpRight, Columns3, LayoutGrid, MapPin } from "lucide-react";
+import { AlertTriangle, ArrowUpRight, Columns3, Landmark, LayoutGrid, MapPin } from "lucide-react";
 import { StatusPill } from "@/components/phases/badges";
+import { EmptyState } from "@/components/ui/empty-state";
 import { NewPropertyForm } from "@/components/phases/forms";
 import { PropertyBoard } from "@/components/phases/property-board";
 import { getConstraints, getPropertiesSourced, getProFormas, getStudies } from "@/lib/data";
@@ -39,8 +40,9 @@ export default async function DevelopmentPage({
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Development</h1>
           <p className="mt-1 text-sm text-ink-muted">
-            {live.length} live {live.length === 1 ? "parcel" : "parcels"} ·{" "}
-            {formatCompactCurrency(pipelineValue)} asking
+            {properties.length === 0
+              ? "Land you are assessing, from first sight to sold out."
+              : `${live.length} live ${live.length === 1 ? "parcel" : "parcels"} · ${formatCompactCurrency(pipelineValue)} asking`}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -179,9 +181,14 @@ export default async function DevelopmentPage({
       )}
 
       {properties.length === 0 && (
-        <p className="card p-8 text-center text-sm text-ink-muted">
-          No properties yet. Parcels you are assessing will appear here.
-        </p>
+        <EmptyState
+          icon={Landmark}
+          title="No parcels yet"
+          action={<NewPropertyForm />}
+        >
+          Land you are assessing lives here, from first sight through to sold
+          out. Nothing becomes a project until you decide to build.
+        </EmptyState>
       )}
     </div>
   );

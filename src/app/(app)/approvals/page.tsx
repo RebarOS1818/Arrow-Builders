@@ -1,3 +1,5 @@
+import { CheckCircle2 } from "lucide-react";
+import { EmptyState } from "@/components/ui/empty-state";
 import Link from "next/link";
 import { ApprovalActions } from "@/components/approvals/approval-actions";
 import { getApprovals } from "@/lib/data";
@@ -60,8 +62,11 @@ export default async function ApprovalsPage() {
             ))}
             {approvals.length === 0 && (
               <tr>
-                <td colSpan={6} className="px-4 py-10 text-center text-ink-muted">
-                  Nothing awaiting approval.
+                <td colSpan={6} className="px-2 py-2">
+                  <EmptyState variant="clear" icon={CheckCircle2} title="Nothing awaiting approval">
+                    Change orders and invoices appear here when they need a
+                    decision.
+                  </EmptyState>
                 </td>
               </tr>
             )}
