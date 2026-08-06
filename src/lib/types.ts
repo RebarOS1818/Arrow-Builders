@@ -38,6 +38,8 @@ export type Project = {
   budget_total: number;
   target_date: string; // ISO date
   cover_url: string | null;
+  /** The parcel this was built on, once the development phase produced one. */
+  property_id: string | null;
 };
 
 export type Task = {
@@ -95,7 +97,9 @@ export type CashFlowPoint = {
 export type DocumentRecord = {
   id: string;
   org_id: string;
-  project_id: string;
+  /** Exactly one of these is set. A document belongs to a project or a parcel. */
+  project_id: string | null;
+  property_id: string | null;
   name: string;
   category: string;
   size_kb: number;

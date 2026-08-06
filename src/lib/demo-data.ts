@@ -41,6 +41,7 @@ export const demoProjects: Project[] = [
     budget_total: 3_450_000,
     target_date: "2025-08-22",
     cover_url: null,
+    property_id: null,
   },
   {
     id: "p-maple",
@@ -54,6 +55,9 @@ export const demoProjects: Project[] = [
     budget_total: 2_750_000,
     target_date: "2025-10-10",
     cover_url: null,
+    // Built on the Oakline parcel, so its studies, pro formas and the offer
+    // that won it are one click from the job site.
+    property_id: "prop-oak",
   },
   {
     id: "p-westgate",
@@ -67,6 +71,7 @@ export const demoProjects: Project[] = [
     budget_total: 3_200_000,
     target_date: "2025-12-18",
     cover_url: null,
+    property_id: null,
   },
 ];
 
@@ -144,12 +149,20 @@ export const demoCashFlow: CashFlowPoint[] = [
 ];
 
 export const demoDocuments: DocumentRecord[] = [
-  { id: "d-1", org_id: DEMO_ORG.id, storage_path: null, project_id: "p-riverside", name: "Riverside – Structural Set Rev C.pdf", category: "Drawings", size_kb: 18_420, uploaded_at: "2025-05-15T14:00:00-05:00", uploaded_by: "Marcus Webb" },
-  { id: "d-2", org_id: DEMO_ORG.id, storage_path: null, project_id: "p-maple", name: "Foundation Pour Log 05-15.xlsx", category: "Field Reports", size_kb: 240, uploaded_at: "2025-05-15T18:30:00-05:00", uploaded_by: "Alicia Reyes" },
-  { id: "d-3", org_id: DEMO_ORG.id, storage_path: null, project_id: "p-westgate", name: "Window Frame Submittal.pdf", category: "Submittals", size_kb: 6_180, uploaded_at: "2025-05-14T11:05:00-05:00", uploaded_by: "Priya Nair" },
-  { id: "d-4", org_id: DEMO_ORG.id, storage_path: null, project_id: "p-riverside", name: "Change Order 12 – Signed.pdf", category: "Contracts", size_kb: 890, uploaded_at: "2025-05-16T09:10:00-05:00", uploaded_by: "Jordan Mills" },
-  { id: "d-5", org_id: DEMO_ORG.id, storage_path: null, project_id: "p-maple", name: "Site Safety Plan 2025.docx", category: "Safety", size_kb: 1_320, uploaded_at: "2025-05-09T08:00:00-05:00", uploaded_by: "Sofia Ibarra" },
-  { id: "d-6", org_id: DEMO_ORG.id, storage_path: null, project_id: "p-westgate", name: "Steel Erection Sequence.pdf", category: "Drawings", size_kb: 9_640, uploaded_at: "2025-05-12T10:45:00-05:00", uploaded_by: "Marcus Webb" },
+  { id: "d-1", org_id: DEMO_ORG.id, storage_path: null, project_id: "p-riverside", property_id: null, name: "Riverside – Structural Set Rev C.pdf", category: "Drawings", size_kb: 18_420, uploaded_at: "2025-05-15T14:00:00-05:00", uploaded_by: "Marcus Webb" },
+  { id: "d-2", org_id: DEMO_ORG.id, storage_path: null, project_id: "p-maple", property_id: null, name: "Foundation Pour Log 05-15.xlsx", category: "Field Reports", size_kb: 240, uploaded_at: "2025-05-15T18:30:00-05:00", uploaded_by: "Alicia Reyes" },
+  { id: "d-3", org_id: DEMO_ORG.id, storage_path: null, project_id: "p-westgate", property_id: null, name: "Window Frame Submittal.pdf", category: "Submittals", size_kb: 6_180, uploaded_at: "2025-05-14T11:05:00-05:00", uploaded_by: "Priya Nair" },
+  { id: "d-4", org_id: DEMO_ORG.id, storage_path: null, project_id: "p-riverside", property_id: null, name: "Change Order 12 – Signed.pdf", category: "Contracts", size_kb: 890, uploaded_at: "2025-05-16T09:10:00-05:00", uploaded_by: "Jordan Mills" },
+  { id: "d-5", org_id: DEMO_ORG.id, storage_path: null, project_id: "p-maple", property_id: null, name: "Site Safety Plan 2025.docx", category: "Safety", size_kb: 1_320, uploaded_at: "2025-05-09T08:00:00-05:00", uploaded_by: "Sofia Ibarra" },
+  { id: "d-6", org_id: DEMO_ORG.id, storage_path: null, project_id: "p-westgate", property_id: null, name: "Steel Erection Sequence.pdf", category: "Drawings", size_kb: 9_640, uploaded_at: "2025-05-12T10:45:00-05:00", uploaded_by: "Marcus Webb" },
+
+  // Filed against a parcel rather than a project. These exist before a project
+  // does — which is exactly why documents had to stop requiring one.
+  { id: "d-7", org_id: DEMO_ORG.id, storage_path: null, project_id: null, property_id: "prop-oak", name: "Oakline – ALTA Survey.pdf", category: "Survey", size_kb: 4_210, uploaded_at: "2025-06-02T09:15:00-05:00", uploaded_by: "Jordan Mills" },
+  { id: "d-8", org_id: DEMO_ORG.id, storage_path: null, project_id: null, property_id: "prop-oak", name: "Oakline – Plot Plan Rev B.pdf", category: "Plot Plan", size_kb: 2_880, uploaded_at: "2025-06-09T16:40:00-05:00", uploaded_by: "Marcus Webb" },
+  { id: "d-9", org_id: DEMO_ORG.id, storage_path: null, project_id: null, property_id: "prop-oak", name: "Oakline – Massing Sketch.pdf", category: "Sketch", size_kb: 1_140, uploaded_at: "2025-06-11T11:20:00-05:00", uploaded_by: "Priya Nair" },
+  { id: "d-10", org_id: DEMO_ORG.id, storage_path: null, project_id: null, property_id: "prop-oak", name: "Oakline – Preliminary Title Report.pdf", category: "General", size_kb: 760, uploaded_at: "2025-06-14T08:05:00-05:00", uploaded_by: "Jordan Mills" },
+  { id: "d-11", org_id: DEMO_ORG.id, storage_path: null, project_id: null, property_id: "prop-cedar", name: "Cedar Hollow – Boundary Survey.pdf", category: "Survey", size_kb: 3_390, uploaded_at: "2025-04-22T13:00:00-05:00", uploaded_by: "Marcus Webb" },
 ];
 
 /** Headline numbers are portfolio-wide and include projects outside the demo detail set. */

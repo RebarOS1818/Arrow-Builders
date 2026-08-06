@@ -31,23 +31,31 @@ function safeName(name: string) {
  * caller's own organization, never from anything the client sent.
  */
 export async function createUploadTarget(
-  projectId: string,
+  owner: string | { projectId: string } | { propertyId: string },
   filename: string,
 ): Promise<{ ok: true; path: string; token: string } | { ok: false; error: string }> {
   const caller = await callerOrg();
   if (!caller.ok) return caller;
 
-  // Confirms the project is one the caller can see before a file is written
+  // A bare string is a project id, which is what every existing caller passes.
+  const target =
+    typeof owner === "string"
+      ? { table: "projects" as const, id: owner, label: "project" }
+      : "projectId" in owner
+        ? { table: "projects" as const, id: owner.projectId, label: "project" }
+        : { table: "properties" as const, id: owner.propertyId, label: "property" };
+
+  // Confirms the owner is one the caller can see before a file is written
   // against it. Row level security would catch the insert later, but only after
   // the upload had already succeeded and left an orphan behind.
-  const { data: project } = await caller.db
-    .from("projects")
+  const { data: row } = await caller.db
+    .from(target.table)
     .select("id")
-    .eq("id", projectId)
+    .eq("id", target.id)
     .maybeSingle();
-  if (!project) return { ok: false, error: "That project no longer exists." };
+  if (!row) return { ok: false, error: `That ${target.label} no longer exists.` };
 
-  const path = `${caller.orgId}/${projectId}/${crypto.randomUUID()}-${safeName(filename)}`;
+  const path = `${caller.orgId}/${target.id}/${crypto.randomUUID()}-${safeName(filename)}`;
 
   const { data, error } = await caller.db.storage.from(BUCKET).createSignedUploadUrl(path);
   if (error || !data) {
@@ -65,7 +73,9 @@ export async function createUploadTarget(
 
 /** Records an uploaded file. Called only after the bytes are safely in storage. */
 export async function recordDocument(input: {
-  projectId: string;
+  /** Exactly one of these. The database refuses a row that has both or neither. */
+  projectId?: string;
+  propertyId?: string;
   path: string;
   name: string;
   category: string;
@@ -73,6 +83,10 @@ export async function recordDocument(input: {
 }): Promise<ActionResult> {
   const caller = await callerOrg();
   if (!caller.ok) return caller;
+
+  if (Boolean(input.projectId) === Boolean(input.propertyId)) {
+    return { ok: false, error: "A document belongs to either a project or a parcel." };
+  }
 
   // The path was minted by createUploadTarget for this organization. Re-checking
   // it here stops a caller from recording someone else's file under their own row.
@@ -88,7 +102,8 @@ export async function recordDocument(input: {
 
   const { error } = await caller.db.from("documents").insert({
     org_id: caller.orgId,
-    project_id: input.projectId,
+    project_id: input.projectId ?? null,
+    property_id: input.propertyId ?? null,
     name: input.name,
     category: input.category || "General",
     // Rounded up, so a 200-byte file reads as 1 KB rather than 0.
@@ -105,6 +120,38 @@ export async function recordDocument(input: {
   }
 
   revalidatePath("/documents");
+  if (input.propertyId) revalidatePath(`/development/${input.propertyId}`);
+  return { ok: true };
+}
+
+/**
+ * Deletes a document, bytes and row.
+ *
+ * The file goes first. A row left pointing at nothing is a broken download; a
+ * file left with no row is invisible and unreachable, which is quieter and
+ * cheaper to be wrong about.
+ */
+export async function deleteDocument(id: string): Promise<ActionResult> {
+  const caller = await callerOrg();
+  if (!caller.ok) return caller;
+
+  const { data: document } = await caller.db
+    .from("documents")
+    .select("storage_path, property_id")
+    .eq("id", id)
+    .maybeSingle();
+  if (!document) return { ok: false, error: "That document no longer exists." };
+
+  const row = document as { storage_path: string | null; property_id: string | null };
+  if (row.storage_path) {
+    await caller.db.storage.from(BUCKET).remove([row.storage_path]);
+  }
+
+  const { error } = await caller.db.from("documents").delete().eq("id", id);
+  if (error) return { ok: false, error: readableError(error) };
+
+  revalidatePath("/documents");
+  if (row.property_id) revalidatePath(`/development/${row.property_id}`);
   return { ok: true };
 }
 

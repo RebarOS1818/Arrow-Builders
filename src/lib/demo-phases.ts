@@ -101,15 +101,20 @@ export const demoProperties: Property[] = [
     address: "Oakline & 3rd",
     city: "Round Rock",
     state: "TX",
-    parcel_number: null,
+    parcel_number: "R-448120",
     lot_size_acres: 3.8,
     zoning_code: "C-1",
     asking_price: 980_000,
-    status: "prospecting",
-    notes: "Three adjacent lots; two owners approached so far.",
+    // The one parcel that went all the way through: bought, and now building.
+    // Without it nothing demonstrates what an acquisition record looks like
+    // once it has an outcome, which is most of the point of keeping them.
+    status: "in_development",
+    notes: "Three adjacent lots assembled; closed as one parcel.",
     identified_at: "2025-05-06", latitude: null, longitude: null,
-    lot_size_sqft: null, property_type: null, total_units_planned: null,
-    acquisition_date: null, hard_cost_budget: null, broker: null, owner_name: null, architect: null,
+    lot_size_sqft: 165_528, property_type: "multi_family_lot", total_units_planned: 24,
+    acquisition_date: "2025-06-18", hard_cost_budget: 2_100_000,
+    broker: "Kestrel Land Partners", owner_name: "Oakline Holdings LLC",
+    architect: "Vance & Roe Architects",
   },
 ];
 

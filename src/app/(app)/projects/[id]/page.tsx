@@ -11,6 +11,7 @@ import {
   getDocuments,
   getMilestones,
   getProjects,
+  getProperties,
   getTasks,
 } from "@/lib/data";
 import { formatCurrency, formatDate, formatMillions, formatShortDate } from "@/lib/utils";
@@ -24,13 +25,15 @@ export default async function ProjectDetailPage({
 }) {
   const { id } = await params;
 
-  const [projects, tasks, milestones, documents, approvals] = await Promise.all([
-    getProjects(),
-    getTasks(),
-    getMilestones(),
-    getDocuments(),
-    getApprovals(),
-  ]);
+  const [projects, tasks, milestones, documents, approvals, properties] =
+    await Promise.all([
+      getProjects(),
+      getTasks(),
+      getMilestones(),
+      getDocuments(),
+      getApprovals(),
+      getProperties(),
+    ]);
 
   const project = projects.find((p) => p.id === id);
   if (!project) notFound();
@@ -62,7 +65,13 @@ export default async function ProjectDetailPage({
           <div>
             <div className="flex flex-wrap items-center gap-3">
               <h1 className="text-2xl font-bold tracking-tight">{project.name}</h1>
-              <EditProjectForm project={project} />
+              <EditProjectForm
+                project={project}
+                properties={properties.map((p) => ({
+                  id: p.id,
+                  name: p.address || p.name,
+                }))}
+              />
             </div>
             <MapLink
               className="mt-1 flex flex-wrap items-center gap-1.5 text-sm text-ink-muted"

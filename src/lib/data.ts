@@ -17,6 +17,7 @@ import {
 } from "./demo-data";
 import {
   demoBidPackages,
+  demoBuildings,
   demoChangeOrders,
   demoComparables,
   demoConstraints,
@@ -28,6 +29,7 @@ import {
   demoQuotes,
   demoStudies,
   demoSubcontractors,
+  demoUnits,
 } from "./demo-phases";
 import type {
   BidPackageWithQuotes,
@@ -197,18 +199,136 @@ export async function getTeam(): Promise<Profile[]> {
   );
 }
 
-export async function getDocuments(): Promise<(DocumentRecord & { project: { id: string; name: string } })[]> {
+/**
+ * Every document, whichever side of the business it belongs to.
+ *
+ * A document hangs off a project or off a parcel, never both, so the list has to
+ * resolve two different parents into one thing the table can print. `owner` is
+ * that: a label and the page it links to. Filing a survey against a parcel that
+ * has not become a project yet is the whole point of the parcel side, so those
+ * rows cannot simply be dropped from this list.
+ */
+export async function getDocuments(): Promise<DocumentWithOwner[]> {
   return withFallback(
     async (db) => {
       const { data } = await db
         .from("documents")
-        .select("*, project:projects(id, name)")
+        .select("*, project:projects(id, name), property:properties(id, name, address)")
         .order("uploaded_at", { ascending: false });
-      return data as (DocumentRecord & { project: { id: string; name: string } })[] | null;
+      return (data as DocumentJoined[] | null)?.map(documentOwner) ?? null;
     },
-    () => demoDocuments.map((d) => ({ ...d, project: projectRef(d.project_id) })),
+    () =>
+      demoDocuments.map((d) =>
+        documentOwner({
+          ...d,
+          project: d.project_id ? projectRef(d.project_id) : null,
+          property: d.property_id
+            ? (demoProperties.find((p) => p.id === d.property_id) ?? null)
+            : null,
+        }),
+      ),
   );
 }
+
+type DocumentJoined = DocumentRecord & {
+  project?: { id: string; name: string } | null;
+  property?: { id: string; name: string; address: string | null } | null;
+};
+
+export type DocumentWithOwner = DocumentRecord & {
+  owner: { kind: "project" | "property"; label: string; href: string } | null;
+};
+
+function documentOwner(row: DocumentJoined): DocumentWithOwner {
+  const { project, property, ...rest } = row;
+  if (project) {
+    return {
+      ...rest,
+      owner: { kind: "project", label: project.name, href: `/projects/${project.id}` },
+    };
+  }
+  if (property) {
+    return {
+      ...rest,
+      owner: {
+        kind: "property",
+        // The address is the parcel's name now; `name` is the fallback for rows
+        // entered before that was true.
+        label: property.address || property.name,
+        href: `/development/${property.id}`,
+      },
+    };
+  }
+  return { ...rest, owner: null };
+}
+
+/** Documents filed against a parcel, newest first. */
+export async function getPropertyDocuments(propertyId: string): Promise<DocumentRecord[]> {
+  return withFallback(
+    async (db) => {
+      const { data } = await db
+        .from("documents")
+        .select("*")
+        .eq("property_id", propertyId)
+        .order("uploaded_at", { ascending: false });
+      return data as DocumentRecord[] | null;
+    },
+    () => demoDocuments.filter((d) => d.property_id === propertyId),
+  );
+}
+
+/**
+ * What a parcel became, and everything hanging off it.
+ *
+ * The counts are read rather than the rows, because this section answers "is
+ * there anything there" and offers a way through — printing twenty unit numbers
+ * on the acquisition record would be a second copy of the construction page.
+ */
+export async function getPropertyOutcome(propertyId: string): Promise<PropertyOutcome | null> {
+  return withFallback(
+    async (db) => {
+      const { data: project } = await db
+        .from("projects")
+        .select("id, name, status, completion_pct")
+        .eq("property_id", propertyId)
+        .maybeSingle();
+      if (!project) return null;
+
+      const p = project as Pick<Project, "id" | "name" | "status" | "completion_pct">;
+      const count = async (table: string) =>
+        (await db.from(table).select("id", { count: "exact", head: true }).eq("project_id", p.id))
+          .count ?? 0;
+
+      const [tasks, contracts, buildings, units] = await Promise.all([
+        count("tasks"),
+        count("contracts"),
+        count("buildings"),
+        count("units"),
+      ]);
+
+      return { project: p, tasks, contracts, buildings, units };
+    },
+    () => {
+      const project = demoProjects.find((p) => p.property_id === propertyId);
+      if (!project) return null;
+      return {
+        project,
+        tasks: demoTasks.filter((t) => t.project_id === project.id).length,
+        contracts: demoContracts.filter((c) => c.project_id === project.id).length,
+        buildings: demoBuildings.filter((b) => b.project_id === project.id).length,
+        units: demoUnits.filter((u) => u.project_id === project.id).length,
+      };
+    },
+  );
+}
+
+export type PropertyOutcome = {
+  project: Pick<Project, "id" | "name" | "status" | "completion_pct">;
+  tasks: number;
+  contracts: number;
+  buildings: number;
+  units: number;
+};
 
 export async function getMetrics(): Promise<DashboardMetrics> {
   const db = await createClient();

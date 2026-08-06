@@ -85,6 +85,10 @@ export async function updateProject(data: FormData): Promise<ActionResult> {
       budget_total: num(data, "budget_total") ?? 0,
       budget_spent: num(data, "budget_spent") ?? 0,
       target_date: str(data, "target_date"),
+      // Blank clears it. A project entered before the parcel existed has to be
+      // linkable afterwards, or the link only ever works for projects created
+      // from now on — which is every project except the ones already there.
+      property_id: str(data, "property_id") ?? null,
     })
     .eq("id", id)
     .eq("org_id", caller.orgId)
