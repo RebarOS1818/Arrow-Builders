@@ -334,6 +334,21 @@ export type Building = {
   floors: number;
   gross_sqft: number | null;
   permit_number: string | null;
+  permit_issued_at: string | null;
+  completed_at: string | null;
+};
+
+/** Counted from the units rather than stored, so the two cannot disagree. */
+export type BuildingTotals = {
+  unit_count: number;
+  units_sold: number;
+  sales_revenue: number;
+  unsold_list_value: number;
+};
+
+export type BuildingWithTotals = Building & {
+  totals: BuildingTotals | null;
+  units: Unit[];
 };
 
 export type Unit = {
@@ -343,10 +358,14 @@ export type Unit = {
   unit_number: string;
   unit_type: string;
   status: UnitStatus;
+  floor: number | null;
   bedrooms: number | null;
   bathrooms: number | null;
   sqft: number | null;
   list_price: number | null;
+  /** What it actually closed for. Only meaningful once the status is sold. */
+  sold_price: number | null;
+  closed_at: string | null;
 };
 
 export type Subcontractor = {

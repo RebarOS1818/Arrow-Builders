@@ -64,6 +64,7 @@ export function RecordForm({
   disabled,
   disabledReason,
   edit,
+  subtle,
 }: {
   title: string;
   description?: string;
@@ -75,6 +76,12 @@ export function RecordForm({
   disabledReason?: string;
   /** Editing an existing record rather than adding one. Changes the icon only. */
   edit?: boolean;
+  /**
+   * An add that lives inside another record's card — a unit on a building.
+   * Solid navy is for the one primary act on a page; repeated inside every card
+   * in a grid it stops meaning "primary" and just means "loud".
+   */
+  subtle?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -158,6 +165,8 @@ export function RecordForm({
                 // deliberately not focusable, so this is the keyboard path, and
                 // focus makes it appear.
                 "size-8 justify-center bg-canvas text-ink-muted opacity-0 group-hover:opacity-100 hover:bg-line hover:text-ink focus-visible:opacity-100 aria-expanded:opacity-100"
+              : subtle
+              ? "bg-canvas px-3 py-1.5 text-xs text-ink-muted hover:bg-line hover:text-ink"
               : // Adding is the primary act on a page and keeps the solid navy.
                 "bg-brand-600 px-4 py-2.5 text-sm text-white hover:bg-brand-700",
           )}

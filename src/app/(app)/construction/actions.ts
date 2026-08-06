@@ -345,3 +345,140 @@ export async function updateChangeOrder(data: FormData): Promise<ActionResult> {
     ["/construction"],
   );
 }
+
+/* ------------------------------------------------------------------ */
+/* Buildings and units                                                 */
+/* ------------------------------------------------------------------ */
+
+export async function createBuilding(data: FormData): Promise<ActionResult> {
+  const caller = await callerOrg();
+  if (!caller.ok) return caller;
+
+  const projectId = str(data, "project_id");
+  const name = str(data, "name");
+  if (!projectId) return { ok: false, error: "Which project?" };
+  if (!name) return { ok: false, error: "Give the building a number or a name." };
+
+  const { error } = await caller.db.from("buildings").insert({
+    org_id: caller.orgId,
+    project_id: projectId,
+    name,
+    building_type: str(data, "building_type") ?? "single_family",
+    status: str(data, "status") ?? "planned",
+    floors: num(data, "floors") ?? 1,
+    gross_sqft: num(data, "gross_sqft"),
+    permit_number: str(data, "permit_number"),
+    permit_issued_at: str(data, "permit_issued_at"),
+    notes: str(data, "notes") ?? "",
+  });
+
+  if (error) return { ok: false, error: readableError(error) };
+  revalidatePath(`/projects/${projectId}`);
+  return { ok: true };
+}
+
+export async function updateBuilding(data: FormData): Promise<ActionResult> {
+  const name = str(data, "name");
+  if (!name) return { ok: false, error: "The building needs a number or a name." };
+
+  const projectId = str(data, "project_id");
+  return updateOwned(
+    "buildings",
+    str(data, "id"),
+    {
+      name,
+      building_type: str(data, "building_type"),
+      status: str(data, "status"),
+      floors: num(data, "floors") ?? 1,
+      gross_sqft: num(data, "gross_sqft"),
+      permit_number: str(data, "permit_number"),
+      permit_issued_at: str(data, "permit_issued_at"),
+      completed_at: str(data, "completed_at"),
+    },
+    projectId ? [`/projects/${projectId}`] : [],
+  );
+}
+
+/**
+ * A unit.
+ *
+ * `project_id` is not taken from the form. The database has a trigger that
+ * makes a unit inherit its building's project, and sending one that disagrees
+ * would either be overwritten or rejected — so the building is the only parent
+ * asked for, and the rest follows from it.
+ */
+export async function createUnit(data: FormData): Promise<ActionResult> {
+  const caller = await callerOrg();
+  if (!caller.ok) return caller;
+
+  const buildingId = str(data, "building_id");
+  const unitNumber = str(data, "unit_number");
+  if (!buildingId) return { ok: false, error: "Which building?" };
+  if (!unitNumber) return { ok: false, error: "Give the unit a number." };
+
+  const { data: building } = await caller.db
+    .from("buildings")
+    .select("id, project_id")
+    .eq("id", buildingId)
+    .maybeSingle();
+  if (!building) return { ok: false, error: "That building no longer exists." };
+
+  const { error } = await caller.db.from("units").insert({
+    org_id: caller.orgId,
+    building_id: buildingId,
+    project_id: (building as { project_id: string }).project_id,
+    unit_number: unitNumber,
+    unit_type: str(data, "unit_type") ?? "",
+    status: str(data, "status") ?? "planned",
+    floor: num(data, "floor"),
+    bedrooms: num(data, "bedrooms"),
+    bathrooms: num(data, "bathrooms"),
+    sqft: num(data, "sqft"),
+    list_price: num(data, "list_price"),
+  });
+
+  if (error) {
+    // The unique index on (building_id, unit_number) is the likeliest failure,
+    // and "duplicate key" is not what somebody typing "101" needs to read.
+    if (error.code === "23505") {
+      return { ok: false, error: `Unit ${unitNumber} already exists in this building.` };
+    }
+    return { ok: false, error: readableError(error) };
+  }
+
+  revalidatePath(`/projects/${(building as { project_id: string }).project_id}`);
+  return { ok: true };
+}
+
+export async function updateUnit(data: FormData): Promise<ActionResult> {
+  const unitNumber = str(data, "unit_number");
+  if (!unitNumber) return { ok: false, error: "The unit needs a number." };
+
+  const status = str(data, "status");
+  const soldPrice = num(data, "sold_price");
+  // Sold is the one status that carries money. A sold unit with no figure is
+  // the case that quietly zeroes a building's revenue, so it is refused here
+  // rather than discovered in a total.
+  if (status === "sold" && soldPrice === null) {
+    return { ok: false, error: "A sold unit needs the price it closed at." };
+  }
+
+  const projectId = str(data, "project_id");
+  return updateOwned(
+    "units",
+    str(data, "id"),
+    {
+      unit_number: unitNumber,
+      unit_type: str(data, "unit_type") ?? "",
+      status,
+      floor: num(data, "floor"),
+      bedrooms: num(data, "bedrooms"),
+      bathrooms: num(data, "bathrooms"),
+      sqft: num(data, "sqft"),
+      list_price: num(data, "list_price"),
+      sold_price: soldPrice,
+      closed_at: str(data, "closed_at"),
+    },
+    projectId ? [`/projects/${projectId}`] : [],
+  );
+}
