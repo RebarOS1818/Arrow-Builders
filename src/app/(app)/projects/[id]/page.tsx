@@ -3,6 +3,11 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, CalendarDays, FileText } from "lucide-react";
 import { MapLink } from "@/components/phases/map-link";
 import { OpenOnClick } from "@/components/phases/open-on-click";
+import {
+  EditApprovalForm,
+  EditDocumentForm,
+  EditTaskForm,
+} from "@/components/phases/edit-forms";
 import { EditProjectForm } from "@/components/projects/new-project-form";
 import { ProjectCover } from "@/components/projects/project-cover";
 import { ProgressRing } from "@/components/ui/progress-ring";
@@ -106,13 +111,22 @@ export default async function ProjectDetailPage({
           <h2 className="font-semibold tracking-tight">Tasks ({projectTasks.length})</h2>
           <ul className="mt-3 divide-y divide-line">
             {projectTasks.map((task) => (
-              <li key={task.id} className="flex items-center gap-3 py-2.5">
-                <TradeDot trade={task.trade} />
-                <span className="flex-1 text-sm font-medium">{task.title}</span>
-                <span className="text-xs text-ink-muted">{TRADE_LABELS[task.trade]}</span>
-                <span className="w-24 text-right text-xs text-ink-subtle">
-                  {task.starts_at ? formatShortDate(task.starts_at) : "Unscheduled"}
-                </span>
+              <li key={task.id}>
+                {/* Every line on this page opens its own record. Reading a task
+                    here and having to find it again on another screen to change
+                    one date is the kind of trip nobody makes twice. */}
+                <OpenOnClick className="flex cursor-pointer items-center gap-3 py-2.5">
+                  <TradeDot trade={task.trade} />
+                  <span className="flex-1 text-sm font-medium">{task.title}</span>
+                  <span className="text-xs text-ink-muted">{TRADE_LABELS[task.trade]}</span>
+                  <span className="w-24 text-right text-xs text-ink-subtle">
+                    {task.starts_at ? formatShortDate(task.starts_at) : "Unscheduled"}
+                  </span>
+                  <EditTaskForm
+                    task={task}
+                    projects={projects.map((p) => ({ id: p.id, name: p.name }))}
+                  />
+                </OpenOnClick>
               </li>
             ))}
             {projectTasks.length === 0 && (
@@ -143,11 +157,21 @@ export default async function ProjectDetailPage({
             <h2 className="font-semibold tracking-tight">Open Approvals</h2>
             <ul className="mt-3 space-y-3">
               {projectApprovals.map((approval) => (
-                <li key={approval.id} className="flex items-baseline justify-between gap-3">
-                  <span className="text-sm font-medium">{approval.reference}</span>
-                  {approval.amount != null && (
-                    <span className="text-sm text-ink-muted">{formatCurrency(approval.amount)}</span>
-                  )}
+                <li key={approval.id}>
+                  <OpenOnClick className="flex cursor-pointer items-baseline justify-between gap-3">
+                    <span className="text-sm font-medium">{approval.reference}</span>
+                    <span className="flex items-baseline gap-2">
+                      {approval.amount != null && (
+                        <span className="text-sm text-ink-muted">
+                          {formatCurrency(approval.amount)}
+                        </span>
+                      )}
+                      <EditApprovalForm
+                        approval={approval}
+                        projects={projects.map((p) => ({ id: p.id, name: p.name }))}
+                      />
+                    </span>
+                  </OpenOnClick>
                 </li>
               ))}
               {projectApprovals.length === 0 && (
@@ -160,9 +184,15 @@ export default async function ProjectDetailPage({
             <h2 className="font-semibold tracking-tight">Documents</h2>
             <ul className="mt-3 space-y-3">
               {projectDocs.map((document) => (
-                <li key={document.id} className="flex items-center gap-2">
-                  <FileText className="size-4 shrink-0 text-ink-subtle" />
-                  <span className="truncate text-sm">{document.name}</span>
+                <li key={document.id}>
+                  <OpenOnClick className="flex cursor-pointer items-center gap-2">
+                    <FileText className="size-4 shrink-0 text-ink-subtle" />
+                    <span className="min-w-0 flex-1 truncate text-sm">{document.name}</span>
+                    <EditDocumentForm
+                      document={document}
+                      projects={projects.map((p) => ({ id: p.id, name: p.name }))}
+                    />
+                  </OpenOnClick>
                 </li>
               ))}
               {projectDocs.length === 0 && (

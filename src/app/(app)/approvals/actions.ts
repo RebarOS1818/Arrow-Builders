@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { callerOrg, readableError, type ActionResult } from "@/lib/forms";
+import { callerOrg, num, readableError, str, updateOwned, type ActionResult } from "@/lib/forms";
 import type { ApprovalStatus } from "@/lib/types";
 
 /**
@@ -35,4 +35,33 @@ export async function decideApproval(
 
   revalidatePath("/approvals");
   return { ok: true };
+}
+
+/**
+ * Correcting the item itself — its reference, type, amount or project.
+ *
+ * Separate from deciding it, and deliberately not able to set the status: a
+ * decision is an event with a decider, and letting an edit form flip it to
+ * "approved" would put a sign-off in the record that nobody made.
+ */
+export async function updateApproval(data: FormData): Promise<ActionResult> {
+  const reference = str(data, "reference");
+  if (!reference) return { ok: false, error: "Give the item a reference." };
+
+  const amount = num(data, "amount");
+  if (amount !== null && amount < 0) {
+    return { ok: false, error: "An amount cannot be negative." };
+  }
+
+  return updateOwned(
+    "approvals",
+    str(data, "id"),
+    {
+      reference,
+      kind: str(data, "kind"),
+      project_id: str(data, "project_id"),
+      amount,
+    },
+    ["/approvals", "/"],
+  );
 }
