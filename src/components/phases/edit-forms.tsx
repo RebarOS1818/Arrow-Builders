@@ -19,7 +19,7 @@ import {
 } from "@/app/(app)/construction/actions";
 import { updateTask } from "@/app/(app)/tasks/actions";
 import { updateDocument } from "@/app/(app)/documents/actions";
-import { DOCUMENT_CATEGORIES } from "@/lib/uploads";
+import { DOCUMENT_CATEGORIES, PARCEL_CATEGORIES } from "@/lib/uploads";
 import type {
   BidPackage,
   ChangeOrder,
@@ -591,20 +591,31 @@ export function EditDocumentForm({
       fields={[
         id(document.id),
         { name: "name", label: "Name", required: true, defaultValue: document.name, wide: true },
-        {
-          name: "project_id",
-          label: "Project",
-          type: "select",
-          required: true,
-          defaultValue: document.project_id,
-          options: projects.map((p) => ({ value: p.id, label: p.name })),
-        },
+        // A parcel's document has no project to move between, and the parcel
+        // itself is not a choice — you would be re-filing a survey against
+        // different land. So the picker only exists on the project side, and
+        // each side offers the categories that make sense for it.
+        ...(document.project_id
+          ? [
+              {
+                name: "project_id",
+                label: "Project",
+                type: "select" as const,
+                required: true,
+                defaultValue: document.project_id,
+                options: projects.map((p) => ({ value: p.id, label: p.name })),
+              },
+            ]
+          : []),
         {
           name: "category",
           label: "Category",
           type: "select",
           defaultValue: document.category,
-          options: DOCUMENT_CATEGORIES.map((c) => ({ value: c, label: c })),
+          options: (document.project_id ? DOCUMENT_CATEGORIES : PARCEL_CATEGORIES).map((c) => ({
+            value: c,
+            label: c,
+          })),
         },
       ]}
     />

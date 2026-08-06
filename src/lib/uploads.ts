@@ -16,3 +16,16 @@ export const DOCUMENT_CATEGORIES = [
   "Safety",
   "Invoices",
 ] as const;
+
+/**
+ * The drawings a parcel is assessed from, in the order they usually arrive.
+ *
+ * Separate from the project list because they are a different job: these are
+ * what you look at to decide whether to buy, not what accumulates once you are
+ * building. Each is a named slot on the property page, so an empty one is
+ * visibly a gap rather than an absence you have to notice.
+ */
+export const PARCEL_DRAWINGS = ["Survey", "Plot Plan", "Site Plan", "Sketch"] as const;
+
+/** Anything filed against a parcel that is not one of the four drawings. */
+export const PARCEL_CATEGORIES = [...PARCEL_DRAWINGS, "General"] as const;

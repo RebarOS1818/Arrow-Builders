@@ -56,7 +56,13 @@ export function NewProjectForm({
   );
 }
 
-export function EditProjectForm({ project }: { project: Project }) {
+export function EditProjectForm({
+  project,
+  properties = [],
+}: {
+  project: Project;
+  properties?: { id: string; name: string }[];
+}) {
   return (
     <RecordForm
       triggerLabel="Edit"
@@ -91,6 +97,19 @@ export function EditProjectForm({ project }: { project: Project }) {
           defaultValue: String(project.completion_pct),
           hint: "Percent, 0 to 100.",
         },
+        ...(properties.length > 0
+          ? [
+              {
+                name: "property_id",
+                label: "From property",
+                type: "select" as const,
+                options: properties.map((p) => ({ value: p.id, label: p.name })),
+                defaultValue: project.property_id ?? "",
+                hint: "The parcel this was built on. Carries its studies and pro formas across.",
+                wide: true,
+              },
+            ]
+          : []),
       ]}
     />
   );

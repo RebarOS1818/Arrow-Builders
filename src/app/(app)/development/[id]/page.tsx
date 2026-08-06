@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { Pill, StatusPill, humanise } from "@/components/phases/badges";
+import { PROPERTY_TYPE_OPTIONS } from "@/lib/pipeline";
 import { OpenOnClick } from "@/components/phases/open-on-click";
 import { MapLink, coordQuery, mapsQuery, mapsUrl } from "@/components/phases/map-link";
 import {
@@ -19,12 +20,16 @@ import {
   NewProFormaForm,
   NewStudyForm,
 } from "@/components/phases/forms";
+import { ParcelFiles } from "@/components/development/parcel-files";
+import { ParcelOutcome } from "@/components/development/parcel-outcome";
 import {
   getComparables,
   getConstraints,
   getOffers,
   getProFormas,
   getProperty,
+  getPropertyDocuments,
+  getPropertyOutcome,
   getStudies,
 } from "@/lib/data";
 import { formatCompactCurrency, formatCurrency, formatDate } from "@/lib/utils";
@@ -40,13 +45,16 @@ export default async function PropertyPage({
   const property = await getProperty(id);
   if (!property) notFound();
 
-  const [studies, constraints, proFormas, comparables, offers] = await Promise.all([
-    getStudies(id),
-    getConstraints(id),
-    getProFormas(id),
-    getComparables(id),
-    getOffers(id),
-  ]);
+  const [studies, constraints, proFormas, comparables, offers, files, outcome] =
+    await Promise.all([
+      getStudies(id),
+      getConstraints(id),
+      getProFormas(id),
+      getComparables(id),
+      getOffers(id),
+      getPropertyDocuments(id),
+      getPropertyOutcome(id),
+    ]);
 
   const priced = comparables.filter((c) => c.sale_price && c.lot_size_acres);
   // Per-acre is the comparison that works for raw land; per-sqft needs a building.
@@ -55,6 +63,38 @@ export default async function PropertyPage({
     : null;
   const impliedValue =
     avgPerAcre && property.lot_size_acres ? avgPerAcre * property.lot_size_acres : null;
+
+  // Only what has been filled in. A grid of eight dashes says nothing except
+  // that there is a grid, and it pushes the sections that do have content down
+  // the page.
+  const details: { label: string; value: string }[] = (
+    [
+      {
+        label: "Property type",
+        // The option's own label, not humanise() — that turns
+        // "multi_family_lot" into "Multi family lot" and loses the hyphen the
+        // term is always written with.
+        value:
+          PROPERTY_TYPE_OPTIONS.find((o) => o.value === property.property_type)?.label ?? null,
+      },
+      {
+        // Only when acres is missing. The strip above already carries the lot
+        // size, and 3.8 acres beside 165,528 sqft is the same fact printed
+        // twice in two units.
+        label: "Lot size (sqft)",
+        value:
+          !property.lot_size_acres && property.lot_size_sqft
+            ? `${property.lot_size_sqft.toLocaleString()} sqft`
+            : null,
+      },
+      { label: "Units planned", value: property.total_units_planned?.toLocaleString() ?? null },
+      { label: "Hard cost budget", value: property.hard_cost_budget ? formatCurrency(property.hard_cost_budget) : null },
+      { label: "Acquired", value: property.acquisition_date ? formatDate(property.acquisition_date) : null },
+      { label: "Architect", value: property.architect || null },
+      { label: "Broker", value: property.broker || null },
+      { label: "Owner", value: property.owner_name || null },
+    ] satisfies { label: string; value: string | null }[]
+  ).flatMap((d) => (d.value ? [{ label: d.label, value: d.value }] : []));
 
   return (
     <div className="space-y-5">
@@ -106,6 +146,33 @@ export default async function PropertyPage({
         />
       </section>
 
+      {/* Details ---------------------------------------------------- */}
+      {/* The fields the edit form has always collected and the page has never
+          shown. Entering a broker and an architect into a form that then
+          displays neither is how people conclude the app did not save them. */}
+      {details.length > 0 && (
+        <section className="card grid grid-cols-2 gap-x-4 gap-y-3 p-5 sm:grid-cols-3 lg:grid-cols-4">
+          {details.map((d) => (
+            <Stat key={d.label} label={d.label} value={d.value} />
+          ))}
+        </section>
+      )}
+
+      {/* What it became --------------------------------------------- */}
+      {outcome && <ParcelOutcome outcome={outcome} />}
+
+      {/* Drawings --------------------------------------------------- */}
+      <section>
+        <h2 className="text-lg font-semibold tracking-tight">Drawings &amp; documents</h2>
+        <p className="mt-1 text-sm text-ink-muted">
+          What the parcel is assessed from. Files live with the land, so they
+          survive the decision either way.
+        </p>
+        <div className="mt-3">
+          <ParcelFiles propertyId={property.id} documents={files} />
+        </div>
+      </section>
+
       {/* Feasibility ------------------------------------------------ */}
       <section>
         <div className="flex flex-wrap items-center justify-between gap-3">
@@ -153,6 +220,12 @@ export default async function PropertyPage({
             <NewConstraintForm propertyId={property.id} />
           </div>
           <ul className="card mt-3 divide-y divide-line">
+            {constraints.length === 0 && (
+              <li className="p-5 text-sm text-ink-muted">
+                Nothing recorded. Easements, floodplain, slope — anything that
+                takes buildable area off the parcel.
+              </li>
+            )}
             {constraints.map((c) => (
               <li key={c.id}>
                 <OpenOnClick className="flex cursor-pointer flex-wrap items-start gap-3 p-4 transition-colors hover:bg-canvas/60">
@@ -254,22 +327,30 @@ export default async function PropertyPage({
             <NewComparableForm propertyId={property.id} />
           </div>
           <div className="card mt-3 overflow-x-auto">
-            <table className="w-full min-w-lg text-sm">
-              <thead>
-                <tr className="text-left text-xs uppercase tracking-wider text-ink-subtle">
-                  <th className="px-5 py-3 font-semibold">Address</th>
-                  <th className="px-5 py-3 font-semibold">Sold</th>
-                  <th className="px-5 py-3 text-right font-semibold">Price</th>
-                  <th className="px-5 py-3 text-right font-semibold">Acres</th>
-                  <th className="px-5 py-3 text-right font-semibold">Per acre</th>
-                  <th className="px-5 py-3 text-right font-semibold">Distance</th>
-                  <th className="px-5 py-3 text-right font-semibold">Edit</th>
+            <table role="table" className="stacked-table w-full min-w-lg text-sm">
+              <thead role="rowgroup">
+                <tr role="row" className="text-left text-xs uppercase tracking-wider text-ink-subtle">
+                  <th role="columnheader" className="px-5 py-3 font-semibold">Address</th>
+                  <th role="columnheader" className="px-5 py-3 font-semibold">Sold</th>
+                  <th role="columnheader" className="px-5 py-3 text-right font-semibold">Price</th>
+                  <th role="columnheader" className="px-5 py-3 text-right font-semibold">Acres</th>
+                  <th role="columnheader" className="px-5 py-3 text-right font-semibold">Per acre</th>
+                  <th role="columnheader" className="px-5 py-3 text-right font-semibold">Distance</th>
+                  <th role="columnheader" className="px-5 py-3 text-right font-semibold">Edit</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-line">
+              <tbody role="rowgroup" className="divide-y divide-line">
+                {comparables.length === 0 && (
+                  <tr>
+                    <td colSpan={7} className="px-5 py-5 text-sm text-ink-muted">
+                      No comparable sales recorded. Without them the implied
+                      value above stays blank.
+                    </td>
+                  </tr>
+                )}
                 {comparables.map((c) => (
-                  <tr key={c.id}>
-                    <td className="px-5 py-3 font-medium">
+                  <tr role="row" key={c.id}>
+                    <td role="cell" className="px-5 py-3 font-medium">
                       {/* A comp is near the parcel by definition, so its own
                           city fills the gap when the row only carries a street. */}
                       {mapsQuery({ address: c.address, city: property.city }) ? (
@@ -293,24 +374,24 @@ export default async function PropertyPage({
                         "—"
                       )}
                     </td>
-                    <td className="px-5 py-3 text-ink-muted">
+                    <td role="cell" data-label="Sold" className="px-5 py-3 text-ink-muted">
                       {c.sale_date ? formatDate(c.sale_date) : "—"}
                     </td>
-                    <td className="px-5 py-3 text-right">
+                    <td role="cell" data-label="Price" className="px-5 py-3 text-right">
                       {c.sale_price ? formatCurrency(c.sale_price) : "—"}
                     </td>
-                    <td className="px-5 py-3 text-right text-ink-muted">
+                    <td role="cell" data-label="Acres" className="px-5 py-3 text-right text-ink-muted">
                       {c.lot_size_acres ?? "—"}
                     </td>
-                    <td className="px-5 py-3 text-right">
+                    <td role="cell" data-label="Per acre" className="px-5 py-3 text-right">
                       {c.sale_price && c.lot_size_acres
                         ? formatCompactCurrency(c.sale_price / c.lot_size_acres)
                         : "—"}
                     </td>
-                    <td className="px-5 py-3 text-right text-ink-muted">
+                    <td role="cell" data-label="Distance" className="px-5 py-3 text-right text-ink-muted">
                       {c.distance_miles ? `${c.distance_miles} mi` : "—"}
                     </td>
-                    <td className="px-5 py-3 text-right">
+                    <td role="cell" data-cell="action" className="px-5 py-3 text-right">
                       <EditComparableForm comparable={c} propertyId={property.id} />
                     </td>
                   </tr>
@@ -327,6 +408,11 @@ export default async function PropertyPage({
             <NewOfferForm propertyId={property.id} />
           </div>
           <ul className="card mt-3 divide-y divide-line">
+            {offers.length === 0 && (
+              <li className="p-5 text-sm text-ink-muted">
+                No offer made yet.
+              </li>
+            )}
             {offers.map((offer) => (
               <li key={offer.id}>
                 <OpenOnClick className="flex cursor-pointer flex-wrap items-start gap-3 p-4 transition-colors hover:bg-canvas/60">

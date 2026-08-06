@@ -52,7 +52,7 @@ export default async function ProjectsPage() {
             where there is only one. */}
         {projects.length > 0 && (
           <NewProjectForm
-            properties={properties.map((p) => ({ id: p.id, name: p.name }))}
+            properties={properties.map((p) => ({ id: p.id, name: p.address || p.name }))}
           />
         )}
       </div>
@@ -63,7 +63,7 @@ export default async function ProjectsPage() {
           title="No projects yet"
           action={
             <NewProjectForm
-              properties={properties.map((p) => ({ id: p.id, name: p.name }))}
+              properties={properties.map((p) => ({ id: p.id, name: p.address || p.name }))}
             />
           }
         >

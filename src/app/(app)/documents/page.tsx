@@ -1,4 +1,5 @@
 import { FileText } from "lucide-react";
+import Link from "next/link";
 import { Suspense } from "react";
 import { DocumentLink } from "@/components/documents/document-link";
 import { ClickableRow } from "@/components/phases/clickable-row";
@@ -74,7 +75,7 @@ export default async function DocumentsPage({
           <thead role="rowgroup">
             <tr role="row" className="border-b border-line text-left text-xs font-semibold text-ink-muted">
               <th role="columnheader" className="px-4 py-3">Name</th>
-              <th role="columnheader" className="px-4 py-3">Project</th>
+              <th role="columnheader" className="px-4 py-3">Belongs to</th>
               <th role="columnheader" className="px-4 py-3">Category</th>
               <th role="columnheader" className="px-4 py-3">Uploaded by</th>
               <th role="columnheader" className="px-4 py-3">Date</th>
@@ -92,8 +93,16 @@ export default async function DocumentsPage({
                     hasFile={Boolean(document.storage_path)}
                   />
                 </td>
-                <td role="cell" data-label="Project" className="px-4 py-3 text-ink-muted">
-                  {document.project.name}
+                {/* A parcel's survey belongs here too, and it has no project to
+                    name — so the column carries whichever the file hangs off. */}
+                <td role="cell" data-label="Belongs to" className="px-4 py-3 text-ink-muted">
+                  {document.owner ? (
+                    <Link href={document.owner.href} className="hover:text-brand-700">
+                      {document.owner.label}
+                    </Link>
+                  ) : (
+                    "—"
+                  )}
                 </td>
                 <td role="cell" data-label="Category" className="px-4 py-3">
                   <span className="rounded-full bg-canvas px-2 py-0.5 text-xs font-medium text-ink-muted">
