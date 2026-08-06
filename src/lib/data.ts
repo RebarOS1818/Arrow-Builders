@@ -85,13 +85,52 @@ async function withFallback<T>(
 
   try {
     const result = await query(db);
-    if (result !== null && result !== undefined) return result;
+    if (result !== null && result !== undefined) return byId(label, result);
     console.error(`[data] ${label} returned no result`);
     return blank(demo());
   } catch (error) {
     console.error(`[data] ${label} failed:`, error);
     return blank(demo());
   }
+}
+
+/**
+ * One row per primary key.
+ *
+ * Not defensive tidying — an invariant. A list of records cannot legitimately
+ * contain the same id twice, so a repeat is always a fault, and the only
+ * question is whether it is a visible one.
+ *
+ * It was not. Duplicate foreign keys made PostgREST join a parent embed twice
+ * and return every row two times, which on a list is odd enough to query and on
+ * a total is invisible: the approvals page read "$152,640 awaiting sign-off"
+ * against a real $76,320, and nothing on the screen disagreed with it. 0016
+ * drops the constraints that caused it; this makes sure the next one shows up
+ * in the log rather than in a number somebody trusts.
+ */
+function byId<T>(label: string, value: T): T {
+  if (!Array.isArray(value) || value.length === 0) return value;
+
+  const rows = value as unknown[];
+  const ids = new Set<string>();
+  for (const row of rows) {
+    const id = (row as { id?: unknown })?.id;
+    // Anything without a string id is not a record list — leave it alone.
+    if (typeof id !== "string") return value;
+    ids.add(id);
+  }
+  if (ids.size === rows.length) return value;
+
+  console.error(
+    `[data] ${label} returned ${rows.length} rows for ${ids.size} distinct ids — de-duplicated`,
+  );
+  const seen = new Set<string>();
+  return rows.filter((row) => {
+    const id = (row as { id: string }).id;
+    if (seen.has(id)) return false;
+    seen.add(id);
+    return true;
+  }) as T;
 }
 
 /**
