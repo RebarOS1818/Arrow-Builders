@@ -103,7 +103,10 @@ export default async function TasksPage({
               <th role="columnheader" className="px-4 py-3">Status</th>
               <th role="columnheader" className="px-4 py-3">Crew</th>
               <th role="columnheader" className="px-4 py-3 text-right">Scheduled</th>
-              <th role="columnheader" className="px-4 py-3 text-right">Edit</th>
+              <th role="columnheader" className="px-4 py-3 text-right">{/* The pencil column. Headed by nothing visible, because the
+                  control it heads is only there on hover — a column titled
+                  "Edit" above a blank strip reads as data that failed to
+                  load. The name survives for screen readers. */}<span className="sr-only">Edit</span></th>
             </tr>
           </thead>
           <tbody role="rowgroup" className="divide-y divide-line">

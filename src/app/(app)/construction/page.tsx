@@ -209,7 +209,7 @@ export default async function ConstructionPage() {
                     <td role="cell" data-label="Current" className="px-5 py-3 text-right font-semibold">
                       {formatCurrency(c.totals?.current_amount ?? c.original_amount)}
                     </td>
-                    <td role="cell" data-cell="action" className="px-5 py-3">
+                    <td role="cell" data-label="Status" className="px-5 py-3">
                       <span className="flex items-center gap-2">
                         <StatusPill kind="contract" value={c.status} />
                         <EditContractForm contract={c} />
@@ -334,10 +334,10 @@ export default async function ConstructionPage() {
                     {sorted.map((quote) => {
                       const overBudget = pkg.budget !== null && quote.amount > pkg.budget;
                       return (
-                        <li
-                          key={quote.id}
-                          className="flex flex-wrap items-center gap-3 py-2.5"
-                        >
+                        <li key={quote.id}>
+                          {/* Its own scope, so clicking a quote opens the quote
+                              rather than the package it sits inside. */}
+                          <OpenOnClick className="flex cursor-pointer flex-wrap items-center gap-3 py-2.5">
                           <div className="min-w-40 flex-1">
                             <div className="flex flex-wrap items-center gap-2">
                               <p className="text-sm font-medium">
@@ -367,6 +367,7 @@ export default async function ConstructionPage() {
                           >
                             {formatCurrency(quote.amount)}
                           </p>
+                          </OpenOnClick>
                         </li>
                       );
                     })}
