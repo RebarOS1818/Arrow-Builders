@@ -1,5 +1,6 @@
 "use client";
 
+import { PROPERTY_TYPE_OPTIONS, STAGE_OPTIONS } from "@/lib/pipeline";
 import { RecordForm, type Field } from "./record-form";
 import {
   updateComparable,
@@ -92,27 +93,39 @@ export function EditPropertyForm({ property }: { property: Property }) {
         id(property.id),
         { name: "name", label: "Name", required: true, defaultValue: property.name, wide: true },
         { name: "address", label: "Address", type: "address", defaultValue: property.address },
-        { name: "parcel_number", label: "Parcel number (APN)", defaultValue: property.parcel_number ?? "" },
-        { name: "city", label: "City", defaultValue: property.city },
-        { name: "state", label: "State", defaultValue: property.state },
-        { name: "lot_size_acres", label: "Lot size (acres)", type: "number", step: "0.01", defaultValue: n(property.lot_size_acres) },
-        { name: "zoning_code", label: "Zoning", defaultValue: property.zoning_code ?? "" },
-        { name: "asking_price", label: "Asking price", type: "money", defaultValue: n(property.asking_price) },
+        { name: "parcel_number", label: "APN", hint: "Assessor's parcel number.", defaultValue: property.parcel_number ?? "", tab: "Pre-Planning" },
+        { name: "city", label: "City", defaultValue: property.city, tab: "Pre-Planning" },
+        { name: "state", label: "State", defaultValue: property.state, tab: "Pre-Planning" },
+        {
+          name: "property_type",
+          label: "Property type",
+          type: "select",
+          defaultValue: property.property_type ?? "",
+          options: PROPERTY_TYPE_OPTIONS,
+          tab: "Pre-Planning",
+        },
+        { name: "lot_size_sqft", label: "Lot size (sqft)", type: "number", step: "1", defaultValue: n(property.lot_size_sqft), tab: "Pre-Planning" },
+        { name: "lot_size_acres", label: "Lot size (acres)", type: "number", step: "0.01", defaultValue: n(property.lot_size_acres), tab: "Pre-Planning" },
+        { name: "zoning_code", label: "Zoning", defaultValue: property.zoning_code ?? "", tab: "Pre-Planning" },
+        { name: "asking_price", label: "Asking price", type: "money", defaultValue: n(property.asking_price), tab: "Pre-Planning" },
+        { name: "architect", label: "Architect", defaultValue: property.architect ?? "", tab: "Pre-Planning" },
+
+        { name: "acquisition_date", label: "Acquisition date", type: "date", defaultValue: d(property.acquisition_date), tab: "Planning" },
+        { name: "hard_cost_budget", label: "Hard cost budget", type: "money", defaultValue: n(property.hard_cost_budget), tab: "Planning" },
+        { name: "total_units_planned", label: "Total units planned", type: "number", step: "1", defaultValue: n(property.total_units_planned), tab: "Planning" },
+        { name: "broker", label: "Broker", defaultValue: property.broker ?? "", tab: "Planning" },
+        { name: "owner_name", label: "Owner", defaultValue: property.owner_name ?? "", tab: "Planning" },
         {
           name: "status",
-          label: "Status",
+          label: "Acquisition status",
           type: "select",
           required: true,
           defaultValue: property.status,
-          options: [
-            { value: "prospect", label: "Prospect" },
-            { value: "under_review", label: "Under review" },
-            { value: "under_contract", label: "Under contract" },
-            { value: "acquired", label: "Acquired" },
-            { value: "passed", label: "Passed" },
-          ],
+          options: STAGE_OPTIONS,
+          wide: true,
+          tab: "Planning",
         },
-        { name: "notes", label: "Notes", type: "textarea", defaultValue: property.notes },
+        { name: "notes", label: "Notes", type: "textarea", defaultValue: property.notes, tab: "Pre-Planning" },
       ]}
     />
   );

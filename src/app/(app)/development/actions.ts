@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { PIPELINE } from "@/lib/pipeline";
 import {
   bool,
   callerOrg,
@@ -43,9 +44,17 @@ export async function createProperty(data: FormData): Promise<ActionResult> {
     latitude: num(data, "address_latitude"),
     longitude: num(data, "address_longitude"),
     lot_size_acres: num(data, "lot_size_acres"),
+    lot_size_sqft: num(data, "lot_size_sqft"),
     zoning_code: str(data, "zoning_code"),
     asking_price: num(data, "asking_price"),
-    status: str(data, "status") ?? "prospect",
+    property_type: str(data, "property_type"),
+    total_units_planned: num(data, "total_units_planned"),
+    acquisition_date: str(data, "acquisition_date"),
+    hard_cost_budget: num(data, "hard_cost_budget"),
+    broker: str(data, "broker"),
+    owner_name: str(data, "owner_name"),
+    architect: str(data, "architect"),
+    status: str(data, "status") ?? "prospecting",
     notes: str(data, "notes") ?? "",
   });
 
@@ -200,13 +209,9 @@ export async function createOffer(data: FormData): Promise<ActionResult> {
   return { ok: true };
 }
 
-const PROPERTY_STATUSES = [
-  "prospect",
-  "under_review",
-  "under_contract",
-  "acquired",
-  "passed",
-] as const;
+// Derived from the pipeline rather than repeated: a stage added to the board
+// but not to this list is a drag that silently refuses to save.
+const PROPERTY_STATUSES = PIPELINE.map((s) => s.status);
 
 /**
  * Moving a property between board columns.
@@ -270,7 +275,7 @@ export async function updateProperty(data: FormData): Promise<ActionResult> {
       lot_size_acres: num(data, "lot_size_acres"),
       zoning_code: str(data, "zoning_code"),
       asking_price: num(data, "asking_price"),
-      status: str(data, "status") ?? "prospect",
+      status: str(data, "status") ?? "prospecting",
       notes: str(data, "notes") ?? "",
       // Only overwritten when the edit picked a suggestion; a hand-typed address
       // keeps whatever was already known rather than blanking it.

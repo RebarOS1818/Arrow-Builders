@@ -54,9 +54,11 @@ export const demoProperties: Property[] = [
     lot_size_acres: 12.4,
     zoning_code: "SF-2",
     asking_price: 2_150_000,
-    status: "under_review",
+    status: "pre_planning",
     notes: "Seller motivated; wants a 30-day close.",
     identified_at: "2025-04-02", latitude: null, longitude: null,
+    lot_size_sqft: null, property_type: null, total_units_planned: null,
+    acquisition_date: null, hard_cost_budget: null, broker: null, owner_name: null, architect: null,
   },
   {
     id: "prop-mill",
@@ -72,6 +74,8 @@ export const demoProperties: Property[] = [
     status: "under_contract",
     notes: "Feasibility period ends Aug 14.",
     identified_at: "2025-03-11", latitude: null, longitude: null,
+    lot_size_sqft: null, property_type: null, total_units_planned: null,
+    acquisition_date: null, hard_cost_budget: null, broker: null, owner_name: null, architect: null,
   },
   {
     id: "prop-quarry",
@@ -87,6 +91,8 @@ export const demoProperties: Property[] = [
     status: "passed",
     notes: "Passed: floodplain takes a third of the buildable area.",
     identified_at: "2025-02-20", latitude: null, longitude: null,
+    lot_size_sqft: null, property_type: null, total_units_planned: null,
+    acquisition_date: null, hard_cost_budget: null, broker: null, owner_name: null, architect: null,
   },
   {
     id: "prop-oak",
@@ -99,9 +105,11 @@ export const demoProperties: Property[] = [
     lot_size_acres: 3.8,
     zoning_code: "C-1",
     asking_price: 980_000,
-    status: "prospect",
+    status: "prospecting",
     notes: "Three adjacent lots; two owners approached so far.",
     identified_at: "2025-05-06", latitude: null, longitude: null,
+    lot_size_sqft: null, property_type: null, total_units_planned: null,
+    acquisition_date: null, hard_cost_budget: null, broker: null, owner_name: null, architect: null,
   },
 ];
 

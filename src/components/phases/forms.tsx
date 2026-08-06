@@ -1,5 +1,6 @@
 "use client";
 
+import { PROPERTY_TYPE_OPTIONS, STAGE_OPTIONS } from "@/lib/pipeline";
 import { RecordForm, type Field } from "./record-form";
 import {
   createComparable,
@@ -53,29 +54,42 @@ export function NewPropertyForm() {
       submitLabel="Add property"
       action={createProperty}
       fields={[
-        { name: "name", label: "Name", required: true, placeholder: "Cedar Hollow Tract", wide: true },
-        { name: "address", label: "Address", type: "address", placeholder: "4200 Cedar Hollow Rd" },
-        { name: "parcel_number", label: "Parcel number (APN)", placeholder: "R-114523" },
-        { name: "city", label: "City" },
-        { name: "state", label: "State", placeholder: "TX" },
-        { name: "lot_size_acres", label: "Lot size (acres)", type: "number", step: "0.01" },
-        { name: "zoning_code", label: "Zoning", placeholder: "SF-2" },
-        { name: "asking_price", label: "Asking price", type: "money" },
+        // Pre-Planning holds what is knowable while a parcel is still a
+        // candidate; Planning holds what only exists once it is being bought.
+        { name: "name", label: "Property name", required: true, placeholder: "9-11 Northbrook", wide: true, tab: "Pre-Planning" },
+        { name: "address", label: "Address", type: "address", placeholder: "4545 Kings Highway", wide: true, tab: "Pre-Planning" },
+        { name: "city", label: "City", tab: "Pre-Planning" },
+        { name: "state", label: "State", placeholder: "VA", tab: "Pre-Planning" },
+        { name: "parcel_number", label: "APN", hint: "Assessor's parcel number.", placeholder: "85698574", tab: "Pre-Planning" },
+        {
+          name: "property_type",
+          label: "Property type",
+          type: "select",
+          options: PROPERTY_TYPE_OPTIONS,
+          tab: "Pre-Planning",
+        },
+        { name: "lot_size_sqft", label: "Lot size (sqft)", type: "number", step: "1", tab: "Pre-Planning" },
+        { name: "lot_size_acres", label: "Lot size (acres)", type: "number", step: "0.01", hint: "Kept separately: a listing quotes one or the other.", tab: "Pre-Planning" },
+        { name: "zoning_code", label: "Zoning", placeholder: "R1", tab: "Pre-Planning" },
+        { name: "asking_price", label: "Asking price", type: "money", tab: "Pre-Planning" },
+        { name: "architect", label: "Architect", tab: "Pre-Planning" },
+        { name: "notes", label: "Notes", type: "textarea", tab: "Pre-Planning" },
+
+        { name: "acquisition_date", label: "Acquisition date", type: "date", tab: "Planning" },
+        { name: "hard_cost_budget", label: "Hard cost budget", type: "money", hint: "Construction, as against the asking price.", tab: "Planning" },
+        { name: "total_units_planned", label: "Total units planned", type: "number", step: "1", tab: "Planning" },
+        { name: "broker", label: "Broker", tab: "Planning" },
+        { name: "owner_name", label: "Owner", tab: "Planning" },
         {
           name: "status",
-          label: "Status",
+          label: "Acquisition status",
           type: "select",
           required: true,
-          defaultValue: "prospect",
-          options: [
-            { value: "prospect", label: "Prospect" },
-            { value: "under_review", label: "Under review" },
-            { value: "under_contract", label: "Under contract" },
-            { value: "acquired", label: "Acquired" },
-            { value: "passed", label: "Passed" },
-          ],
+          defaultValue: "prospecting",
+          options: STAGE_OPTIONS,
+          wide: true,
+          tab: "Planning",
         },
-        { name: "notes", label: "Notes", type: "textarea" },
       ]}
     />
   );
