@@ -744,9 +744,14 @@ export async function getBuildings(projectId?: string): Promise<BuildingWithTota
 
       // The view carries the counting and the money, so no page recomputes what
       // a building has sold.
-      const [{ data: totals }, { data: units }] = await Promise.all([
+      const [{ data: totals }, { data: units }, { data: documents }] = await Promise.all([
         db.from("building_totals").select("*").in("building_id", ids),
         db.from("units").select("*").in("building_id", ids).order("unit_number"),
+        db
+          .from("documents")
+          .select("*")
+          .in("building_id", ids)
+          .order("uploaded_at", { ascending: false }),
       ]);
 
       const totalsById = new Map(
@@ -762,10 +767,19 @@ export async function getBuildings(projectId?: string): Promise<BuildingWithTota
         unitsByBuilding.set(unit.building_id, list);
       }
 
+      const documentsByBuilding = new Map<string, DocumentRecord[]>();
+      for (const document of (documents as DocumentRecord[] | null) ?? []) {
+        if (!document.building_id) continue;
+        const list = documentsByBuilding.get(document.building_id) ?? [];
+        list.push(document);
+        documentsByBuilding.set(document.building_id, list);
+      }
+
       return buildings.map((b) => ({
         ...b,
         totals: totalsById.get(b.id) ?? null,
         units: unitsByBuilding.get(b.id) ?? [],
+        documents: documentsByBuilding.get(b.id) ?? [],
       }));
     },
     (): BuildingWithTotals[] =>
@@ -777,6 +791,7 @@ export async function getBuildings(projectId?: string): Promise<BuildingWithTota
           return {
             ...b,
             units,
+            documents: demoDocuments.filter((d) => d.building_id === b.id),
             totals: {
               unit_count: units.length,
               units_sold: sold.length,

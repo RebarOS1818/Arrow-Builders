@@ -45,12 +45,15 @@ const hidden = (name: string, value: string): Field => ({
   defaultValue: value,
 });
 
+/** A name to pick from a list. Parcels and people arrive in the same shape. */
+export type Choice = { id: string; name: string };
+
 /**
  * The fields a building carries, shared by the create and edit forms so the two
  * cannot drift — a create form that collects less than its editor is how a
  * record arrives half-empty and stays that way.
  */
-function buildingFields(building?: Building): Field[] {
+function buildingFields(links: BuildingLinks, building?: Building): Field[] {
   return [
     {
       name: "name",
@@ -94,10 +97,36 @@ function buildingFields(building?: Building): Field[] {
       type: "date",
       defaultValue: d(building?.permit_issued_at),
     },
+    // The parcel and the person. Both optional, and both blankable: a building
+    // whose manager has left says nothing rather than naming the wrong person.
+    {
+      name: "property_id",
+      label: "Parcel",
+      type: "select",
+      defaultValue: building?.property_id ?? "",
+      options: links.properties.map((p) => ({ value: p.id, label: p.name })),
+      hint: "Only worth setting when the project covers more than one parcel.",
+    },
+    {
+      name: "manager_id",
+      label: "Manager",
+      type: "select",
+      defaultValue: building?.manager_id ?? "",
+      options: links.team.map((m) => ({ value: m.id, label: m.name })),
+    },
   ];
 }
 
-export function NewBuildingForm({ projectId }: { projectId: string }) {
+/** The two records a building can point at, resolved by the page that draws it. */
+export type BuildingLinks = { properties: Choice[]; team: Choice[] };
+
+export function NewBuildingForm({
+  projectId,
+  links,
+}: {
+  projectId: string;
+  links: BuildingLinks;
+}) {
   return (
     <RecordForm
       triggerLabel="New building"
@@ -105,12 +134,18 @@ export function NewBuildingForm({ projectId }: { projectId: string }) {
       description="Units hang off a building, and the sales figures are counted from them."
       submitLabel="Add building"
       action={createBuilding}
-      fields={[hidden("project_id", projectId), ...buildingFields()]}
+      fields={[hidden("project_id", projectId), ...buildingFields(links)]}
     />
   );
 }
 
-export function EditBuildingForm({ building }: { building: Building }) {
+export function EditBuildingForm({
+  building,
+  links,
+}: {
+  building: Building;
+  links: BuildingLinks;
+}) {
   return (
     <RecordForm
       edit
@@ -121,7 +156,7 @@ export function EditBuildingForm({ building }: { building: Building }) {
       fields={[
         hidden("id", building.id),
         hidden("project_id", building.project_id),
-        ...buildingFields(building),
+        ...buildingFields(links, building),
         {
           name: "completed_at",
           label: "Completed",

@@ -76,10 +76,18 @@ export const demoProjects: Project[] = [
 ];
 
 let order = 0;
-const task = (t: Omit<Task, "org_id" | "sort_order" | "overdue"> & { overdue?: boolean }): Task => ({
+const task = (
+  t: Omit<Task, "org_id" | "sort_order" | "overdue" | "building_id"> & {
+    overdue?: boolean;
+    building_id?: string | null;
+  },
+): Task => ({
   org_id: DEMO_ORG.id,
   sort_order: order++,
   overdue: false,
+  // Most work is not building-specific, so naming one is the exception rather
+  // than something every row has to repeat.
+  building_id: null,
   ...t,
 });
 
@@ -148,7 +156,20 @@ export const demoCashFlow: CashFlowPoint[] = [
   { id: "cf-7", org_id: DEMO_ORG.id, period: "2025-08-08", inflow: 232_000, outflow: 158_000 },
 ];
 
-export const demoDocuments: DocumentRecord[] = [
+/**
+ * Which building a demo document is filed against, where one applies.
+ *
+ * Kept beside the rows rather than on them: a building is the exception, and
+ * repeating `building_id: null` eleven times would bury the two that have one.
+ * Only a project document can name a building, and only a building on that same
+ * project — which is the rule the composite foreign key enforces for real.
+ */
+const DOCUMENT_BUILDING: Record<string, string> = {
+  "d-1": "bl-1",
+  "d-4": "bl-1",
+};
+
+const documentsWithoutBuilding: Omit<DocumentRecord, "building_id">[] = [
   { id: "d-1", org_id: DEMO_ORG.id, storage_path: null, project_id: "p-riverside", property_id: null, name: "Riverside – Structural Set Rev C.pdf", category: "Drawings", size_kb: 18_420, uploaded_at: "2025-05-15T14:00:00-05:00", uploaded_by: "Marcus Webb" },
   { id: "d-2", org_id: DEMO_ORG.id, storage_path: null, project_id: "p-maple", property_id: null, name: "Foundation Pour Log 05-15.xlsx", category: "Field Reports", size_kb: 240, uploaded_at: "2025-05-15T18:30:00-05:00", uploaded_by: "Alicia Reyes" },
   { id: "d-3", org_id: DEMO_ORG.id, storage_path: null, project_id: "p-westgate", property_id: null, name: "Window Frame Submittal.pdf", category: "Submittals", size_kb: 6_180, uploaded_at: "2025-05-14T11:05:00-05:00", uploaded_by: "Priya Nair" },
@@ -164,6 +185,11 @@ export const demoDocuments: DocumentRecord[] = [
   { id: "d-10", org_id: DEMO_ORG.id, storage_path: null, project_id: null, property_id: "prop-oak", name: "Oakline – Preliminary Title Report.pdf", category: "General", size_kb: 760, uploaded_at: "2025-06-14T08:05:00-05:00", uploaded_by: "Jordan Mills" },
   { id: "d-11", org_id: DEMO_ORG.id, storage_path: null, project_id: null, property_id: "prop-cedar", name: "Cedar Hollow – Boundary Survey.pdf", category: "Survey", size_kb: 3_390, uploaded_at: "2025-04-22T13:00:00-05:00", uploaded_by: "Marcus Webb" },
 ];
+
+export const demoDocuments: DocumentRecord[] = documentsWithoutBuilding.map((document) => ({
+  ...document,
+  building_id: DOCUMENT_BUILDING[document.id] ?? null,
+}));
 
 /** Headline numbers are portfolio-wide and include projects outside the demo detail set. */
 export const demoMetrics = {

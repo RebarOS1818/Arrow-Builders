@@ -106,6 +106,9 @@ export function ScheduleBoard({
           crew_size: input.crewSize,
           overdue: false,
           sort_order: 1000 + prev.length,
+          // The board has no building picker, and a task made here belongs to
+          // the project rather than to one structure on it.
+          building_id: null,
           project: { id: input.projectId, name: project?.name ?? "Unknown project" },
         },
       ]);

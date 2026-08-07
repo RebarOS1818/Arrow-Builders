@@ -8,7 +8,7 @@ import { UploadDocument } from "@/components/documents/upload-document";
 import { ClearFilters } from "@/components/ui/clear-filters";
 import { EmptyState } from "@/components/ui/empty-state";
 import { FilterSelect } from "@/components/ui/filter-select";
-import { getDocuments, getProjects } from "@/lib/data";
+import { getBuildings, getDocuments, getProjects } from "@/lib/data";
 import { formatDate } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -23,7 +23,19 @@ export default async function DocumentsPage({
   searchParams: Promise<{ project?: string; category?: string }>;
 }) {
   const params = await searchParams;
-  const [documents, projects] = await Promise.all([getDocuments(), getProjects()]);
+  const [documents, projects, buildings] = await Promise.all([
+    getDocuments(),
+    getProjects(),
+    getBuildings(),
+  ]);
+
+  // Every building across the portfolio; the edit form narrows to the ones on
+  // the document's own project, which is the only set the database accepts.
+  const buildingChoices = buildings.map((b) => ({
+    id: b.id,
+    name: b.name,
+    project_id: b.project_id,
+  }));
 
   const categories = [...new Set(documents.map((d) => d.category))].sort();
   const projectFilter = params.project && params.project !== "all" ? params.project : null;
@@ -125,6 +137,7 @@ export default async function DocumentsPage({
                   <EditDocumentForm
                     document={document}
                     projects={projects.map((p) => ({ id: p.id, name: p.name }))}
+                    buildings={buildingChoices}
                   />
                 </td>
               </ClickableRow>

@@ -1,7 +1,14 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { callerOrg, readableError, str, updateOwned, type ActionResult } from "@/lib/forms";
+import {
+  buildingProblem,
+  callerOrg,
+  readableError,
+  str,
+  updateOwned,
+  type ActionResult,
+} from "@/lib/forms";
 
 const BUCKET = "documents";
 
@@ -196,6 +203,17 @@ export async function updateDocument(data: FormData): Promise<ActionResult> {
   const name = str(data, "name");
   if (!name) return { ok: false, error: "Give the document a name." };
 
+  // Same rule as a task's building, for the same composite foreign key: a
+  // building the picker did not offer is one the save would fail on, and an
+  // absent picker must not be read as a cleared one.
+  const buildingId = str(data, "building_id");
+  if (buildingId) {
+    const caller = await callerOrg();
+    if (!caller.ok) return caller;
+    const problem = await buildingProblem(caller.db, buildingId, str(data, "project_id"));
+    if (problem) return { ok: false, error: problem };
+  }
+
   return updateOwned(
     "documents",
     str(data, "id"),
@@ -203,6 +221,7 @@ export async function updateDocument(data: FormData): Promise<ActionResult> {
       name,
       category: str(data, "category") ?? "General",
       ...(str(data, "project_id") ? { project_id: str(data, "project_id") } : {}),
+      ...(data.has("building_id") ? { building_id: buildingId } : {}),
     },
     ["/documents"],
   );

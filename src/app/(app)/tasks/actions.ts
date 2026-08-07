@@ -1,7 +1,15 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { callerOrg, num, readableError, str, updateOwned, type ActionResult } from "@/lib/forms";
+import {
+  buildingProblem,
+  callerOrg,
+  num,
+  readableError,
+  str,
+  updateOwned,
+  type ActionResult,
+} from "@/lib/forms";
 
 export async function createTask(data: FormData): Promise<ActionResult> {
   const caller = await callerOrg();
@@ -51,11 +59,24 @@ export async function updateTask(data: FormData): Promise<ActionResult> {
     return { ok: false, error: "The end date is before the start date." };
   }
 
+  // The building picker is only drawn when the task's project has buildings, so
+  // a form that never showed it must not be read as one that cleared it. Hence
+  // `has` rather than the value: absent means leave alone, present-and-blank
+  // means unlink.
+  const buildingId = str(data, "building_id");
+  if (buildingId) {
+    const caller = await callerOrg();
+    if (!caller.ok) return caller;
+    const problem = await buildingProblem(caller.db, buildingId, str(data, "project_id"));
+    if (problem) return { ok: false, error: problem };
+  }
+
   return updateOwned(
     "tasks",
     str(data, "id"),
     {
       title,
+      ...(data.has("building_id") ? { building_id: buildingId } : {}),
       // A task can be moved to another project: unlike a quote's bid package,
       // this is a normal correction rather than a change of meaning.
       ...(str(data, "project_id") ? { project_id: str(data, "project_id") } : {}),

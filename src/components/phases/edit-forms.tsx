@@ -528,12 +528,40 @@ export function EditChangeOrderForm({ changeOrder }: { changeOrder: ChangeOrder 
 /* Tasks and documents                                                 */
 /* ------------------------------------------------------------------ */
 
+/**
+ * The buildings a record may be narrowed to.
+ *
+ * Only ever the ones on the record's own project: the database refuses a
+ * building from another project outright, and offering one would be a picker
+ * whose choices fail on save.
+ */
+function buildingField(
+  currentProjectId: string | null,
+  buildings: { id: string; name: string; project_id: string }[] | undefined,
+  defaultValue: string | null,
+): Field[] {
+  const options = (buildings ?? []).filter((b) => b.project_id === currentProjectId);
+  if (options.length === 0) return [];
+  return [
+    {
+      name: "building_id",
+      label: "Building",
+      type: "select",
+      defaultValue: defaultValue ?? "",
+      options: options.map((b) => ({ value: b.id, label: b.name })),
+      hint: "Optional. Clear it if you move this to another project.",
+    },
+  ];
+}
+
 export function EditTaskForm({
   task,
   projects,
+  buildings,
 }: {
   task: Task;
   projects: { id: string; name: string }[];
+  buildings?: { id: string; name: string; project_id: string }[];
 }) {
   return (
     <RecordForm
@@ -553,6 +581,7 @@ export function EditTaskForm({
           defaultValue: task.project_id,
           options: projects.map((p) => ({ value: p.id, label: p.name })),
         },
+        ...buildingField(task.project_id, buildings, task.building_id),
         { name: "trade", label: "Trade", type: "select", options: TRADES, defaultValue: task.trade },
         { name: "starts_at", label: "Starts", type: "date", defaultValue: d(task.starts_at) },
         { name: "ends_at", label: "Ends", type: "date", defaultValue: d(task.ends_at) },
@@ -578,9 +607,11 @@ export function EditTaskForm({
 export function EditDocumentForm({
   document,
   projects,
+  buildings,
 }: {
   document: DocumentRecord;
   projects: { id: string; name: string }[];
+  buildings?: { id: string; name: string; project_id: string }[];
 }) {
   return (
     <RecordForm
@@ -609,6 +640,9 @@ export function EditDocumentForm({
               },
             ]
           : []),
+        // A parcel document has no building either — buildings hang off a
+        // project, and this list is already empty for one.
+        ...buildingField(document.project_id, buildings, document.building_id),
         {
           name: "category",
           label: "Category",

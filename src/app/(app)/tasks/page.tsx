@@ -8,7 +8,7 @@ import { ClearFilters } from "@/components/ui/clear-filters";
 import { EmptyState } from "@/components/ui/empty-state";
 import { FilterSelect } from "@/components/ui/filter-select";
 import { TRADE_LABELS, TradeDot } from "@/components/ui/badge";
-import { getProjects, getTasks } from "@/lib/data";
+import { getBuildings, getProjects, getTasks } from "@/lib/data";
 import { cn, formatShortDate } from "@/lib/utils";
 import type { TaskStatus } from "@/lib/types";
 
@@ -37,7 +37,19 @@ export default async function TasksPage({
 }) {
   const params = await searchParams;
 
-  const [tasks, projects] = await Promise.all([getTasks(), getProjects()]);
+  const [tasks, projects, buildings] = await Promise.all([
+    getTasks(),
+    getProjects(),
+    getBuildings(),
+  ]);
+
+  // Every building across the portfolio; the edit form narrows to the ones on
+  // the task's own project, which is the only set the database accepts.
+  const buildingChoices = buildings.map((b) => ({
+    id: b.id,
+    name: b.name,
+    project_id: b.project_id,
+  }));
 
   const projectFilter = params.project && params.project !== "all" ? params.project : null;
   const statusFilter = params.status && params.status !== "all" ? params.status : null;
@@ -154,6 +166,7 @@ export default async function TasksPage({
                   <EditTaskForm
                     task={task}
                     projects={projects.map((p) => ({ id: p.id, name: p.name }))}
+                    buildings={buildingChoices}
                   />
                 </td>
               </ClickableRow>
