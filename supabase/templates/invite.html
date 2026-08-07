@@ -1,0 +1,175 @@
+<!--
+  Arrow Upscale Builders — invite email.
+
+  Paste into Supabase → Authentication → Emails → "Invite user".
+
+  Written the way email has to be written rather than the way the app is:
+  tables for layout, every colour and size inline, no flexbox and no external
+  stylesheet — Outlook renders with Word's engine and Gmail strips <style>
+  blocks from forwarded mail. The <style> block here therefore carries only
+  things that are an improvement when they work and no loss when they do not:
+  dark mode, and the phone breakpoint.
+
+  Template variables come from Supabase:
+    {{ .ConfirmationURL }}  the magic link, which lands on /invite/<token>
+    {{ .Data.invited_to }}  the organization, passed by sendInviteEmail
+    {{ .Data.invited_as }}  the role they will hold
+    {{ .Email }}            who it was addressed to
+-->
+<meta name="color-scheme" content="light dark" />
+<meta name="supported-color-schemes" content="light dark" />
+
+<style>
+  /*
+   * Dark mode. Apple Mail, iOS Mail and Outlook.com honour this; Gmail does its
+   * own partial inversion regardless, which is why the light palette below is
+   * already high-contrast rather than relying on this to rescue it.
+   */
+  @media (prefers-color-scheme: dark) {
+    .bg      { background-color: #14171f !important; }
+    .card    { background-color: #1c2029 !important; }
+    .ink     { color: #f2f4f8 !important; }
+    .muted   { color: #a9b1c1 !important; }
+    .subtle  { color: #8b93a5 !important; }
+    .rule    { border-color: #2c3341 !important; }
+    .well    { background-color: #232833 !important; }
+  }
+
+  @media (max-width: 480px) {
+    .pad     { padding-left: 22px !important; padding-right: 22px !important; }
+    .h1      { font-size: 22px !important; }
+    .btn a   { display: block !important; text-align: center !important; }
+  }
+</style>
+
+<div style="display:none;max-height:0;overflow:hidden;opacity:0;">
+  {{ .Data.invited_to }} has added you as {{ .Data.invited_as }}. One link and you are in.
+</div>
+
+<table role="presentation" class="bg" width="100%" cellpadding="0" cellspacing="0" border="0"
+       style="background-color:#e4e8f1;margin:0;padding:28px 12px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;">
+  <tr>
+    <td align="center">
+      <table role="presentation" class="card" width="600" cellpadding="0" cellspacing="0" border="0"
+             style="width:100%;max-width:600px;background-color:#ffffff;border-radius:20px;overflow:hidden;">
+
+        <!-- The brand band. The mark is a PNG because Outlook ignores SVG, and
+             the wordmark is live text beside it so a blocked image leaves the
+             sender's name legible rather than a broken frame — which is the one
+             place a phishing-wary reader looks. -->
+        <tr>
+          <td style="background-color:#344058;padding:26px 32px;">
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <td width="44" style="padding-right:12px;">
+                  <img src="https://arrow-builders.vercel.app/email-logo"
+                       width="44" height="44" alt="Arrow Upscale Builders"
+                       style="display:block;width:44px;height:44px;border:0;border-radius:12px;" />
+                </td>
+                <td>
+                  <div style="font-size:19px;font-weight:700;letter-spacing:-0.02em;color:#ffffff;line-height:1.15;">
+                    Arrow
+                  </div>
+                  <div style="font-size:10px;font-weight:600;letter-spacing:0.16em;color:#f6b037;text-transform:uppercase;padding-top:3px;">
+                    Upscale Builders
+                  </div>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+
+        <tr>
+          <td class="pad" style="padding:34px 32px 0 32px;">
+            <h1 class="h1 ink" style="margin:0;font-size:26px;line-height:1.22;font-weight:700;letter-spacing:-0.022em;color:#16181d;">
+              You have been added to {{ .Data.invited_to }}
+            </h1>
+            <p class="muted" style="margin:14px 0 0 0;font-size:15px;line-height:1.62;color:#5f6672;">
+              This is where the team runs its jobs — the schedule, the crew, the
+              budget and the paperwork that goes with them. Your account is
+              waiting. The link below sets your password and takes you straight
+              in.
+            </p>
+          </td>
+        </tr>
+
+        <!-- What they are agreeing to, stated rather than implied. An invite
+             somebody has to take on trust is one they forward to IT. -->
+        <tr>
+          <td class="pad" style="padding:22px 32px 0 32px;">
+            <table role="presentation" class="well" width="100%" cellpadding="0" cellspacing="0" border="0"
+                   style="background-color:#f4f6fb;border-radius:12px;">
+              <tr>
+                <td style="padding:14px 18px;">
+                  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                    <tr>
+                      <td class="subtle" style="font-size:13px;line-height:1.5;color:#6c7689;">Organization</td>
+                      <td class="ink" align="right" style="font-size:13px;line-height:1.5;font-weight:600;color:#16181d;">
+                        {{ .Data.invited_to }}
+                      </td>
+                    </tr>
+                    <tr>
+                      <td class="subtle" style="padding-top:6px;font-size:13px;line-height:1.5;color:#6c7689;">Your role</td>
+                      <td class="ink" align="right" style="padding-top:6px;font-size:13px;line-height:1.5;font-weight:600;color:#16181d;">
+                        {{ .Data.invited_as }}
+                      </td>
+                    </tr>
+                    <tr>
+                      <td class="subtle" style="padding-top:6px;font-size:13px;line-height:1.5;color:#6c7689;">Sent to</td>
+                      <td class="ink" align="right" style="padding-top:6px;font-size:13px;line-height:1.5;font-weight:600;color:#16181d;">
+                        {{ .Email }}
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+
+        <tr>
+          <td class="pad btn" style="padding:24px 32px 0 32px;">
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="width:auto;">
+              <tr>
+                <td style="background-color:#415376;border-radius:9999px;">
+                  <a href="{{ .ConfirmationURL }}"
+                     style="display:inline-block;padding:15px 30px;font-size:15px;font-weight:600;color:#ffffff;text-decoration:none;border-radius:9999px;">
+                    Accept the invitation
+                  </a>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+
+        <!-- The same link as text. A button is a link nobody can copy, forward
+             to the right address, or read before clicking. -->
+        <tr>
+          <td class="pad" style="padding:18px 32px 0 32px;">
+            <p class="subtle" style="margin:0;font-size:12px;line-height:1.5;color:#6c7689;">
+              Or paste this into your browser
+            </p>
+            <p style="margin:5px 0 0 0;font-size:12px;line-height:1.5;word-break:break-all;">
+              <a href="{{ .ConfirmationURL }}" style="color:#415376;">{{ .ConfirmationURL }}</a>
+            </p>
+          </td>
+        </tr>
+
+        <tr>
+          <td class="pad" style="padding:26px 32px 30px 32px;">
+            <div class="rule" style="border-top:1px solid #dbe0eb;padding-top:18px;">
+              <p class="subtle" style="margin:0;font-size:12px;line-height:1.6;color:#6c7689;">
+                Not expecting this? Nothing happens until the link is used — no
+                account is created and you can ignore this message.
+              </p>
+            </div>
+          </td>
+        </tr>
+      </table>
+
+      <p class="subtle" style="margin:16px 0 0 0;font-size:11px;line-height:1.5;color:#6c7689;">
+        Arrow Upscale Builders
+      </p>
+    </td>
+  </tr>
+</table>
