@@ -369,6 +369,10 @@ export async function createBuilding(data: FormData): Promise<ActionResult> {
     gross_sqft: num(data, "gross_sqft"),
     permit_number: str(data, "permit_number"),
     permit_issued_at: str(data, "permit_issued_at"),
+    // Both optional. `str` gives null for a blank select, which is what clears
+    // the link rather than storing an empty string the foreign key would reject.
+    property_id: str(data, "property_id"),
+    manager_id: str(data, "manager_id"),
     notes: str(data, "notes") ?? "",
   });
 
@@ -394,6 +398,11 @@ export async function updateBuilding(data: FormData): Promise<ActionResult> {
       permit_number: str(data, "permit_number"),
       permit_issued_at: str(data, "permit_issued_at"),
       completed_at: str(data, "completed_at"),
+      // Written unconditionally, so clearing the select clears the link. A
+      // spread-when-present would make these two fields the only ones on the
+      // form that cannot be unset.
+      property_id: str(data, "property_id"),
+      manager_id: str(data, "manager_id"),
     },
     projectId ? [`/projects/${projectId}`] : [],
   );

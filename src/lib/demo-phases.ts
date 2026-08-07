@@ -158,9 +158,9 @@ export const demoOffers: Offer[] = [
 const P = demoProjects;
 
 export const demoBuildings: Building[] = [
-  { id: "bl-1", project_id: P[0]!.id, name: "Building A", building_type: "multifamily", status: "under_construction", floors: 3, gross_sqft: 42000, permit_number: "BP-2025-0412", permit_issued_at: "2025-04-12", completed_at: null },
-  { id: "bl-2", project_id: P[0]!.id, name: "Building B", building_type: "multifamily", status: "permitting", floors: 3, gross_sqft: 42000, permit_number: null, permit_issued_at: null, completed_at: null },
-  { id: "bl-3", project_id: P[1]!.id, name: "Townhome Row 1", building_type: "townhome", status: "under_construction", floors: 2, gross_sqft: 18600, permit_number: "BP-2025-0388", permit_issued_at: "2025-03-28", completed_at: null },
+  { id: "bl-1", project_id: P[0]!.id, property_id: "prop-oak", manager_id: "u-alicia", name: "Building A", building_type: "multifamily", status: "under_construction", floors: 3, gross_sqft: 42000, permit_number: "BP-2025-0412", permit_issued_at: "2025-04-12", completed_at: null },
+  { id: "bl-2", project_id: P[0]!.id, property_id: "prop-oak", manager_id: "u-marcus", name: "Building B", building_type: "multifamily", status: "permitting", floors: 3, gross_sqft: 42000, permit_number: null, permit_issued_at: null, completed_at: null },
+  { id: "bl-3", project_id: P[1]!.id, property_id: null, manager_id: null, name: "Townhome Row 1", building_type: "townhome", status: "under_construction", floors: 2, gross_sqft: 18600, permit_number: "BP-2025-0388", permit_issued_at: "2025-03-28", completed_at: null },
 ];
 
 export const demoUnits: Unit[] = [

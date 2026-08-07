@@ -6,6 +6,33 @@ import { createClient } from "./supabase/server";
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
 
+/** The org-scoped client every action writes through. */
+type Db = NonNullable<Awaited<ReturnType<typeof createClient>>>;
+
+/**
+ * Why a building cannot be filed against this project, or null if it can.
+ *
+ * The composite foreign key on tasks and documents refuses the mismatch anyway,
+ * but it refuses it as "a linked record is missing", which is not what happened
+ * and not something anybody can act on. Checking here means the one case that
+ * actually occurs — moving a record to another project without clearing the
+ * building it named — reads as the instruction to clear it.
+ */
+export async function buildingProblem(
+  db: Db,
+  buildingId: string,
+  projectId: string | null,
+): Promise<string | null> {
+  const { data } = await db.from("buildings").select("project_id").eq("id", buildingId).maybeSingle();
+
+  const owner = (data as { project_id: string } | null)?.project_id;
+  if (!owner) return "That building no longer exists.";
+  if (projectId && owner !== projectId) {
+    return "That building is on another project. Clear the building first.";
+  }
+  return null;
+}
+
 /**
  * Resolves the caller's organization, or explains why it cannot.
  *

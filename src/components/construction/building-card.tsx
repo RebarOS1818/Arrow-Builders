@@ -1,6 +1,8 @@
+import { MapPin, UserRound } from "lucide-react";
 import { Pill, StatusPill, humanise } from "@/components/phases/badges";
 import { OpenOnClick } from "@/components/phases/open-on-click";
-import { EditBuildingForm, EditUnitForm, NewUnitForm } from "./building-forms";
+import { DocumentLink } from "@/components/documents/document-link";
+import { EditBuildingForm, EditUnitForm, NewUnitForm, type BuildingLinks } from "./building-forms";
 import { formatCompactCurrency, formatCurrency } from "@/lib/utils";
 import type { BuildingWithTotals, Unit } from "@/lib/types";
 
@@ -16,11 +18,22 @@ import type { BuildingWithTotals, Unit } from "@/lib/types";
  * unit closing moves them and nothing has to be remembered. A stored copy is a
  * second version of the truth, and it is always the copy that goes stale.
  */
-export function BuildingCard({ building }: { building: BuildingWithTotals }) {
+export function BuildingCard({
+  building,
+  links,
+}: {
+  building: BuildingWithTotals;
+  links: BuildingLinks;
+}) {
   const totals = building.totals;
   const sold = totals?.units_sold ?? 0;
   const count = totals?.unit_count ?? building.units.length;
   const soldShare = count > 0 ? (sold / count) * 100 : 0;
+
+  // Resolved against the same lists the form offers, so a link the picker can
+  // no longer show is one the card does not claim either.
+  const parcel = links.properties.find((p) => p.id === building.property_id);
+  const manager = links.team.find((m) => m.id === building.manager_id);
 
   return (
     <OpenOnClick className="card group flex cursor-pointer flex-col p-5 transition-shadow hover:shadow-lift">
@@ -40,9 +53,29 @@ export function BuildingCard({ building }: { building: BuildingWithTotals }) {
         </div>
         <span className="flex shrink-0 items-center gap-2">
           <StatusPill kind="build" value={building.status} />
-          <EditBuildingForm building={building} />
+          <EditBuildingForm building={building} links={links} />
         </span>
       </div>
+
+      {/* The parcel and the person, when there are any. Absent rather than
+          "Unassigned": an empty line for every building that has neither would
+          cost three cards' worth of height to say nothing. */}
+      {(parcel || manager) && (
+        <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-ink-muted">
+          {parcel && (
+            <span className="flex min-w-0 items-center gap-1">
+              <MapPin className="size-3.5 shrink-0 text-ink-subtle" />
+              <span className="truncate">{parcel.name}</span>
+            </span>
+          )}
+          {manager && (
+            <span className="flex min-w-0 items-center gap-1">
+              <UserRound className="size-3.5 shrink-0 text-ink-subtle" />
+              <span className="truncate">{manager.name}</span>
+            </span>
+          )}
+        </div>
+      )}
 
       {/* Sales. Shown even at zero: "none sold yet" on a building under
           construction is the expected state, and hiding it would make a
@@ -109,6 +142,27 @@ export function BuildingCard({ building }: { building: BuildingWithTotals }) {
             </li>
           ))}
         </ul>
+      )}
+
+      {/* Drawings and permits filed against this building rather than the
+          project at large. Only drawn when there are some — the place to add
+          one is the Documents page, and an empty heading here would suggest
+          otherwise. */}
+      {building.documents.length > 0 && (
+        <div className="mt-4 border-t border-line pt-3">
+          <h4 className="text-sm font-semibold">Documents</h4>
+          <ul className="mt-2 space-y-1.5 text-sm">
+            {building.documents.map((document) => (
+              <li key={document.id} className="min-w-0">
+                <DocumentLink
+                  id={document.id}
+                  name={document.name}
+                  hasFile={Boolean(document.storage_path)}
+                />
+              </li>
+            ))}
+          </ul>
+        </div>
       )}
     </OpenOnClick>
   );

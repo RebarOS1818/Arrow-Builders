@@ -54,6 +54,11 @@ export type Task = {
   crew_size: number;
   overdue: boolean;
   sort_order: number;
+  /**
+   * Optionally narrows the task to one building inside its own project. The
+   * database refuses a building on any other project.
+   */
+  building_id: string | null;
 };
 
 export type Milestone = {
@@ -100,6 +105,12 @@ export type DocumentRecord = {
   /** Exactly one of these is set. A document belongs to a project or a parcel. */
   project_id: string | null;
   property_id: string | null;
+  /**
+   * Narrows a project document to one building. Never set on a parcel document
+   * — a building document is a project document that also names the building,
+   * not a fourth kind of owner.
+   */
+  building_id: string | null;
   name: string;
   category: string;
   size_kb: number;
@@ -328,6 +339,16 @@ export type ChangeOrderReason =
 export type Building = {
   id: string;
   project_id: string;
+  /**
+   * The parcel it stands on.
+   *
+   * A building already reaches a parcel through its project, but only when the
+   * project has one — and a project assembled from several parcels has no single
+   * answer. This is the only place it is unambiguous.
+   */
+  property_id: string | null;
+  /** Who is running it. Null once that person leaves. */
+  manager_id: string | null;
   name: string;
   building_type: BuildingType;
   status: BuildStatus;
@@ -349,6 +370,8 @@ export type BuildingTotals = {
 export type BuildingWithTotals = Building & {
   totals: BuildingTotals | null;
   units: Unit[];
+  /** Project documents filed against this building. */
+  documents: DocumentRecord[];
 };
 
 export type Unit = {

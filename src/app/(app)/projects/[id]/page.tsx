@@ -22,6 +22,7 @@ import {
   getProjects,
   getProperties,
   getTasks,
+  getTeam,
 } from "@/lib/data";
 import { formatCurrency, formatDate, formatMillions, formatShortDate } from "@/lib/utils";
 
@@ -34,7 +35,7 @@ export default async function ProjectDetailPage({
 }) {
   const { id } = await params;
 
-  const [projects, tasks, milestones, documents, approvals, properties, buildings] =
+  const [projects, tasks, milestones, documents, approvals, properties, buildings, team] =
     await Promise.all([
       getProjects(),
       getTasks(),
@@ -43,10 +44,25 @@ export default async function ProjectDetailPage({
       getApprovals(),
       getProperties(),
       getBuildings(id),
+      getTeam(),
     ]);
 
   const project = projects.find((p) => p.id === id);
   if (!project) notFound();
+
+  // What a building can point at. Parcels are named by address where they have
+  // one, because "Oakline" means nothing to somebody holding a permit.
+  const links = {
+    properties: properties.map((p) => ({ id: p.id, name: p.address || p.name })),
+    team: team.map((m) => ({ id: m.id, name: m.full_name })),
+  };
+  // Only this project's, which is the only set the database will accept on a
+  // task or document filed here.
+  const buildingChoices = buildings.map((b) => ({
+    id: b.id,
+    name: b.name,
+    project_id: b.project_id,
+  }));
 
   const projectTasks = tasks.filter((t) => t.project_id === id);
   const projectMilestones = milestones.filter((m) => m.project_id === id);
@@ -129,6 +145,7 @@ export default async function ProjectDetailPage({
                   <EditTaskForm
                     task={task}
                     projects={projects.map((p) => ({ id: p.id, name: p.name }))}
+                    buildings={buildingChoices}
                   />
                 </OpenOnClick>
               </li>
@@ -195,6 +212,7 @@ export default async function ProjectDetailPage({
                     <EditDocumentForm
                       document={document}
                       projects={projects.map((p) => ({ id: p.id, name: p.name }))}
+                      buildings={buildingChoices}
                     />
                   </OpenOnClick>
                 </li>
@@ -217,7 +235,7 @@ export default async function ProjectDetailPage({
               them — nothing here is typed twice.
             </p>
           </div>
-          <NewBuildingForm projectId={project.id} />
+          <NewBuildingForm projectId={project.id} links={links} />
         </div>
         <div className="mt-3">
           {buildings.length === 0 ? (
@@ -225,7 +243,7 @@ export default async function ProjectDetailPage({
           ) : (
             <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-2 xl:grid-cols-3">
               {buildings.map((building) => (
-                <BuildingCard key={building.id} building={building} />
+                <BuildingCard key={building.id} building={building} links={links} />
               ))}
             </div>
           )}
