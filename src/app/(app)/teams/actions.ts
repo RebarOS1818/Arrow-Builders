@@ -90,7 +90,7 @@ export async function inviteMember(email: string, role: string): Promise<InviteR
 
   // Delivery is attempted after the row exists, so a mail failure never costs
   // the invite — the admin can still copy the link.
-  const delivery = await sendInviteEmail(trimmed, token, orgName);
+  const delivery = await sendInviteEmail(trimmed, token, orgName, role);
 
   revalidatePath("/teams");
   revalidatePath("/billing");
